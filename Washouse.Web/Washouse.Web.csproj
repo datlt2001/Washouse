@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Washouse.Common\Washouse.Common.csproj" />
+    <ProjectReference Include="..\Washouse.Data\Washouse.Data.csproj" />
+    <ProjectReference Include="..\Washouse.Model\Washouse.Model.csproj" />
+    <ProjectReference Include="..\Washouse.Service\Washouse.Service.csproj" />
+  </ItemGroup>
+
+</Project>
