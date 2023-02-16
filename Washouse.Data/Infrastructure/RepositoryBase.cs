@@ -1,149 +1,66 @@
-﻿
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Washouse.Data.Infrastructure
 {
-    public abstract class RepositoryBase<T> : IRepository<T> where T : class
+    public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class
     {
-        #region Properties
-        private WashouseDbContext dataContext;
-        private readonly IDbSet<T> dbSet;
+        public readonly DbSet<TEntity> _dbSet;
+        public WashouseDbContext _dbContext;
 
-        protected IDbFactory DbFactory
+        protected IDbFactory DbFactory = new DbFactory();
+        /*protected IDbFactory DbFactory
         {
             get;
             private set;
-        }
+        }*/
 
         protected WashouseDbContext DbContext
         {
-            get { return dataContext ?? (dataContext = DbFactory.Init()); }
+            get { return _dbContext ?? (_dbContext = this.DbFactory.Init()); }
+            //get { return _dbContext ?? (_dbContext = new WashouseDbContext()); }
         }
-        #endregion
-
-        protected RepositoryBase(IDbFactory dbFactory)
+        public RepositoryBase(IDbFactory dbFactory)
         {
+            _dbSet = DbContext.Set<TEntity>();
             DbFactory = dbFactory;
-            dbSet = (IDbSet<T>)DbContext.Set<T>();
         }
 
-        #region Implementation
-        public virtual T Add(T entity)
+        public DbSet<TEntity> Get()
         {
-            return dbSet.Add(entity);
+            return _dbSet;
         }
 
-        public virtual void Update(T entity)
+        public async Task<TEntity> GetById(long id)
         {
-            dbSet.Attach(entity);
-            dataContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            var data = await _dbSet.FindAsync(id);
+            return data;
         }
 
-        public virtual T Delete(T entity)
+        public async Task Add(TEntity entity)
         {
-            return dbSet.Remove(entity);
+            await _dbSet.AddAsync(entity);
         }
-        public virtual T Delete(int id)
+
+        public void Update(TEntity entity)
         {
-            var entity = dbSet.Find(id);
-            return dbSet.Remove(entity);
+            _dbSet.Attach(entity);
+            _dbContext.Entry(entity).State = EntityState.Modified;
         }
-        public virtual void DeleteMulti(Expression<Func<T, bool>> where)
+
+        public async Task Delete(long id)
         {
-            IEnumerable<T> objects = dbSet.Where<T>(where).AsEnumerable();
-            foreach (T obj in objects)
-                dbSet.Remove(obj);
+            var entity = await GetById(id);
+            _dbSet.Remove(entity);
         }
-
-        public virtual T GetSingleById(int id)
+        public async Task DeleteComplex(object firstKey, object secondKey)
         {
-            return dbSet.Find(id);
+            var entity = await _dbSet.FindAsync(firstKey, secondKey);
+            _dbSet.Remove(entity);
         }
-
-        public virtual IEnumerable<T> GetMany(Expression<Func<T, bool>> where, string includes)
-        {
-            return dbSet.Where(where).ToList();
-        }
-
-
-        public virtual int Count(Expression<Func<T, bool>> where)
-        {
-            return dbSet.Count(where);
-        }
-
-        public IEnumerable<T> GetAll(string[] includes = null)
-        {
-            //HANDLE INCLUDES FOR ASSOCIATED OBJECTS IF APPLICABLE
-            if (includes != null && includes.Count() > 0)
-            {
-                var query = dataContext.Set<T>().Include(includes.First());
-                foreach (var include in includes.Skip(1))
-                    query = query.Include(include);
-                return query.AsQueryable();
-            }
-
-            return dataContext.Set<T>().AsQueryable();
-        }
-
-        public T GetSingleByCondition(Expression<Func<T, bool>> expression, string[] includes = null)
-        {
-            if (includes != null && includes.Count() > 0)
-            {
-                var query = dataContext.Set<T>().Include(includes.First());
-                foreach (var include in includes.Skip(1))
-                    query = query.Include(include);
-                return query.FirstOrDefault(expression);
-            }
-            return dataContext.Set<T>().FirstOrDefault(expression);
-        }
-
-        public virtual IEnumerable<T> GetMulti(Expression<Func<T, bool>> predicate, string[] includes = null)
-        {
-            //HANDLE INCLUDES FOR ASSOCIATED OBJECTS IF APPLICABLE
-            if (includes != null && includes.Count() > 0)
-            {
-                var query = dataContext.Set<T>().Include(includes.First());
-                foreach (var include in includes.Skip(1))
-                    query = query.Include(include);
-                return query.Where<T>(predicate).AsQueryable<T>();
-            }
-
-            return dataContext.Set<T>().Where<T>(predicate).AsQueryable<T>();
-        }
-
-        public virtual IEnumerable<T> GetMultiPaging(Expression<Func<T, bool>> predicate, out int total, int index = 0, int size = 20, string[] includes = null)
-        {
-            int skipCount = index * size;
-            IQueryable<T> _resetSet;
-
-            //HANDLE INCLUDES FOR ASSOCIATED OBJECTS IF APPLICABLE
-            if (includes != null && includes.Count() > 0)
-            {
-                var query = dataContext.Set<T>().Include(includes.First());
-                foreach (var include in includes.Skip(1))
-                    query = query.Include(include);
-                _resetSet = predicate != null ? query.Where<T>(predicate).AsQueryable() : query.AsQueryable();
-            }
-            else
-            {
-                _resetSet = predicate != null ? dataContext.Set<T>().Where<T>(predicate).AsQueryable() : dataContext.Set<T>().AsQueryable();
-            }
-
-            _resetSet = skipCount == 0 ? _resetSet.Take(size) : _resetSet.Skip(skipCount).Take(size);
-            total = _resetSet.Count();
-            return _resetSet.AsQueryable();
-        }
-
-        public bool CheckContains(Expression<Func<T, bool>> predicate)
-        {
-            return dataContext.Set<T>().Count<T>(predicate) > 0;
-        }
-        #endregion
     }
 }

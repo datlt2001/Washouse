@@ -23,8 +23,10 @@ namespace Washouse.Model.Models
         public string CustomerEmail { get; set; }
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
+        [Required]
         public int CustomerId { get; set; }
-
+        [ForeignKey("CustomerId")]
+        public virtual Customer Customer { get; set; }
         public virtual Delivery Delivery { get; set; }
         public virtual IEnumerable<OrderDetail> OrderDetails { get; set; }
         public virtual IEnumerable<Tracking> Trackings { get; set; }

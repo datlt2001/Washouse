@@ -14,6 +14,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Washouse.Data;
+using Washouse.Data.Infrastructure;
+using Washouse.Data.Repositories;
+using Washouse.Service;
 
 namespace Washouse.Web
 {
@@ -38,6 +41,11 @@ namespace Washouse.Web
             services.AddDbContext<WashouseDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("WashouseDB")));
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IUnitOfWork, UnitOfWork>(); 
+            services.AddTransient<IDbFactory, DbFactory>(); 
+            services.AddTransient<ICenterService, CenterService>(); 
+            services.AddTransient<ICenterRepository, CenterRepository>(); 
+            //services.AddTransient<ISettingsService, SettingsService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

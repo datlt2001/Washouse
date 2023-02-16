@@ -42,5 +42,6 @@ namespace Washouse.Model.Models
         public virtual Center Center { get; set; }
 
         public virtual IEnumerable<ServicePrice> ServicePrices { get; set; }
+        public virtual ICollection<ServiceGallery> ServiceGalleries { get; set; }
     }
 }

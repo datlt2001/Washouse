@@ -33,5 +33,7 @@ namespace Washouse.Model.Models
         [ForeignKey("LocationId")]
         public virtual Location Location { get; set; }
         public virtual IEnumerable<Service> Services { get; set; }
+        public virtual ICollection<Staff> Staffs { get; set; }
+        public virtual ICollection<CenterGallery> CenterGalleries { get; set; }
     }
 }

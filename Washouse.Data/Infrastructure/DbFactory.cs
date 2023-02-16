@@ -8,6 +8,7 @@ namespace Washouse.Data.Infrastructure
 {
     public class DbFactory : Disposable, IDbFactory
     {
+
         WashouseDbContext dbContext;
 
         public WashouseDbContext Init()

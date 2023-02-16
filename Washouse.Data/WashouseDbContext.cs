@@ -19,7 +19,7 @@ namespace Washouse.Data
         public WashouseDbContext(DbContextOptions<WashouseDbContext> options) : base(options)
         {
         }
-
+        public virtual DbSet<Account> Accounts { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Center> Centers { get; set; }
         public virtual DbSet<Delivery> Deliveries { get; set; }

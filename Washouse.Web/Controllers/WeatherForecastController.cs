@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Washouse.Model.Models;
+using Washouse.Service;
 
 namespace Washouse.Web.Controllers
 {
@@ -11,6 +13,7 @@ namespace Washouse.Web.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
+        ICenterService _centerService;
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -18,12 +21,13 @@ namespace Washouse.Web.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, ICenterService centerService)
         {
             _logger = logger;
+            _centerService = centerService;
         }
 
-        [HttpGet]
+        /*[HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
             var rng = new Random();
@@ -34,6 +38,12 @@ namespace Washouse.Web.Controllers
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+        }*/
+
+        [HttpGet]
+        public IEnumerable<Center> Get()
+        {
+             return _centerService.GetAll();
         }
     }
 }
