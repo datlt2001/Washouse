@@ -35,7 +35,7 @@ namespace Washouse.Data.Infrastructure
             return _dbSet;
         }
 
-        public async Task<TEntity> GetById(long id)
+        public async Task<TEntity> GetById(int id)
         {
             var data = await _dbSet.FindAsync(id);
             return data;
@@ -44,15 +44,18 @@ namespace Washouse.Data.Infrastructure
         public async Task Add(TEntity entity)
         {
             await _dbSet.AddAsync(entity);
+            _dbContext.SaveChanges();
         }
 
-        public void Update(TEntity entity)
+        public async Task Update(TEntity entity)
         {
             _dbSet.Attach(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
+            //return entity;
         }
 
-        public async Task Delete(long id)
+        public async Task Delete(int id)
         {
             var entity = await GetById(id);
             _dbSet.Remove(entity);

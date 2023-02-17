@@ -48,6 +48,7 @@ namespace Washouse.Data
                    .Build();
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 optionsBuilder.UseSqlServer(connectionString);
+                optionsBuilder.EnableSensitiveDataLogging();
             }
         }
 

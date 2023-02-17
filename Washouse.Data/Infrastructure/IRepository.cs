@@ -11,13 +11,13 @@ namespace Washouse.Data.Infrastructure
     {
         DbSet<TEntity> Get();
 
-        Task<TEntity> GetById(long id);
+        Task<TEntity> GetById(int id);
 
         Task Add(TEntity entity);
 
-        void Update(TEntity entity);
+        Task Update(TEntity entity);
 
-        Task Delete(long id);
+        Task Delete(int id);
         Task DeleteComplex(object firstKey, object secondKey);
     }
 }

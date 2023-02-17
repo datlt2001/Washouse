@@ -44,7 +44,9 @@ namespace Washouse.Web
             services.AddTransient<IUnitOfWork, UnitOfWork>(); 
             services.AddTransient<IDbFactory, DbFactory>(); 
             services.AddTransient<ICenterService, CenterService>(); 
-            services.AddTransient<ICenterRepository, CenterRepository>(); 
+            services.AddTransient<ICenterRepository, CenterRepository>();
+            services.AddTransient<IServiceCategoryService, ServiceCategoryService>();
+            services.AddTransient<IServiceCategoryRepository, ServiceCategoryRepository>();
             //services.AddTransient<ISettingsService, SettingsService>();
         }
 

@@ -54,28 +54,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Washouse.Common\Washouse.Common.csproj">
-      <Project>{69918226-45c1-4557-beba-9376fab8d328}</Project>
-      <Name>Washouse.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Washouse.Data\Washouse.Data.csproj">
-      <Project>{2e8d37f1-2b89-4ca2-b4d2-479fe6a75ab2}</Project>
-      <Name>Washouse.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Washouse.Model\Washouse.Model.csproj">
-      <Project>{9f8db44c-9212-45de-a712-5d1679143df3}</Project>
-      <Name>Washouse.Model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Washouse.Service\Washouse.Service.csproj">
-      <Project>{1b8acf11-3896-4095-b584-9cec95cbf2ff}</Project>
-      <Name>Washouse.Service</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Washouse.Web\Washouse.Web.csproj">
-      <Project>{35d3edf7-360c-413c-91f6-ea0e9f455658}</Project>
-      <Name>Washouse.Web</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
