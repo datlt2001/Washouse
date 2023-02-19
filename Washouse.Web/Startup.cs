@@ -17,6 +17,9 @@ using Washouse.Data;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Service;
+using Washouse.Service.Implement;
+using Washouse.Service.Interface;
+using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web
 {
@@ -44,7 +47,10 @@ namespace Washouse.Web
             services.AddTransient<IUnitOfWork, UnitOfWork>(); 
             services.AddTransient<IDbFactory, DbFactory>(); 
             services.AddTransient<ICenterService, CenterService>(); 
-            services.AddTransient<ICenterRepository, CenterRepository>(); 
+            services.AddTransient<ICenterRepository, CenterRepository>();
+            services.AddTransient<IErrorService, ErrorService>();
+            services.AddTransient<IErrorRepository, ErrorRepository>();
+            services.AddTransient<ErrorLogger>();
             //services.AddTransient<ISettingsService, SettingsService>();
         }
 

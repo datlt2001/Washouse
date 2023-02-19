@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
 
-namespace Washouse.Service
+namespace Washouse.Service.Interface
 {
-    public interface ICenterService
+    public interface IErrorService
     {
-        IEnumerable<Center> GetAll();
+        Task Create(Error error);
+        void Save();
     }
 }
