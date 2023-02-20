@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Washouse.Service;
+using Washouse.Service.Interface;
 
 namespace Washouse.Web.Controllers
 {
@@ -39,11 +40,11 @@ namespace Washouse.Web.Controllers
             })
             .ToArray();
         }*/
-
+/*
         [HttpGet]
         public IEnumerable<Center> Get()
         {
-             return _centerService.GetAll();
-        }
+             return aw_centerService.GetAll();
+        }*/
     }
 }
