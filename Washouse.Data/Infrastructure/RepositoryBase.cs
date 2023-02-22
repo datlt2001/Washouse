@@ -46,10 +46,12 @@ namespace Washouse.Data.Infrastructure
             await _dbSet.AddAsync(entity);
         }
 
-        public void Update(TEntity entity)
+        public async Task Update(TEntity entity)
         {
             _dbSet.Attach(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
+            //return entity;
         }
 
         public async Task Delete(int id)

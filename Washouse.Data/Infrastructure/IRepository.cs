@@ -15,7 +15,7 @@ namespace Washouse.Data.Infrastructure
 
         Task Add(TEntity entity);
 
-        void Update(TEntity entity);
+        Task Update(TEntity entity);
 
         Task Delete(int id);
         Task DeleteComplex(object firstKey, object secondKey);
