@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿//using GoogleMaps.LocationServices;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -40,11 +41,11 @@ namespace Washouse.Web.Controllers
             })
             .ToArray();
         }*/
-/*
         [HttpGet]
-        public IEnumerable<Center> Get()
+        public ActionResult Get()
         {
-             return aw_centerService.GetAll();
-        }*/
+
+            return Ok();
+        }
     }
 }

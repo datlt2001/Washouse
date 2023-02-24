@@ -21,10 +21,14 @@ namespace Washouse.Service.Interface
 
         IEnumerable<Center> GetAllByCategoryPaging(int categoryId, int page, int pageSize, out int totalRow);
 
+        IEnumerable<Center> GetAllBySearchKeyPaging(string searchKey, int page, int pageSize, out int totalRow);
+
         Task<Center> GetById(int id);
 
         IEnumerable<Center> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow);
 
         void SaveChanges();
+        public Task DeactivateCenter(int id);
+        public Task ActivateCenter(int id);
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,6 +65,20 @@ namespace Washouse.Data.Infrastructure
         {
             var entity = await _dbSet.FindAsync(firstKey, secondKey);
             _dbSet.Remove(entity);
+        }
+
+        public virtual IEnumerable<TEntity> GetMulti(Expression<Func<TEntity, bool>> predicate, string[] includes = null)
+        {
+            //HANDLE INCLUDES FOR ASSOCIATED OBJECTS IF APPLICABLE
+            if (includes != null && includes.Count() > 0)
+            {
+                var query = _dbSet.Include(includes.First());
+                foreach (var include in includes.Skip(1))
+                    query = query.Include(include);
+                return query.Where<TEntity>(predicate).AsQueryable<TEntity>();
+            }
+
+            return _dbSet.Where<TEntity>(predicate).AsQueryable<TEntity>();
         }
     }
 }

@@ -69,5 +69,21 @@ namespace Washouse.Web.Controllers
                 return BadRequest();
             }
         }
+
+        [HttpGet("Search")]
+        public async Task<IActionResult> Search(string searchKey, int page, int pageSize)
+        {
+            int totalRow = 0;
+            try
+            {
+                var centerList = _centerService.GetAllBySearchKeyPaging(searchKey, page, pageSize, out totalRow);
+                return Ok(centerList);
+            }
+            catch (Exception ex)
+            {
+                await _errorLogger.LogErrorAsync(ex);
+                return BadRequest();
+            }
+        }
     }
 }
