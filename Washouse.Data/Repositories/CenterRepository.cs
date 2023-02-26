@@ -1,4 +1,5 @@
-﻿using System;
+﻿//using GoogleMaps.LocationServices;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,21 @@ namespace Washouse.Data.Repositories
     {
         public CenterRepository(IDbFactory dbFactory) : base(dbFactory)
         {
+        }
+
+        public Task ActivateCategory(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeactivateCategory(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Center> SortCenterByLocation()
+        {
+            return null;
         }
     }
 }

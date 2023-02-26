@@ -21,11 +21,6 @@ namespace Washouse.Service.Implement
             this._unitOfWork = unitOfWork;
         }
 
-        public Task Add(Center center)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IEnumerable<Center>> GetAll()
         {
             return _centerRepository.Get();
@@ -35,7 +30,13 @@ namespace Washouse.Service.Implement
         {
             throw new NotImplementedException();
         }
+        public IEnumerable<Center> GetAllBySearchKeyPaging(string searchKey, int page, int pageSize, out int totalRow)
+        {
+            var query = _centerRepository.GetMulti(x => x.Status && (x.CenterName.Contains(searchKey) || x.Alias.Contains(searchKey)));
+            totalRow = query.Count();
 
+            return query.Skip((page - 1) * pageSize).Take(pageSize);
+        }
         public IEnumerable<Center> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow)
         {
             throw new NotImplementedException();
@@ -51,6 +52,11 @@ namespace Washouse.Service.Implement
             return await _centerRepository.GetById(id);
         }
 
+        public Task Add(Center center)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SaveChanges()
         {
             throw new NotImplementedException();
@@ -58,6 +64,18 @@ namespace Washouse.Service.Implement
 
         public Task Update(Center center)
         {
+            throw new NotImplementedException();
+        }
+
+        public Task ActivateCenter(int id)
+        {
+            //await _centerRepository.ActivateCategory(id);
+            throw new NotImplementedException();
+        }
+
+        public Task DeactivateCenter(int id)
+        {
+            //await _centerRepository.DeactivateCenter(id);
             throw new NotImplementedException();
         }
     }

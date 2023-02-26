@@ -32,6 +32,7 @@ namespace Washouse.Data
         public virtual DbSet<Tracking> Trackings { get; set; }
         public virtual DbSet<Ward> Wards { get; set; }
         public virtual DbSet<Error> Errors { get; set; }
+        public virtual DbSet<CenterRequest> CenterRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

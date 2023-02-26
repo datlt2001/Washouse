@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    partial class WashouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230224041353_Add table CenterRequests")]
+    partial class AddtableCenterRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -216,80 +218,6 @@ namespace Washouse.Data.Migrations
                     b.HasIndex("CenterId");
 
                     b.ToTable("CenterGalleries");
-                });
-
-            modelBuilder.Entity("Washouse.Model.Models.CenterRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Alias")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CenterName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CenterRequestId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CenterRequesting")
-                        .HasColumnType("int");
-
-                    b.Property<TimeSpan?>("CloseTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("HotFlag")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("LocationId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MonthOff")
-                        .HasColumnType("int");
-
-                    b.Property<TimeSpan?>("OpenTime")
-                        .HasColumnType("time");
-
-                    b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("RequestStatus")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("WeekOff")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CenterRequestId");
-
-                    b.ToTable("CenterRequests");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Customer", b =>
@@ -775,15 +703,6 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Center");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.CenterRequest", b =>
-                {
-                    b.HasOne("Washouse.Model.Models.Center", "Center")
-                        .WithMany("CenterRequests")
-                        .HasForeignKey("CenterRequestId");
-
-                    b.Navigation("Center");
-                });
-
             modelBuilder.Entity("Washouse.Model.Models.Customer", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Account", "Account")
@@ -947,8 +866,6 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Center", b =>
                 {
                     b.Navigation("CenterGalleries");
-
-                    b.Navigation("CenterRequests");
 
                     b.Navigation("Services");
 

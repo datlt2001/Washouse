@@ -10,5 +10,9 @@ namespace Washouse.Data.Repositories
 {
     public interface ICenterRepository : IRepository<Center>
     {
+        IEnumerable<Center> SortCenterByLocation();
+        Task ActivateCategory(int id);
+
+        Task DeactivateCategory(int id);
     }
 }
