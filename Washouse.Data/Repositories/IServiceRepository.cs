@@ -10,5 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface IServiceRepository : IRepository<Service>
     {
+        Task DeactivateService(int id);
     }
 }

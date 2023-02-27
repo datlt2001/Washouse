@@ -33,6 +33,7 @@ namespace Washouse.Data
         public virtual DbSet<Ward> Wards { get; set; }
         public virtual DbSet<Error> Errors { get; set; }
         public virtual DbSet<CenterRequest> CenterRequests { get; set; }
+        public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,10 +45,15 @@ namespace Washouse.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfigurationRoot configuration = new ConfigurationBuilder()
+                /*IConfigurationRoot configuration = new ConfigurationBuilder()
                    .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                    .AddJsonFile("appsettings.json")
-                   .Build();
+                   .Build();*/
+
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                                   .SetBasePath(Directory.GetCurrentDirectory())
+                                   .AddJsonFile("appsettings.json")
+                                   .Build();
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 optionsBuilder.UseSqlServer(connectionString);
                 optionsBuilder.EnableSensitiveDataLogging();

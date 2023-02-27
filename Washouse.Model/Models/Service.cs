@@ -43,5 +43,6 @@ namespace Washouse.Model.Models
 
         public virtual IEnumerable<ServicePrice> ServicePrices { get; set; }
         public virtual ICollection<ServiceGallery> ServiceGalleries { get; set; }
+        public virtual ICollection<ServiceRequest> ServiceRequests { get; set; }
     }
 }

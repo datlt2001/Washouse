@@ -7,7 +7,7 @@ using Washouse.Service;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/serviceCategory")]
     [ApiController]
     public class ServiceCategoryController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace Washouse.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpGet("GetParentCategoryList")]
+        [HttpGet("getParentCategoryList")]
         public IActionResult GetParentCategoryList()
         {
             var categories = _serviceCategoryService.GetAllParentCategory();
@@ -42,7 +42,7 @@ namespace Washouse.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpGet("GetCategoryByParentId/{id}")]
+        [HttpGet("getCategoryByParentId/{id}")]
         public IActionResult GetCategoryByParentId(int id)
         {
             var categories =  _serviceCategoryService.GetCategoryByParentId(id);
@@ -50,7 +50,7 @@ namespace Washouse.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpPost("AddCategory")]
+        [HttpPost("addCategory")]
         public IActionResult Create(Category category)
         {
             if (ModelState.IsValid)
@@ -66,7 +66,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("UpdateCategory")]
+        [HttpPut("updateCategory")]
         public async Task<IActionResult> Update(Category category, int id) 
         {
             if(!ModelState.IsValid) { return BadRequest(); }
@@ -88,7 +88,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("DeactivateCategory/{id}")]
+        [HttpPut("deactivateCategory/{id}")]
         public async Task<IActionResult> DeactivateCategory(int id)
         {
             var category = await _serviceCategoryService.GetById(id);
@@ -100,7 +100,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("ActivateCategory/{id}")]
+        [HttpPut("activateCategory/{id}")]
         public async Task<IActionResult> ActivateCategory(int id)
         {
             var category = await _serviceCategoryService.GetById(id);

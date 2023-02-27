@@ -16,7 +16,7 @@ using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/account")]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -30,7 +30,7 @@ namespace Washouse.Web.Controllers
             this._accountService = accountService;
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public IActionResult Validate(LoginModel model)
         {
             //var user = _context.Accounts.SingleOrDefault(p =>
@@ -96,7 +96,7 @@ namespace Washouse.Web.Controllers
             return Ok(accounts);
         }
 
-        [HttpPost("AddAccount")]
+        [HttpPost("addAccount")]
         public IActionResult Create(Account account)
         {
             if (ModelState.IsValid)
@@ -112,7 +112,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("DeactivateAccount/{id}")]
+        [HttpPut("deactivateAccount/{id}")]
         public async Task<IActionResult> DeactivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
@@ -124,7 +124,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("ActivateAccount/{id}")]
+        [HttpPut("activateAccount/{id}")]
         public async Task<IActionResult> ActivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
@@ -136,7 +136,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("ChangePassword/{id}")]
+        [HttpPut("changePassword/{id}")]
         public async Task<IActionResult> ChangePassword(int id,string oldPass,string newPass)
         {
             var account = await _accountService.GetById(id);
@@ -168,7 +168,7 @@ namespace Washouse.Web.Controllers
         }
 
 
-        [HttpPut("ResetPassword/{id}")]
+        [HttpPut("resetPassword/{id}")]
         public async Task<IActionResult> ResetPassword(int id)
         {
             var account = await _accountService.GetById(id);

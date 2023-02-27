@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/googleMaps")]
     [ApiController]
     public class GoogleMapsController : ControllerBase
     {
-        [HttpGet("GetDistrictFromLatLong")]
+        [HttpGet("getDistrictFromLatLong")]
         public IActionResult GetDistrictFromLatLong(double latitude, double longitude)
         {
             Region result = new Region();

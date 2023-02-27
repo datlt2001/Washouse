@@ -12,7 +12,7 @@ using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/center")]
     [ApiController]
     public class CenterController : ControllerBase
     {
@@ -31,7 +31,7 @@ namespace Washouse.Web.Controllers
 
         #endregion
 
-        [Route("GetAll")]
+        [Route("getAll")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -70,7 +70,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpGet("Search")]
+        [HttpGet("search")]
         public async Task<IActionResult> Search(string searchKey, int page, int pageSize)
         {
             int totalRow = 0;

@@ -25,5 +25,7 @@ namespace Washouse.Service.Interface
         IEnumerable<Model.Models.Service> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow);
 
         void SaveChanges();
+
+        Task DeactivateService(int id);
     }
 }

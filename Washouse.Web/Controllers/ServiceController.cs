@@ -8,7 +8,9 @@ using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
-    public class ServiceController : Controller
+    [ApiController]
+    [Route("api/service")]
+    public class ServiceController : ControllerBase
     {
         #region Initialize
         private ICenterService _centerService;
@@ -25,7 +27,7 @@ namespace Washouse.Web.Controllers
         #endregion
 
         //[Route("GetServicesOfACenter")]
-        [HttpGet("GetServicesOfACenter/{id}")]
+        [HttpGet("getServicesOfACenter/{id}")]
         public async Task<IActionResult> GetServicesOfACenter(int id)
         {
             try
@@ -76,6 +78,27 @@ namespace Washouse.Web.Controllers
                 await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
+        }
+
+        [HttpPut("deactivateService/{id}")]
+        public async Task<IActionResult> DeactivateService(int id)
+        {
+
+            try
+            {
+                var service = await _serviceService.GetById(id);
+                if (service == null)
+                {
+                    return NotFound();
+                }
+                await _serviceService.DeactivateService(id);
+                return Ok();
+            } catch (Exception ex)
+            {
+                await _errorLogger.LogErrorAsync(ex);
+                return BadRequest();
+            }
+            
         }
     }
 }

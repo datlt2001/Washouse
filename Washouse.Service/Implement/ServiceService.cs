@@ -59,5 +59,10 @@ namespace Washouse.Service.Implement
         {
             throw new NotImplementedException();
         }
+
+        public async Task DeactivateService(int id)
+        {
+            await _serviceRepository.DeactivateService(id);
+        }
     }
 }
