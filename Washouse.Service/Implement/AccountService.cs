@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
+using Washouse.Service.Interface;
 
-namespace Washouse.Service
+namespace Washouse.Service.Implement
 {
     public class AccountService : IAccountService
     {

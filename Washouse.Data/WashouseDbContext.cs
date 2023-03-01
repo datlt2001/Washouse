@@ -33,6 +33,8 @@ namespace Washouse.Data
         public virtual DbSet<Ward> Wards { get; set; }
         public virtual DbSet<Error> Errors { get; set; }
         public virtual DbSet<CenterRequest> CenterRequests { get; set; }
+        public virtual DbSet<Customer> Customers { get; set; }
+        public virtual DbSet<Staff> Staffs { get; set; }
         public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
