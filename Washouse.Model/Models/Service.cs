@@ -30,7 +30,7 @@ namespace Washouse.Model.Models
         public string Image { get; set; }
         public decimal? Price { get; set; }
         public int TimeEstimate { get; set; }
-        public bool Status { get; set; }
+        public string Status { get; set; }
         public bool? HomeFlag { get; set; }
         public bool? HotFlag { get; set; }
         public decimal Rating { get; set; }

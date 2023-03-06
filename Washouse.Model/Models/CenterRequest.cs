@@ -14,9 +14,7 @@ namespace Washouse.Model.Models
     {
         [Key]
         public int Id { get; set; }
-
-        [Required]
-        public int CenterRequesting { get; set; }
+        public int? CenterRequesting { get; set; }
         [Required]
         public bool RequestStatus { get; set; }
 
@@ -29,7 +27,7 @@ namespace Washouse.Model.Models
         public TimeSpan? CloseTime { get; set; }
         public int? MonthOff { get; set; }
         public string WeekOff { get; set; }
-        public bool Status { get; set; }
+        public string Status { get; set; }
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
         public decimal Rating { get; set; }

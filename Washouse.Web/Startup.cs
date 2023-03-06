@@ -81,6 +81,8 @@ namespace Washouse.Web
             services.AddTransient<ErrorLogger>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IAccountRepository, AccountRepository>();
+            services.AddTransient<IServiceRequestService, ServiceRequestService>();
+            services.AddTransient<IServiceRequestRepository, ServiceRequestRepository>();
             //services.AddTransient<ISettingsService, SettingsService>();
         }
 

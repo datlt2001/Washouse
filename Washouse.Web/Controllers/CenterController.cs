@@ -7,6 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
+using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
 
@@ -78,6 +80,43 @@ namespace Washouse.Web.Controllers
             {
                 var centerList = _centerService.GetAllBySearchKeyPaging(searchKey, page, pageSize, out totalRow);
                 return Ok(centerList);
+            }
+            catch (Exception ex)
+            {
+                await _errorLogger.LogErrorAsync(ex);
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("createCenter")]
+        public async Task<IActionResult> CreateCenter([FromForm] CenterRequestModel centerRequestModel)
+        {
+            try
+            {
+                Center center = new Center();
+                if (ModelState.IsValid)
+                {
+                    center.Id = 0;
+                    center.CenterName = centerRequestModel.CenterName;
+                    center.CenterName = centerRequestModel.CenterName;
+                    center.CenterName = centerRequestModel.CenterName;
+                    center.CenterName = centerRequestModel.CenterName;
+                    /*if (!serviceRequest.PriceType)
+                    {
+                        serviceRequest.Price = serviceRequestmodel.Price;
+                    }
+                    serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
+                    serviceRequest.Status = "addRequest";
+                    serviceRequest.HomeFlag = false;
+                    serviceRequest.HotFlag = false;
+                    serviceRequest.Rating = 0;
+                    serviceRequest.CreatedDate = DateTime.Now;
+                    serviceRequest.UpdatedDate = DateTime.Now;
+                    serviceRequest.CenterId =*/
+                    var result = _centerService.Add(center);
+                    return Ok(result);
+                }
+                else { return BadRequest(); }
             }
             catch (Exception ex)
             {

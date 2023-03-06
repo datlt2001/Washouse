@@ -26,7 +26,7 @@ namespace Washouse.Model.Models
         public int? MonthOff { get; set; }
         public string WeekOff { get; set; }
         [Required]
-        public bool Status { get; set; }
+        public string Status { get; set; }
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
         public decimal Rating { get; set; }

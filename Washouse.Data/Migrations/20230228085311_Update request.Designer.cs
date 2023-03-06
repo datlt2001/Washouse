@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
@@ -11,9 +12,10 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    partial class WashouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230228085311_Update request")]
+    partial class Updaterequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,9 +178,8 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
@@ -241,7 +242,7 @@ namespace Washouse.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CenterRequesting")
+                    b.Property<int>("CenterRequesting")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan?>("CloseTime")
@@ -278,8 +279,8 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("RequestStatus")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
@@ -579,8 +580,8 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TimeEstimate")
                         .HasColumnType("int");
@@ -711,11 +712,11 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int?>("ServiceRequesting")
+                    b.Property<int>("ServiceRequesting")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TimeEstimate")
                         .HasColumnType("int");
@@ -874,7 +875,9 @@ namespace Washouse.Data.Migrations
                 {
                     b.HasOne("Washouse.Model.Models.Center", "Center")
                         .WithMany("CenterRequests")
-                        .HasForeignKey("CenterRequesting");
+                        .HasForeignKey("CenterRequesting")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Center");
                 });
@@ -995,7 +998,9 @@ namespace Washouse.Data.Migrations
                 {
                     b.HasOne("Washouse.Model.Models.Service", "Service")
                         .WithMany("ServiceRequests")
-                        .HasForeignKey("ServiceRequesting");
+                        .HasForeignKey("ServiceRequesting")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Service");
                 });

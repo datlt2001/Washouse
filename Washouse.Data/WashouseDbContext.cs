@@ -45,15 +45,20 @@ namespace Washouse.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                /*IConfigurationRoot configuration = new ConfigurationBuilder()
-                   .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-                   .AddJsonFile("appsettings.json")
-                   .Build();*/
-
-                IConfigurationRoot configuration = new ConfigurationBuilder()
+                IConfigurationRoot configuration;
+                if (Directory.Exists(Directory.GetCurrentDirectory()+ "/appsettings.json"))
+                {
+                    configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
                                    .Build();
+                } else
+                {
+                    configuration = new ConfigurationBuilder()
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                       .AddJsonFile("appsettings.json")
+                       .Build();
+                }
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 optionsBuilder.UseSqlServer(connectionString);
                 optionsBuilder.EnableSensitiveDataLogging();

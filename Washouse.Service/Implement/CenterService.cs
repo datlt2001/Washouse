@@ -32,7 +32,7 @@ namespace Washouse.Service.Implement
         }
         public IEnumerable<Center> GetAllBySearchKeyPaging(string searchKey, int page, int pageSize, out int totalRow)
         {
-            var query = _centerRepository.GetMulti(x => x.Status && (x.CenterName.Contains(searchKey) || x.Alias.Contains(searchKey)));
+            var query = _centerRepository.GetMulti(x => (x.Status == "active") && (x.CenterName.Contains(searchKey) || x.Alias.Contains(searchKey)));
             totalRow = query.Count();
 
             return query.Skip((page - 1) * pageSize).Take(pageSize);
@@ -52,9 +52,9 @@ namespace Washouse.Service.Implement
             return await _centerRepository.GetById(id);
         }
 
-        public Task Add(Center center)
+        public async Task Add(Center center)
         {
-            throw new NotImplementedException();
+            await _centerRepository.Add(center);
         }
 
         public void SaveChanges()

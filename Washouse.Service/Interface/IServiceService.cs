@@ -10,9 +10,9 @@ namespace Washouse.Service.Interface
     public interface IServiceService
     {
         Task<IEnumerable<Model.Models.Service>> GetAll();
-        Task Add(Model.Models.Service center);
+        Task Add(Model.Models.Service service);
 
-        Task Update(Model.Models.Service center);
+        Task Update(Model.Models.Service service);
 
         //Task Delete(int id);
 
