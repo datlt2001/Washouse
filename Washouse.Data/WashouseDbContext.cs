@@ -55,7 +55,7 @@ namespace Washouse.Data
                 } else
                 {
                     configuration = new ConfigurationBuilder()
-                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "/Washouse.Web")
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }
