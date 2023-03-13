@@ -1,28 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("OrderDetails")]
-    public class OrderDetail
+    public partial class OrderDetail
     {
-        //[Key]
-        //[Column(Order = 1)]
-        public int OrderId { get; set; }
+        public OrderDetail()
+        {
+            Feedbacks = new HashSet<Feedback>();
+        }
 
-        //[Key]
-        //[Column(Order = 2)]
+        public int Id { get; set; }
+        public string OrderId { get; set; }
         public int ServiceId { get; set; }
-
-        public int Quantity { set; get; }
-
-        public decimal Price { set; get; }
-
-        [ForeignKey("OrderId")]
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
 
         public virtual Order Order { get; set; }
-
-        [ForeignKey("ServiceId")]
         public virtual Service Service { get; set; }
+        public virtual ICollection<Feedback> Feedbacks { get; set; }
     }
 }

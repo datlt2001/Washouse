@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Washouse.Model.Abstract;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("Customers")]
-    public class Customer : Auditable
+    public partial class Customer : Auditable
     {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public int AccountId { get; set; }
-        [Required]
-        public string FullName { get; set; }
-        [Required]
-        public bool Status { get; set; }
-        [ForeignKey("AccountId")]
-        public virtual Account Account { get; set; }
+        public Customer()
+        {
+            Orders = new HashSet<Order>();
+        }
 
+        public int Id { get; set; }
+        public int? AccountId { get; set; }
+        public bool Status { get; set; }
+        public string Fullname { get; set; }
+        public string Phone { get; set; }
+        public int? Address { get; set; }
+        public string Email { get; set; }
+
+        public virtual Account Account { get; set; }
+        public virtual Location AddressNavigation { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

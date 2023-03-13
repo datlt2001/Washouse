@@ -1,26 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("Locations")]
-    public class Location
+    public partial class Location
     {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public string AddressString { get; set; }
-        [Required]
-        public int WardId { get; set; }
-        [ForeignKey("WardId")]
-        public virtual Ward Ward { get; set; }
-        public virtual IEnumerable<Center> Centers { get; set; }
-        public virtual IEnumerable<Delivery> Deliveries { get; set; }
+        public Location()
+        {
+            Accounts = new HashSet<Account>();
+            Centers = new HashSet<Center>();
+            Customers = new HashSet<Customer>();
+            Deliveries = new HashSet<Delivery>();
+        }
 
+        public int Id { get; set; }
+        public string AddressString { get; set; }
+        public int WardId { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+
+        public virtual Ward Ward { get; set; }
+        public virtual ICollection<Account> Accounts { get; set; }
+        public virtual ICollection<Center> Centers { get; set; }
+        public virtual ICollection<Customer> Customers { get; set; }
+        public virtual ICollection<Delivery> Deliveries { get; set; }
     }
 }

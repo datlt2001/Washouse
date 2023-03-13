@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("Districts")]
-    public class District
+    public partial class District
     {
-        [Key]
+        public District()
+        {
+            Wards = new HashSet<Ward>();
+        }
+
         public int Id { get; set; }
-        [Required]
         public string DistrictName { get; set; }
 
-        public virtual IEnumerable<Ward> Wards { get; set; }
+        public virtual ICollection<Ward> Wards { get; set; }
     }
 }

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using Washouse.Model.Abstract;
 
 #nullable disable
 
 namespace Washouse.Model.Models
 {
-    public partial class Tracking : Auditable
+    public partial class OrderAddition
     {
         public int Id { get; set; }
         public string OrderId { get; set; }
-        public string Status { get; set; }
+        public int AdditionId { get; set; }
+        public decimal Price { get; set; }
 
+        public virtual AdditionService Addition { get; set; }
         public virtual Order Order { get; set; }
     }
 }
