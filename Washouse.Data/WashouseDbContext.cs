@@ -909,7 +909,7 @@ namespace Washouse.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfigurationRoot configuration;
+                /*IConfigurationRoot configuration;
                 if (Directory.Exists(Directory.GetCurrentDirectory()+ "/appsettings.json"))
                 {
                     configuration = new ConfigurationBuilder()
@@ -923,7 +923,8 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }
-                var connectionString = configuration.GetConnectionString("WashouseDB");
+                var connectionString = configuration.GetConnectionString("WashouseDB");*/
+                var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
                 optionsBuilder.EnableSensitiveDataLogging();
             }
