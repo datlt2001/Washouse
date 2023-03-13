@@ -27,7 +27,7 @@ namespace Washouse.Service.Implement
 
         public async Task<IEnumerable<Model.Models.Service>> GetAll()
         {
-            return _serviceRepository.Get();
+            return await _serviceRepository.GetAll();
         }
 
         public IEnumerable<Model.Models.Service> GetAllByCategoryPaging(int categoryId, int page, int pageSize, out int totalRow)

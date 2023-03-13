@@ -23,7 +23,7 @@ namespace Washouse.Service.Implement
 
         public async Task<IEnumerable<Center>> GetAll()
         {
-            return _centerRepository.Get();
+            return await _centerRepository.GetAll();
         }
 
         public IEnumerable<Center> GetAllByCategoryPaging(int categoryId, int page, int pageSize, out int totalRow)

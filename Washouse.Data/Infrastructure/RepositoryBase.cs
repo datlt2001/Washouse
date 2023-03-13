@@ -36,6 +36,12 @@ namespace Washouse.Data.Infrastructure
             return _dbSet;
         }
 
+        public async Task<IEnumerable<TEntity>> GetAll()
+        {
+            var data = await _dbSet.ToListAsync();
+            return data;
+        }
+
         public async Task<TEntity> GetById(int id)
         {
             var data = await _dbSet.FindAsync(id);

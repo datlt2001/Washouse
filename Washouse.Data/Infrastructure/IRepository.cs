@@ -12,6 +12,8 @@ namespace Washouse.Data.Infrastructure
     {
         DbSet<TEntity> Get();
 
+        Task<IEnumerable<TEntity>> GetAll();
+
         Task<TEntity> GetById(int id);
 
         Task Add(TEntity entity);
