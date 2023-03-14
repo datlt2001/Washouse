@@ -910,9 +910,7 @@ namespace Washouse.Data
             if (!optionsBuilder.IsConfigured)
             {
                 IConfigurationRoot configuration;
-                string a = Directory.GetCurrentDirectory() + "\\appsettings.json";
-                string b = Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web";
-                if (Directory.Exists(Directory.GetCurrentDirectory() + "\\appsettings.json"))
+                /*if (Directory.Exists(Directory.GetCurrentDirectory() + "\\appsettings.json"))
                 {
                     configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
@@ -925,7 +923,11 @@ namespace Washouse.Data
                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                        .AddJsonFile("appsettings.json")
                        .Build();
-                }
+                }*/
+                configuration = new ConfigurationBuilder()
+                                   .SetBasePath(Directory.GetCurrentDirectory())
+                                   .AddJsonFile("appsettings.json")
+                                   .Build();
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
