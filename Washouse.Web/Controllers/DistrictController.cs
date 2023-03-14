@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
+using System.Collections.Generic;
+using Washouse.Model.ResponseModels;
 
 namespace Washouse.Web.Controllers
 {
@@ -30,7 +32,16 @@ namespace Washouse.Web.Controllers
             try
             {
                 var districtList = await _districtService.GetAll();
-                return Ok(districtList);
+                var response = new List<DistrictResponseModel>();
+                foreach (var district in districtList)
+                {
+                    response.Add(new DistrictResponseModel
+                    {
+                        DistrictID = district.Id,
+                        DistrictName = district.DistrictName
+                    });
+                }
+                return Ok(response);
             }
             catch (Exception ex)
             {
