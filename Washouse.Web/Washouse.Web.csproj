@@ -23,5 +23,9 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UploadedFile\" />
+  </ItemGroup>
+
 </Project>
 

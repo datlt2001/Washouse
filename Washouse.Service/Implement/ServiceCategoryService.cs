@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
+using Washouse.Service.Interface;
 
-namespace Washouse.Service
+namespace Washouse.Service.Implement
 {
     public class ServiceCategoryService : IServiceCategoryService
     {
@@ -13,13 +14,13 @@ namespace Washouse.Service
 
         public ServiceCategoryService(IServiceCategoryRepository ServiceCategoryRepository, IUnitOfWork unitOfWork)
         {
-            this._ServiceCategoryRepository = ServiceCategoryRepository;
-            this._unitOfWork = unitOfWork;
+            _ServiceCategoryRepository = ServiceCategoryRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task Add(Category ServiceCategory)
         {
-             await _ServiceCategoryRepository.Add(ServiceCategory);
+            await _ServiceCategoryRepository.Add(ServiceCategory);
         }
 
         //public Category Delete(long id)
@@ -51,17 +52,17 @@ namespace Washouse.Service
 
         public async Task<Category> GetById(int id)
         {
-           return await _ServiceCategoryRepository.GetById(id);
+            return await _ServiceCategoryRepository.GetById(id);
         }
 
         public IEnumerable<Category> GetCategoryByParentId(int id)
         {
-            return  _ServiceCategoryRepository.GetCategoryByParentId(id);
+            return _ServiceCategoryRepository.GetCategoryByParentId(id);
         }
 
         public IEnumerable<Category> GetAllParentCategory()
         {
-            return  _ServiceCategoryRepository.GetAllParentCategory();
+            return _ServiceCategoryRepository.GetAllParentCategory();
         }
 
         public async Task Update(Category ServiceCategory)

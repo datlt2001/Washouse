@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Washouse.Data;
 using Washouse.Model.Models;
 using Washouse.Service;
+using Washouse.Service.Interface;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers

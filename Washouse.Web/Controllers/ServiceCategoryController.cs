@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Washouse.Common.Helpers;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
-using Washouse.Service;
+using Washouse.Service.Interface;
+using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
@@ -51,15 +53,16 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("addCategory")]
-        public IActionResult Create(Category category)
+        public async Task<IActionResult> Create([FromForm]CategoryModel Input)
         {
             if (ModelState.IsValid)
             {
-                category.Id = 0;
-                category.CreatedDate = DateTime.Now;
-                category.UpdatedDate = DateTime.Now;
-                category.Status = false;
-                var categories = _serviceCategoryService.Add(category);
+                Input.category.Id = 0;
+                Input.category.CreatedDate = DateTime.Now;
+                Input.category.UpdatedDate = DateTime.Now;
+                Input.category.Status = false;
+                Input.category.Image =  await Utilities.UploadFile(Input.Image, @"images\categories", Input.Image.FileName);
+                var categories = _serviceCategoryService.Add(Input.category);
                 return Ok(categories);
             }
             else { return BadRequest(); }

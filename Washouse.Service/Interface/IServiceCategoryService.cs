@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 
-namespace Washouse.Service
+namespace Washouse.Service.Interface
 {
     public interface IServiceCategoryService
     {
