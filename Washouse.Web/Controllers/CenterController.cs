@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
+using Washouse.Model.ResponseModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
@@ -40,6 +41,27 @@ namespace Washouse.Web.Controllers
             try
             {
                 var centerList = await _centerService.GetAll();
+                var response = new List<CenterResponseModel>();
+                foreach (var center in centerList)
+                {
+                    response.Add(new CenterResponseModel
+                    {
+                        CenterId = center.Id,
+                        CenterName = center.CenterName,
+                        Alias = center.Alias,
+                        CenterAddress = center.Location.AddressString,
+                        CenterLocation = new CenterLocationResponseModel
+                        {
+                            Latitude = center.Location.Latitude,
+                            Longitude = center.Location.Longitude
+                        },
+                        CenterOperatingHours = new CenterOperatingHoursResponseModel
+                        {
+                            OpenTime = center.OpenTime,
+                            CloseTime = center.CloseTime
+                        },
+                    });
+                }
                 return Ok(centerList);
             }
             catch (Exception ex)

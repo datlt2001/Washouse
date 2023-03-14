@@ -24,11 +24,13 @@ namespace Washouse.Model.Models
         public string CenterName { get; set; }
         public string Alias { get; set; }
         public int LocationId { get; set; }
+        public string Phone { get; set; }
         public string Description { get; set; }
         public TimeSpan? OpenTime { get; set; }
         public TimeSpan? CloseTime { get; set; }
         public string MonthOff { get; set; }
         public string WeekOff { get; set; }
+        public bool IsAvailable { get; set; }
         public string Status { get; set; }
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
