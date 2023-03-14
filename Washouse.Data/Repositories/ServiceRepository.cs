@@ -20,7 +20,7 @@ namespace Washouse.Data.Repositories
             {
                 var service = this.DbContext.Services.SingleOrDefault(c => c.Id.Equals(id));
                 DbContext.Services.Attach(service);
-                service.Status = false;
+                service.Status = "unactive";
                 await DbContext.SaveChangesAsync();
             }
             catch (Exception ex)

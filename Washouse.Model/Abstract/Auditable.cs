@@ -11,10 +11,10 @@ namespace Washouse.Model.Abstract
     public abstract class Auditable : IAuditable
     {
         public DateTime? CreatedDate { get; set; }
-        [MaxLength(256)]
+        [MaxLength(50)]
         public string CreatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        [MaxLength(256)]
+        [MaxLength(50)]
         public string UpdatedBy { get; set; }
     }
 }

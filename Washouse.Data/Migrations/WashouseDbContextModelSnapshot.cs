@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
+#nullable disable
+
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
@@ -15,96 +17,184 @@ namespace Washouse.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.14")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .UseCollation("SQL_Latin1_General_CP1_CI_AS")
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("Washouse.Model.Models.Account", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<DateTime?>("Dob")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsResetPassword")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("datetime");
+
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("char(10)")
+                        .IsFixedLength();
 
                     b.Property<string>("ProfilePic")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("RoleType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("char(10)")
+                        .IsFixedLength();
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LocationId");
+
                     b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.AdditionService", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AdditionName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Alias")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal?>("MaxDistance")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("MaxWeight")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CenterId");
+
+                    b.ToTable("AdditionServices");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CategoryName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool?>("HomeFlag")
+                    b.Property<bool>("HomeFlag")
                         .HasColumnType("bit");
 
                     b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<int?>("ParentId")
                         .HasColumnType("int");
@@ -113,11 +203,12 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -128,60 +219,76 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CenterName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<TimeSpan?>("CloseTime")
                         .HasColumnType("time");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool?>("HotFlag")
                         .HasColumnType("bit");
 
                     b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MonthOff")
-                        .HasColumnType("int");
+                    b.Property<string>("MonthOff")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<TimeSpan?>("OpenTime")
                         .HasColumnType("time");
 
-                    b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal?>("Rating")
+                        .HasColumnType("decimal(2,1)");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("WeekOff")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -194,22 +301,26 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("CenterId")
                         .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
@@ -222,15 +333,18 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CenterName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("CenterRequesting")
                         .HasColumnType("int");
@@ -239,48 +353,61 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("time");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("HotFlag")
                         .HasColumnType("bit");
 
                     b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MonthOff")
-                        .HasColumnType("int");
+                    b.Property<string>("MonthOff")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<TimeSpan?>("OpenTime")
                         .HasColumnType("time");
 
-                    b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal?>("Rating")
+                        .HasColumnType("decimal(2,1)");
 
                     b.Property<bool>("RequestStatus")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("WeekOff")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -293,37 +420,58 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
-                    b.Property<int>("AccountId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Address")
                         .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("Email")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Fullname")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("char(10)")
+                        .IsFixedLength();
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique();
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("Address");
 
                     b.ToTable("Customers");
                 });
@@ -332,18 +480,21 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<DateTime>("DeliveryDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<TimeSpan?>("EstimatedTime")
                         .HasColumnType("time");
@@ -351,31 +502,43 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("ShipperName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ShipperPhone")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("char(10)")
+                        .IsFixedLength();
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Deliveries");
                 });
@@ -384,49 +547,87 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("DistrictName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Districts");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.Error", b =>
+            modelBuilder.Entity("Washouse.Model.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
-                    b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("OrderDetailId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("StackTrace")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReplyBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("ReplyDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("ReplyMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Errors");
+                    b.HasIndex("CenterId");
+
+                    b.HasIndex("OrderDetailId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Location", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("AddressString")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(12,9)");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(12,9)");
 
                     b.Property<int>("WardId")
                         .HasColumnType("int");
@@ -438,49 +639,103 @@ namespace Washouse.Data.Migrations
                     b.ToTable("Locations");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.Order", b =>
+            modelBuilder.Entity("Washouse.Model.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.NotificationAccount", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("NotificationId", "AccountId");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("NotificationAccounts");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Order", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CustomerAddress")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomerAddress")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CustomerEmail")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<string>("CustomerMessage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("CustomerMobile")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("char(10)")
+                        .IsFixedLength();
 
                     b.Property<string>("CustomerName")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int?>("ServiceId")
-                        .HasColumnType("int");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -489,13 +744,45 @@ namespace Washouse.Data.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
+            modelBuilder.Entity("Washouse.Model.Models.OrderAddition", b =>
                 {
-                    b.Property<int>("OrderId")
+                    b.Property<int>("Id")
                         .HasColumnType("int");
 
-                    b.Property<int>("ServiceId")
+                    b.Property<int>("AdditionId")
+                        .HasColumnType("int")
+                        .HasColumnName("additionId");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("orderId");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("price");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdditionId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderAdditions");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
+                {
+                    b.Property<int>("Id")
                         .HasColumnType("int");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -503,24 +790,238 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("OrderId", "ServiceId");
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("ServiceId");
 
                     b.ToTable("OrderDetails");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PromoCode")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PromoCode");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Post", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Thumbnail")
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(5,4)");
+
+                    b.Property<DateTime?>("ExpireDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int?>("UseTimes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CenterId");
+
+                    b.ToTable("Promotions");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Alias")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal?>("DryCapacity")
+                        .HasColumnType("decimal(7,3)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResourceName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal?>("WashCapacity")
+                        .HasColumnType("decimal(7,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CenterId");
+
+                    b.ToTable("Resourses");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Service", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -529,11 +1030,13 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -556,25 +1059,29 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(2,1)");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
-                    b.Property<int>("TimeEstimate")
+                    b.Property<int?>("TimeEstimate")
                         .HasColumnType("int");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -589,19 +1096,23 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
@@ -617,8 +1128,9 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<decimal>("MaxWeight")
                         .HasColumnType("decimal(18,2)");
@@ -643,23 +1155,29 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CenterId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -682,31 +1200,35 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(2,1)");
 
                     b.Property<bool>("RequestStatus")
                         .HasColumnType("bit");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("ServiceRequesting")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<int>("TimeEstimate")
                         .HasColumnType("int");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -719,8 +1241,9 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
@@ -729,24 +1252,28 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("IdBackImg")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("IdFrontImg")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("IdNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(12)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(12)");
 
                     b.Property<bool>("IsManager")
                         .HasColumnType("bit");
@@ -755,16 +1282,16 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique();
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("CenterId");
 
@@ -775,28 +1302,37 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -809,21 +1345,44 @@ namespace Washouse.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("DistrictId")
                         .HasColumnType("int");
 
                     b.Property<string>("WardName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DistrictId");
 
                     b.ToTable("Wards");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Account", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Location", "Location")
+                        .WithMany("Accounts")
+                        .HasForeignKey("LocationId")
+                        .HasConstraintName("FK_Accounts_Locations");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.AdditionService", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                        .WithMany("AdditionServices")
+                        .HasForeignKey("CenterId")
+                        .IsRequired()
+                        .HasConstraintName("FK_AdditionService_Centers");
+
+                    b.Navigation("Center");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Center", b =>
@@ -850,24 +1409,29 @@ namespace Washouse.Data.Migrations
 
             modelBuilder.Entity("Washouse.Model.Models.CenterRequest", b =>
                 {
-                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                    b.HasOne("Washouse.Model.Models.Center", "CenterRequestingNavigation")
                         .WithMany("CenterRequests")
                         .HasForeignKey("CenterRequesting")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Center");
+                    b.Navigation("CenterRequestingNavigation");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Customer", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Account", "Account")
-                        .WithOne("Customer")
-                        .HasForeignKey("Washouse.Model.Models.Customer", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Customers")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Washouse.Model.Models.Location", "AddressNavigation")
+                        .WithMany("Customers")
+                        .HasForeignKey("Address")
+                        .HasConstraintName("FK_Customers_Locations");
 
                     b.Navigation("Account");
+
+                    b.Navigation("AddressNavigation");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Delivery", b =>
@@ -879,14 +1443,31 @@ namespace Washouse.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Order", "Order")
-                        .WithOne("Delivery")
-                        .HasForeignKey("Washouse.Model.Models.Delivery", "OrderId")
+                        .WithMany("Deliveries")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Location");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Feedback", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("CenterId")
+                        .HasConstraintName("FK_Feedbacks_Centers");
+
+                    b.HasOne("Washouse.Model.Models.OrderDetail", "OrderDetail")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("OrderDetailId")
+                        .HasConstraintName("FK_Feedbacks_OrderDetails");
+
+                    b.Navigation("Center");
+
+                    b.Navigation("OrderDetail");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Location", b =>
@@ -900,6 +1481,36 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Ward");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.Notification", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Order", "Order")
+                        .WithMany("Notifications")
+                        .HasForeignKey("OrderId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Notifications_Orders");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.NotificationAccount", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Account", "Account")
+                        .WithMany("NotificationAccounts")
+                        .HasForeignKey("AccountId")
+                        .IsRequired()
+                        .HasConstraintName("FK_NotificationAccounts_Accounts");
+
+                    b.HasOne("Washouse.Model.Models.Notification", "Notification")
+                        .WithMany("NotificationAccounts")
+                        .HasForeignKey("NotificationId")
+                        .IsRequired()
+                        .HasConstraintName("FK_NotificationAccounts_Notifications");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Notification");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Order", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Customer", "Customer")
@@ -911,6 +1522,25 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.OrderAddition", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.AdditionService", "Addition")
+                        .WithMany("OrderAdditions")
+                        .HasForeignKey("AdditionId")
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderAdditions_AdditionService");
+
+                    b.HasOne("Washouse.Model.Models.Order", "Order")
+                        .WithMany("OrderAdditions")
+                        .HasForeignKey("OrderId")
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderAdditions_Orders");
+
+                    b.Navigation("Addition");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Order", "Order")
@@ -920,7 +1550,7 @@ namespace Washouse.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Service", "Service")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -930,10 +1560,61 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.Payment", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Payments_Orders");
+
+                    b.HasOne("Washouse.Model.Models.Promotion", "PromoCodeNavigation")
+                        .WithMany("Payments")
+                        .HasForeignKey("PromoCode")
+                        .HasConstraintName("FK_Payments_Promotions1");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("PromoCodeNavigation");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Post", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Account", "Author")
+                        .WithMany("Posts")
+                        .HasForeignKey("AuthorId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Posts_Accounts");
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Promotion", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                        .WithMany("Promotions")
+                        .HasForeignKey("CenterId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Promotions_Centers");
+
+                    b.Navigation("Center");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                        .WithMany("Resourses")
+                        .HasForeignKey("CenterId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Resourses_Centers");
+
+                    b.Navigation("Center");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Service", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Category", "Category")
-                        .WithMany()
+                        .WithMany("Services")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -973,25 +1654,24 @@ namespace Washouse.Data.Migrations
 
             modelBuilder.Entity("Washouse.Model.Models.ServiceRequest", b =>
                 {
-                    b.HasOne("Washouse.Model.Models.Service", "Service")
+                    b.HasOne("Washouse.Model.Models.Service", "ServiceRequestingNavigation")
                         .WithMany("ServiceRequests")
                         .HasForeignKey("ServiceRequesting")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Service");
+                    b.Navigation("ServiceRequestingNavigation");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Staff", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Account", "Account")
-                        .WithOne("Staff")
-                        .HasForeignKey("Washouse.Model.Models.Staff", "AccountId")
+                        .WithMany("staff")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Center", "Center")
-                        .WithMany("Staffs")
+                        .WithMany("staff")
                         .HasForeignKey("CenterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1025,20 +1705,42 @@ namespace Washouse.Data.Migrations
 
             modelBuilder.Entity("Washouse.Model.Models.Account", b =>
                 {
-                    b.Navigation("Customer");
+                    b.Navigation("Customers");
 
-                    b.Navigation("Staff");
+                    b.Navigation("NotificationAccounts");
+
+                    b.Navigation("Posts");
+
+                    b.Navigation("staff");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.AdditionService", b =>
+                {
+                    b.Navigation("OrderAdditions");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Category", b =>
+                {
+                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Center", b =>
                 {
+                    b.Navigation("AdditionServices");
+
                     b.Navigation("CenterGalleries");
 
                     b.Navigation("CenterRequests");
 
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("Promotions");
+
+                    b.Navigation("Resourses");
+
                     b.Navigation("Services");
 
-                    b.Navigation("Staffs");
+                    b.Navigation("staff");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Customer", b =>
@@ -1053,22 +1755,49 @@ namespace Washouse.Data.Migrations
 
             modelBuilder.Entity("Washouse.Model.Models.Location", b =>
                 {
+                    b.Navigation("Accounts");
+
                     b.Navigation("Centers");
+
+                    b.Navigation("Customers");
 
                     b.Navigation("Deliveries");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.Notification", b =>
+                {
+                    b.Navigation("NotificationAccounts");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Order", b =>
                 {
-                    b.Navigation("Delivery");
+                    b.Navigation("Deliveries");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("OrderAdditions");
 
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Trackings");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
+                {
+                    b.Navigation("Feedbacks");
+                });
+
+            modelBuilder.Entity("Washouse.Model.Models.Promotion", b =>
+                {
+                    b.Navigation("Payments");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Service", b =>
                 {
+                    b.Navigation("OrderDetails");
+
                     b.Navigation("ServiceGalleries");
 
                     b.Navigation("ServicePrices");

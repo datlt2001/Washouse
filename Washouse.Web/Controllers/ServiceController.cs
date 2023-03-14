@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
+using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
 
@@ -99,6 +102,45 @@ namespace Washouse.Web.Controllers
                 return BadRequest();
             }
             
+        }
+
+        [HttpPost("createService")]
+        public async Task<IActionResult> CreateService([FromForm] ServiceRequestModel serviceRequestmodel)
+        {
+            try
+            {
+                Model.Models.Service serviceRequest = new Model.Models.Service();
+                if (ModelState.IsValid)
+                {
+                    serviceRequest.Id = 0;
+                    serviceRequest.ServiceName = serviceRequestmodel.ServiceName;
+                    serviceRequest.Alias = serviceRequestmodel.Alias;
+                    serviceRequest.CategoryId = serviceRequestmodel.CategoryId;
+                    serviceRequest.Description = serviceRequestmodel.Description;
+                    serviceRequest.PriceType = serviceRequestmodel.PriceType;
+                    serviceRequest.Image = serviceRequestmodel.Image;
+                    if (!serviceRequest.PriceType)
+                    {
+                        serviceRequest.Price = serviceRequestmodel.Price;
+                    }
+                    serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
+                    serviceRequest.Status = "addRequest";
+                    serviceRequest.HomeFlag = false;
+                    serviceRequest.HotFlag = false;
+                    serviceRequest.Rating = 0;
+                    serviceRequest.CreatedDate = DateTime.Now;
+                    serviceRequest.UpdatedDate = DateTime.Now;
+                    //serviceRequest.CenterId = 
+                    var result = _serviceService.Add(serviceRequest);
+                    return Ok(result);
+                }
+                else { return BadRequest(); }
+            }
+            catch (Exception ex)
+            {
+                await _errorLogger.LogErrorAsync(ex);
+                return BadRequest();
+            }
         }
     }
 }

@@ -1,36 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Washouse.Model.Abstract;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("Accounts")]
-    public class Account : Auditable
+    public partial class Account : Auditable
     {
-        [Key]
+        public Account()
+        {
+            Customers = new HashSet<Customer>();
+            NotificationAccounts = new HashSet<NotificationAccount>();
+            Posts = new HashSet<Post>();
+            staff = new HashSet<Staff>();
+        }
+
         public int Id { get; set; }
-        [Required]
         public string Phone { get; set; }
         public string Email { get; set; }
-        [Required]
         public string Password { get; set; }
-        [Required]
         public string FullName { get; set; }
         public DateTime? Dob { get; set; }
-        [Required]
         public bool Status { get; set; }
-        [Required]
         public string RoleType { get; set; }
         public string ProfilePic { get; set; }
-        [Required]
+        public int? LocationId { get; set; }
         public bool IsResetPassword { get; set; }
-        //public virtual IEnumerable<Post> Posts { get; set; }
-        public virtual Staff Staff { get; set; }
-        public virtual Customer Customer { get; set; }
+        public DateTime? LastLogin { get; set; }
+
+        public virtual Location Location { get; set; }
+        public virtual ICollection<Customer> Customers { get; set; }
+        public virtual ICollection<NotificationAccount> NotificationAccounts { get; set; }
+        public virtual ICollection<Post> Posts { get; set; }
+        public virtual ICollection<Staff> staff { get; set; }
     }
 }

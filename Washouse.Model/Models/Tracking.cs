@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Washouse.Model.Abstract;
+
+#nullable disable
 
 namespace Washouse.Model.Models
 {
-    [Table("Trackings")]
-    public class Tracking : Auditable
+    public partial class Tracking : Auditable
     {
-        [Key]
         public int Id { get; set; }
-        [Required]
-        public int OrderId { get; set; }
-        [Required]
-        public bool Status { get; set; }
-        [ForeignKey("OrderId")]
+        public string OrderId { get; set; }
+        public string Status { get; set; }
+
         public virtual Order Order { get; set; }
     }
 }

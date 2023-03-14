@@ -20,14 +20,14 @@ namespace Washouse.Service.Implement
             this._serviceRepository = serviceRepository;
             this._unitOfWork = unitOfWork;
         }
-        public Task Add(Model.Models.Service center)
+        public async Task Add(Model.Models.Service service)
         {
-            throw new NotImplementedException();
+            await _serviceRepository.Add(service);
         }
 
         public async Task<IEnumerable<Model.Models.Service>> GetAll()
         {
-            return _serviceRepository.Get();
+            return await _serviceRepository.GetAll();
         }
 
         public IEnumerable<Model.Models.Service> GetAllByCategoryPaging(int categoryId, int page, int pageSize, out int totalRow)
@@ -55,7 +55,7 @@ namespace Washouse.Service.Implement
             throw new NotImplementedException();
         }
 
-        public Task Update(Model.Models.Service center)
+        public Task Update(Model.Models.Service service)
         {
             throw new NotImplementedException();
         }
