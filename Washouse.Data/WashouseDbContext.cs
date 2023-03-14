@@ -909,22 +909,25 @@ namespace Washouse.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                /*IConfigurationRoot configuration;
-                if (Directory.Exists(Directory.GetCurrentDirectory()+ "/appsettings.json"))
+                IConfigurationRoot configuration;
+                string a = Directory.GetCurrentDirectory() + "\\appsettings.json";
+                string b = Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web";
+                if (Directory.Exists(Directory.GetCurrentDirectory() + "\\appsettings.json"))
                 {
                     configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
                                    .Build();
-                } else
+                }
+                else
                 {
                     configuration = new ConfigurationBuilder()
-                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "/Washouse.Web")
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }
-                var connectionString = configuration.GetConnectionString("WashouseDB");*/
-                var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
+                var connectionString = configuration.GetConnectionString("WashouseDB");
+                //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
                 optionsBuilder.EnableSensitiveDataLogging();
             }
