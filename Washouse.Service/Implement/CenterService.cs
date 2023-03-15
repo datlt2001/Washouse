@@ -78,5 +78,6 @@ namespace Washouse.Service.Implement
             //await _centerRepository.DeactivateCenter(id);
             throw new NotImplementedException();
         }
+
     }
 }

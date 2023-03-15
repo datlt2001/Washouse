@@ -14,6 +14,7 @@ namespace Washouse.Model.Models
             CenterGalleries = new HashSet<CenterGallery>();
             CenterRequests = new HashSet<CenterRequest>();
             Feedbacks = new HashSet<Feedback>();
+            OperatingHours = new HashSet<OperatingHour>();
             Promotions = new HashSet<Promotion>();
             Resourses = new HashSet<Resourse>();
             Services = new HashSet<Service>();
@@ -26,8 +27,6 @@ namespace Washouse.Model.Models
         public int LocationId { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
-        public TimeSpan? OpenTime { get; set; }
-        public TimeSpan? CloseTime { get; set; }
         public string MonthOff { get; set; }
         public string WeekOff { get; set; }
         public bool IsAvailable { get; set; }
@@ -35,12 +34,14 @@ namespace Washouse.Model.Models
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
         public decimal? Rating { get; set; }
+        public int NumOfRating { get; set; }
 
         public virtual Location Location { get; set; }
         public virtual ICollection<AdditionService> AdditionServices { get; set; }
         public virtual ICollection<CenterGallery> CenterGalleries { get; set; }
         public virtual ICollection<CenterRequest> CenterRequests { get; set; }
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+        public virtual ICollection<OperatingHour> OperatingHours { get; set; }
         public virtual ICollection<Promotion> Promotions { get; set; }
         public virtual ICollection<Resourse> Resourses { get; set; }
         public virtual ICollection<Service> Services { get; set; }

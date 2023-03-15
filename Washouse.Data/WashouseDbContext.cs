@@ -336,6 +336,13 @@ namespace Washouse.Data
                     .HasConstraintName("FK_Customers_Locations");
             });
 
+            modelBuilder.Entity<DaysOfWeek>(entity =>
+            {
+                entity.Property(e => e.DayName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
             modelBuilder.Entity<Delivery>(entity =>
             {
                 entity.Property(e => e.CreatedBy)
@@ -477,6 +484,36 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.NotificationId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_NotificationAccounts_Notifications");
+            });
+
+            modelBuilder.Entity<OperatingHour>(entity =>
+            {
+                entity.HasKey(e => new { e.CenterId, e.DaysOfWeekId });
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Center)
+                    .WithMany(p => p.OperatingHours)
+                    .HasForeignKey(d => d.CenterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OperatingHours_Centers");
+
+                entity.HasOne(d => d.DaysOfWeek)
+                    .WithMany(p => p.OperatingHours)
+                    .HasForeignKey(d => d.DaysOfWeekId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OperatingHours_DaysOfWeeks");
             });
 
             modelBuilder.Entity<Order>(entity =>
@@ -936,6 +973,10 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
+                /*configuration = new ConfigurationBuilder()
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                       .AddJsonFile("appsettings.json")
+                       .Build();*/
                 configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")

@@ -1,4 +1,5 @@
 ﻿//using GoogleMaps.LocationServices;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,20 @@ namespace Washouse.Data.Repositories
         public IEnumerable<Center> SortCenterByLocation()
         {
             return null;
+        }
+
+        public new async Task<IEnumerable<Center>> GetAll()
+        {
+            var data = await this._dbContext.Centers
+                    .Include(center => center.Location)
+                        .ThenInclude(location => location.Ward)
+                            .ThenInclude(ward => ward.District)
+                    .Include(center => center.OperatingHours)
+                        .ThenInclude(oh => oh.DaysOfWeek)
+                    .Include(center => center.Services)
+                        .ThenInclude(service => service.Category)
+                    .ToListAsync(); ;
+            return data;
         }
     }
 }

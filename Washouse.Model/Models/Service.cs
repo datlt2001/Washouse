@@ -30,6 +30,7 @@ namespace Washouse.Model.Models
         public bool? HomeFlag { get; set; }
         public bool? HotFlag { get; set; }
         public decimal Rating { get; set; }
+        public int NumOfRating { get; set; }
         public int CenterId { get; set; }
 
         public virtual Category Category { get; set; }

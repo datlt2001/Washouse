@@ -28,7 +28,7 @@ namespace Washouse.Service.Interface
         IEnumerable<Center> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow);
 
         void SaveChanges();
-        public Task DeactivateCenter(int id);
-        public Task ActivateCenter(int id);
+        Task DeactivateCenter(int id);
+        Task ActivateCenter(int id);
     }
 }

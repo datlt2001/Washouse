@@ -42,27 +42,54 @@ namespace Washouse.Web.Controllers
             {
                 var centerList = await _centerService.GetAll();
                 var response = new List<CenterResponseModel>();
+                var centerServices = new List<CenterServiceResponseModel>();
+                var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                 foreach (var center in centerList)
                 {
+                    foreach (var service in center.Services)
+                    {
+                        var centerService = new CenterServiceResponseModel
+                        {
+                            ServiceCategoryID = service.CategoryId,
+                            ServiceCategoryName = service.Category.CategoryName
+                        };
+                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                    }
+                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
+                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
+                    //{
+                        foreach (var item in center.OperatingHours)
+                        {
+                            var centerOperatingHour = new CenterOperatingHoursResponseModel
+                            {
+                                Day = item.DaysOfWeek.DayName,
+                                OpenTime = item.OpenTime,
+                                CloseTime = item.CloseTime
+                            };
+                            centerOperatingHours.Add(centerOperatingHour);
+                        }
+                    //}
                     response.Add(new CenterResponseModel
                     {
-                        CenterId = center.Id,
-                        CenterName = center.CenterName,
+                        Id = center.Id,
+                        Thumbnail = center.Image,
+                        Title = center.CenterName,
                         Alias = center.Alias,
-                        CenterAddress = center.Location.AddressString,
+                        Description = center.Description,
+                        CenterServices = centerServices,
+                        Rating = center.Rating,
+                        NumOfRating = center.NumOfRating,
+                        Phone = center.Phone,
+                        CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
                             Longitude = center.Location.Longitude
                         },
-                        CenterOperatingHours = new CenterOperatingHoursResponseModel
-                        {
-                            OpenTime = center.OpenTime,
-                            CloseTime = center.CloseTime
-                        },
+                        CenterOperatingHours = centerOperatingHours
                     });
                 }
-                return Ok(centerList);
+                return Ok(response);
             }
             catch (Exception ex)
             {

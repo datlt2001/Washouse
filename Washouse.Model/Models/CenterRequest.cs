@@ -25,6 +25,7 @@ namespace Washouse.Model.Models
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
         public decimal? Rating { get; set; }
+        public int NumOfRating { get; set; }
 
         public virtual Center CenterRequestingNavigation { get; set; }
     }
