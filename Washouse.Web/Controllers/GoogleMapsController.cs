@@ -66,7 +66,7 @@ namespace Washouse.Web.Controllers
                 {
                     DistrictName = DistrictNameTest;
                 }
-                district = await _districtService.GetDistrictByName(DistrictNameTest);
+                district = await _districtService.GetDistrictByName(DistrictName);
             }
             catch (Exception ex)
             {
