@@ -10,5 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface IDistrictRepository : IRepository<District>
     {
+        Task<District> GetDistrictByName(string name);
     }
 }

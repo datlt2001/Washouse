@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,11 @@ namespace Washouse.Data.Repositories
     {
         public DistrictRepository(IDbFactory dbFactory) : base(dbFactory)
         {
+        }
+
+        public async Task<District> GetDistrictByName(string name)
+        {
+            return await this.DbContext.Districts.SingleOrDefaultAsync(district => district.DistrictName.ToLower().Equals(name.ToLower()));
         }
     }
 }

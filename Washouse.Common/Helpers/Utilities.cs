@@ -41,6 +41,26 @@ namespace Washouse.Common.Helpers
                 return null;
             }
         }
+        
+        public static string MapDistrictName(string districtName)
+        {
+            Dictionary<string, string> mapDistrict = new Dictionary<string, string>
+            {
+                {"Quận 9", "Quận 9" },
+                {"District 9", "Quận 9" },
+                {"Thành phố Thủ Đức", "Quận Thủ Đức" },
+                {"TP Thủ Đức", "Quận Thủ Đức" },
+                {"Thủ Đức", "Quận Thủ Đức" }
+            };
 
+            if (mapDistrict.ContainsKey(districtName))
+            {
+                return mapDistrict[districtName];
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

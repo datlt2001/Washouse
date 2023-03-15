@@ -6,6 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Washouse.Common.Helpers;
+using Washouse.Model.Models;
+using Washouse.Service.Interface;
+using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
@@ -13,10 +17,20 @@ namespace Washouse.Web.Controllers
     [ApiController]
     public class GoogleMapsController : ControllerBase
     {
+        #region Initialize
+        private IDistrictService _districtService;
+
+        public GoogleMapsController(IDistrictService districtService)
+        {
+            this._districtService = districtService;
+        }
+
+        #endregion
         [HttpGet("getDistrictFromLatLong")]
-        public IActionResult GetDistrictFromLatLong(double latitude, double longitude)
+        public async Task<IActionResult> GetDistrictFromLatLong(double latitude, double longitude)
         {
             Region result = new Region();
+            District district = new District();
             try
             {
                 var gls = new GoogleLocationService("AIzaSyClrZ2yYY2WEOonW9QuK_ir0JXprsEweYM");
@@ -25,12 +39,44 @@ namespace Washouse.Web.Controllers
                 {
                     return NotFound("Can not get district from this latitude and longitude");
                 }
+                string DistrictName = Utilities.MapDistrictName(result.Name);
+                if (DistrictName == null)
+                {
+                    DistrictName = result.Name;
+                }
+                district = await _districtService.GetDistrictByName(DistrictName);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-            return Ok(new { District = result.Name });
+            return Ok(new { DistrictId = district.Id, 
+                            DistricName = district.DistrictName
+            });
+        }
+
+        [HttpGet("getDistrictFromDistrictNameTest")]
+        public async Task<IActionResult> GetDistrictFrom(string DistrictNameTest)
+        {
+            District district = new District();
+            try
+            {
+                string DistrictName = Utilities.MapDistrictName(DistrictNameTest);
+                if (DistrictName == null)
+                {
+                    DistrictName = DistrictNameTest;
+                }
+                district = await _districtService.GetDistrictByName(DistrictNameTest);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            return Ok(new
+            {
+                DistrictId = district.Id,
+                DistricName = district.DistrictName
+            });
         }
     }
 }

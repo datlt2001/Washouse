@@ -10,5 +10,6 @@ namespace Washouse.Service.Interface
     public interface IDistrictService
     {
         Task<IEnumerable<District>> GetAll();
+        Task<District> GetDistrictByName(string name);
     }
 }
