@@ -12,6 +12,7 @@ using Washouse.Model.ResponseModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
+using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
@@ -21,15 +22,9 @@ namespace Washouse.Web.Controllers
     {
         #region Initialize
         private ICenterService _centerService;
-        //private IErrorService _errorService;
-        private ErrorLogger _errorLogger;
-
-        //public CenterController(ICenterService centerService, IErrorService errorService)
-        public CenterController(ICenterService centerService, ErrorLogger errorLogger)
-        //public CenterController(ICenterService centerService)
+        public CenterController(ICenterService centerService)
         {
             this._centerService = centerService;
-            this._errorLogger = errorLogger;
         }
 
         #endregion
@@ -62,7 +57,7 @@ namespace Washouse.Web.Controllers
                         {
                             var centerOperatingHour = new CenterOperatingHoursResponseModel
                             {
-                                Day = item.DaysOfWeek.DayName,
+                                Day = item.DaysOfWeek.Id,
                                 OpenTime = item.OpenTime,
                                 CloseTime = item.CloseTime
                             };
@@ -93,7 +88,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }
@@ -116,7 +110,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }
@@ -132,7 +125,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }
@@ -169,7 +161,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }

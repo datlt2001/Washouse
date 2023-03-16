@@ -26,12 +26,14 @@ namespace Washouse.Data
         public virtual DbSet<CenterGallery> CenterGalleries { get; set; }
         public virtual DbSet<CenterRequest> CenterRequests { get; set; }
         public virtual DbSet<Customer> Customers { get; set; }
+        public virtual DbSet<DaysOfWeek> DaysOfWeeks { get; set; }
         public virtual DbSet<Delivery> Deliveries { get; set; }
         public virtual DbSet<District> Districts { get; set; }
         public virtual DbSet<Feedback> Feedbacks { get; set; }
         public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
         public virtual DbSet<NotificationAccount> NotificationAccounts { get; set; }
+        public virtual DbSet<OperatingHour> OperatingHours { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderAddition> OrderAdditions { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
@@ -215,10 +217,6 @@ namespace Washouse.Data
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.WeekOff)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
                 entity.HasOne(d => d.Location)
                     .WithMany(p => p.Centers)
                     .HasForeignKey(d => d.LocationId);
@@ -338,6 +336,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<DaysOfWeek>(entity =>
             {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.DayName)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -973,14 +973,14 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-                /*configuration = new ConfigurationBuilder()
+                configuration = new ConfigurationBuilder()
                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                        .AddJsonFile("appsettings.json")
-                       .Build();*/
-                configuration = new ConfigurationBuilder()
+                       .Build();
+                /*configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
-                                   .Build();
+                                   .Build();*/
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);

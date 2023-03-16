@@ -6,6 +6,7 @@ using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
 using System.Collections.Generic;
 using Washouse.Model.ResponseModels;
+using System.Linq;
 
 namespace Washouse.Web.Controllers
 {
@@ -32,6 +33,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var districtList = await _districtService.GetAll();
+                districtList = districtList.OrderByDescending(dt => dt.DistrictName);
                 var response = new List<DistrictResponseModel>();
                 foreach (var district in districtList)
                 {

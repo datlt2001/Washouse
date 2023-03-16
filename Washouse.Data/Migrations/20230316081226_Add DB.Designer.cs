@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230315134338_Add NumOfRating")]
-    partial class AddNumOfRating
+    [Migration("20230316081226_Add DB")]
+    partial class AddDB
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -294,11 +294,6 @@ namespace Washouse.Data.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("WeekOff")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LocationId");
@@ -501,10 +496,7 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.DaysOfWeek", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("DayName")
                         .IsRequired()
@@ -513,7 +505,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DaysOfWeek");
+                    b.ToTable("DaysOfWeeks");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Delivery", b =>
@@ -758,7 +750,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasIndex("DaysOfWeekId");
 
-                    b.ToTable("OperatingHour");
+                    b.ToTable("OperatingHours");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Order", b =>

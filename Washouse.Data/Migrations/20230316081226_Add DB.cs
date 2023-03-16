@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Washouse.Data.Migrations
 {
-    public partial class Adddb : Migration
+    public partial class AddDB : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -30,6 +30,18 @@ namespace Washouse.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DaysOfWeeks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    DayName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DaysOfWeeks", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -128,15 +140,15 @@ namespace Washouse.Data.Migrations
                     CenterName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
+                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    OpenTime = table.Column<TimeSpan>(type: "time", nullable: true),
-                    CloseTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     MonthOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    WeekOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
+                    NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -270,15 +282,18 @@ namespace Washouse.Data.Migrations
                     CenterName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
+                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OpenTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     CloseTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     MonthOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     WeekOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
+                    NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -291,6 +306,34 @@ namespace Washouse.Data.Migrations
                         name: "FK_CenterRequests_Centers_CenterRequesting",
                         column: x => x.CenterRequesting,
                         principalTable: "Centers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OperatingHours",
+                columns: table => new
+                {
+                    CenterId = table.Column<int>(type: "int", nullable: false),
+                    DaysOfWeekId = table.Column<int>(type: "int", nullable: false),
+                    OpenTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    CloseTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OperatingHours", x => new { x.CenterId, x.DaysOfWeekId });
+                    table.ForeignKey(
+                        name: "FK_OperatingHours_Centers",
+                        column: x => x.CenterId,
+                        principalTable: "Centers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OperatingHours_DaysOfWeeks",
+                        column: x => x.DaysOfWeekId,
+                        principalTable: "DaysOfWeeks",
                         principalColumn: "Id");
                 });
 
@@ -363,10 +406,12 @@ namespace Washouse.Data.Migrations
                     Image = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TimeEstimate = table.Column<int>(type: "int", nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     HomeFlag = table.Column<bool>(type: "bit", nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: false),
+                    NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CenterId = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
@@ -512,10 +557,12 @@ namespace Washouse.Data.Migrations
                     Image = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TimeEstimate = table.Column<int>(type: "int", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     HomeFlag = table.Column<bool>(type: "bit", nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: false),
+                    NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CenterId = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
@@ -816,6 +863,11 @@ namespace Washouse.Data.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OperatingHours_DaysOfWeekId",
+                table: "OperatingHours",
+                column: "DaysOfWeekId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderAdditions_additionId",
                 table: "OrderAdditions",
                 column: "additionId");
@@ -929,6 +981,9 @@ namespace Washouse.Data.Migrations
                 name: "NotificationAccounts");
 
             migrationBuilder.DropTable(
+                name: "OperatingHours");
+
+            migrationBuilder.DropTable(
                 name: "OrderAdditions");
 
             migrationBuilder.DropTable(
@@ -960,6 +1015,9 @@ namespace Washouse.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "DaysOfWeeks");
 
             migrationBuilder.DropTable(
                 name: "AdditionServices");
