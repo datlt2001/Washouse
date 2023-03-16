@@ -46,11 +46,24 @@ namespace Washouse.Common.Helpers
         {
             Dictionary<string, string> mapDistrict = new Dictionary<string, string>
             {
-                {"Quận 9", "Quận 9" },
-                {"District 9", "Quận 9" },
-                {"Thành phố Thủ Đức", "Quận Thủ Đức" },
-                {"TP Thủ Đức", "Quận Thủ Đức" },
-                {"Thủ Đức", "Quận Thủ Đức" }
+                {"Quận 9", "Thành phố Thủ Đức" },
+                {"District 9", "Thành phố Thủ Đức" },
+                {"Quận 2", "Thành phố Thủ Đức" },
+                {"District 2", "Thành phố Thủ Đức" },
+                {"TP Thủ Đức", "Thành phố Thủ Đức" },
+                {"Thủ Đức", "Thành phố Thủ Đức" },
+                {"Quận Thủ Đức", "Thành phố Thủ Đức" },
+                {"Tân Phú", "Quận Tân Phú" },
+                {"Tân Bình", "Quận Tân Bình" },
+                {"Phú Nhuận", "Quận Phú Nhuận" },
+                {"Gò Vấp", "Quận Gò Vấp"},
+                {"Bình Thạnh", "Quận Bình Thạnh" },
+                {"Bình Tân", "Quận Bình Tân" },
+                {"Nhà Bè", "Huyện Nhà Bè" },
+                {"Hóc Môn", "Huyện Hóc Môn" },
+                {"Củ Chi", "Huyện Củ Chi" },
+                {"Cần Giờ", "Huyện Cần Giờ" },
+                {"Bình Chánh", "Huyện Bình Chánh" }
             };
 
             if (mapDistrict.ContainsKey(districtName))

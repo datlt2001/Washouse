@@ -70,7 +70,7 @@ namespace Washouse.Web.Controllers
                     {
                         string json = await response.Content.ReadAsStringAsync();
                         JObject jObject = JObject.Parse(json);
-                        string DistrictNameResponse = (string)jObject["address"]["city"];
+                        string DistrictNameResponse = (string)jObject["address"]["city_district"];
                         string DistrictName = Utilities.MapDistrictName(DistrictNameResponse);
                         if (DistrictName == null)
                         {
