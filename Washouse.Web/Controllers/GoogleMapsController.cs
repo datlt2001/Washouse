@@ -2,9 +2,12 @@
 using GoogleMaps.LocationService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Model.Models;
@@ -52,30 +55,6 @@ namespace Washouse.Web.Controllers
             }
             return Ok(new { DistrictId = district.Id, 
                             DistricName = district.DistrictName
-            });
-        }
-
-        [HttpGet("getDistrictFromDistrictNameTest")]
-        public async Task<IActionResult> GetDistrictFrom(string DistrictNameTest)
-        {
-            District district = new District();
-            try
-            {
-                string DistrictName = Utilities.MapDistrictName(DistrictNameTest);
-                if (DistrictName == null)
-                {
-                    DistrictName = DistrictNameTest;
-                }
-                district = await _districtService.GetDistrictByName(DistrictName);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            return Ok(new
-            {
-                DistrictId = district.Id,
-                DistricName = district.DistrictName
             });
         }
     }

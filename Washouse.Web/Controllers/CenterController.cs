@@ -101,7 +101,49 @@ namespace Washouse.Web.Controllers
                 var center = await _centerService.GetById(id);
                 if (center != null)
                 {
-                    return Ok(center);
+                    var response = new CenterResponseModel();
+                    var centerServices = new List<CenterServiceResponseModel>();
+                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                    foreach (var service in center.Services)
+                    {
+                        var centerService = new CenterServiceResponseModel
+                        {
+                            ServiceCategoryID = service.CategoryId,
+                            ServiceCategoryName = service.Category.CategoryName
+                        };
+                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                    }
+                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
+                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
+                    //{
+                    foreach (var item in center.OperatingHours)
+                    {
+                        var centerOperatingHour = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item.DaysOfWeek.Id,
+                            OpenTime = item.OpenTime,
+                            CloseTime = item.CloseTime
+                        };
+                        centerOperatingHours.Add(centerOperatingHour);
+                    }
+                    //}
+                    response.Id = center.Id;
+                    response.Thumbnail = center.Image;
+                    response.Title = center.CenterName;
+                    response.Alias = center.Alias;
+                    response.Description = center.Description;
+                    response.CenterServices = centerServices;
+                    response.Rating = center.Rating;
+                    response.NumOfRating = center.NumOfRating;
+                    response.Phone = center.Phone;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    response.CenterLocation = new CenterLocationResponseModel
+                    {
+                        Latitude = center.Location.Latitude,
+                        Longitude = center.Location.Longitude
+                    };
+                    response.CenterOperatingHours = centerOperatingHours;
+                    return Ok(response);
                 }
                 else
                 {
