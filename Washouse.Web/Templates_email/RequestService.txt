@@ -1,0 +1,15 @@
+﻿<div>
+    Dear Washouse Express Laundry Platform,
+    <br>
+    <br>
+    There are some centers are created for your accepting.
+    <br>
+    <br>
+    This is your link to view center list : <a href="{link}">{link}</a>
+    <br>
+    <br>
+    Regards,
+    <br>
+	The Washouse.
+    <br>
+</div>

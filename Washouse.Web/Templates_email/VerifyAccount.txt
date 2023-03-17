@@ -1,0 +1,15 @@
+﻿<div>
+    Dear {recipient},
+    <br>
+    <br>
+    You have created an account in our platform. Please click the link below to active your account.
+    <br>
+    <br>
+    This is your link to active your account : <a href="{link}">Verify Account</a>
+    <br>
+    <br>
+    Regards,
+    <br>
+	The Washouse.
+    <br>
+</div>

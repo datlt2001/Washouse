@@ -17,10 +17,11 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Washouse.Common.Mails;
 using Washouse.Data;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
-using Washouse.Service;
+using Washouse.Model.Models;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Infrastructure;
@@ -99,6 +100,16 @@ namespace Washouse.Web
             services.AddTransient<IStaffReposity, StaffRepository>();
 
             //services.AddTransient<ISettingsService, SettingsService>();
+            services.AddTransient<ICustomerRepository, CustomerRepository>();
+            services.AddTransient<ICustomerService, CustomerService>();
+            services.AddTransient<IStaffReposity, StaffRepository>();
+            services.AddTransient<IStaffService, StaffService>();
+            services.AddOptions();
+            var mailsettings = Configuration.GetSection("MailSettings");
+            services.Configure<MailSettings>(mailsettings);
+            services.AddTransient<ISendMailService, SendMailService>();
+            services.AddTransient<IPostRepository, PostRepository>();
+            services.AddTransient<IPostService, PostService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

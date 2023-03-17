@@ -444,7 +444,7 @@ namespace Washouse.Data.Migrations
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
                     IsManager = table.Column<bool>(type: "bit", nullable: false),
-                    CenterId = table.Column<int>(type: "int", nullable: false),
+                    CenterId = table.Column<int>(type: "int", nullable: true),
                     IdNumber = table.Column<string>(type: "varchar(12)", unicode: false, maxLength: 12, nullable: true),
                     IdFrontImg = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     IdBackImg = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
