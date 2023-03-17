@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Washouse.Common.Utils;
 using Washouse.Data;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
@@ -51,6 +52,8 @@ namespace Washouse.Web
             });
 
             services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
+            services.Configure<GCSConfigOptions>(Configuration.GetSection("GCSConfigOptions"));
+            //services.Configure<GCSConfigOptions>(Configuration.GetSection("GoogleCloudStorageBucketName"));
             services.AddDbContext<WashouseDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("WashouseDB")));
 
@@ -72,6 +75,7 @@ namespace Washouse.Web
                     };
                 });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ICloudStorageService, CloudStorageService>();
             services.AddTransient<IUnitOfWork, UnitOfWork>(); 
             services.AddTransient<IDbFactory, DbFactory>(); 
             services.AddTransient<ICenterService, CenterService>(); 

@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NuGet.Common;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -45,13 +48,15 @@ namespace Washouse.Web.Controllers
                     Message = "Invalid username/password"
                 });
             }
-
+            string token = GenerateToken(user);
             return Ok(new
             {
                 Success = true,
                 Message = "Authenticate success",
-                Data = GenerateToken(user)
-            });
+                Data = token
+                //,
+                //Email  = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("Email".ToLower())).Value
+        });
         }
 
         private string GenerateToken(Account nguoiDung)

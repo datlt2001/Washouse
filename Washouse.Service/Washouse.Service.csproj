@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Washouse.Common\Washouse.Common.csproj" />
     <ProjectReference Include="..\Washouse.Data\Washouse.Data.csproj" />
     <ProjectReference Include="..\Washouse.Model\Washouse.Model.csproj" />
