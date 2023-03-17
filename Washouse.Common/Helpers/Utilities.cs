@@ -75,5 +75,34 @@ namespace Washouse.Common.Helpers
                 return null;
             }
         }
+
+
+        public static double CalculateDistance(decimal Latitude_1, decimal Longitude_1, decimal Latitude_2, decimal Longitude_2)
+        {
+            const double earthRadius = 6371; // Earth's radius in kilometers
+
+            var lat1 = ToRadians((double)Latitude_1);
+            var lon1 = ToRadians((double)Longitude_1);
+            var lat2 = ToRadians((double)Latitude_2);
+            var lon2 = ToRadians((double)Longitude_2);
+
+            var dLat = lat2 - lat1;
+            var dLon = lon2 - lon1;
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1) * Math.Cos(lat2) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            var distance = earthRadius * c;
+
+            return distance;
+        }
+
+        private static double ToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180;
+        }
     }
 }

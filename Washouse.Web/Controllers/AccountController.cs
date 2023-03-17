@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using System;
 using System.Collections.Generic;
@@ -74,7 +76,7 @@ namespace Washouse.Web.Controllers
                     new Claim("Id", nguoiDung.Id.ToString()),
 
                     //roles
-
+                    new Claim(ClaimTypes.Role, nguoiDung.RoleType.Trim().ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(1),
@@ -86,6 +88,7 @@ namespace Washouse.Web.Controllers
             return jwtTokenHandler.WriteToken(token);
         }
 
+        [Authorize(Roles ="Admin")]
         [HttpGet]
         public IActionResult GetAccountList()
         {
@@ -205,6 +208,30 @@ namespace Washouse.Web.Controllers
                 result.Append(chars[random.Next(chars.Length)]);
             }
             return result.ToString();
+        }
+
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            string id = User.FindFirst("Id")?.Value;
+            var user = _accountService.GetById(int.Parse(id));
+            string token = GenerateToken(user.Result);
+            return Ok(new
+            {
+                Success = true,
+                Message = "success",
+                Data = new
+                {
+                    TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
+                    AccountId = int.Parse(id),
+                    Email = User.FindFirst(ClaimTypes.Email)?.Value,
+                    Phone = User.FindFirst("Phone")?.Value,
+                    RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
+                    Name = User.FindFirst(ClaimTypes.Name)?.Value,
+                    Avatar = user.Result.ProfilePic
+
+                }
+            });
         }
     }
 }
