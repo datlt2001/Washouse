@@ -5,7 +5,6 @@ using System;
 using Washouse.Model.RequestModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Model.Models;
 
 namespace Washouse.Web.Controllers
@@ -15,13 +14,11 @@ namespace Washouse.Web.Controllers
     public class LocationController : ControllerBase
     {
         #region Initialize
-        private ILocationService _locationService;
-        private ErrorLogger _errorLogger;
+        private readonly ILocationService _locationService;
 
-        public LocationController(ILocationService locationService, ErrorLogger errorLogger)
+        public LocationController(ILocationService locationService)
         {
             this._locationService = locationService;
-            this._errorLogger = errorLogger;
         }
 
         #endregion
@@ -44,7 +41,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }

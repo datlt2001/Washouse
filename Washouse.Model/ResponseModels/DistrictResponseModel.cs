@@ -8,7 +8,7 @@ namespace Washouse.Model.ResponseModels
 {
     public class DistrictResponseModel
     {
-        public int DistrictID { get; set; }
+        public int DistrictId { get; set; }
         public string DistrictName { get; set; }
     }
 }

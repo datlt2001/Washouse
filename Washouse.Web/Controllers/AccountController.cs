@@ -26,7 +26,7 @@ namespace Washouse.Web.Controllers
     {
         public readonly WashouseDbContext _context;
         private readonly AppSetting _appSettings;
-        private IAccountService _accountService;
+        private readonly IAccountService _accountService;
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, IAccountService accountService)
         {
             this._context = context;

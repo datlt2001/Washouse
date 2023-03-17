@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\" />
     <Folder Include="UploadedFile\" />
   </ItemGroup>
 

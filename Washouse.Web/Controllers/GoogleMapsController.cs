@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Model.Models;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
@@ -21,7 +20,7 @@ namespace Washouse.Web.Controllers
     public class GoogleMapsController : ControllerBase
     {
         #region Initialize
-        private IDistrictService _districtService;
+        private readonly IDistrictService _districtService;
 
         public GoogleMapsController(IDistrictService districtService)
         {

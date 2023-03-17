@@ -11,7 +11,6 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
@@ -21,7 +20,7 @@ namespace Washouse.Web.Controllers
     public class CenterController : ControllerBase
     {
         #region Initialize
-        private ICenterService _centerService;
+        private readonly ICenterService _centerService;
         public CenterController(ICenterService centerService)
         {
             this._centerService = centerService;
@@ -165,7 +164,7 @@ namespace Washouse.Web.Controllers
                 var centerList = _centerService.GetAllBySearchKeyPaging(searchKey, page, pageSize, out totalRow);
                 return Ok(centerList);
             }
-            catch (Exception ex)
+            catch
             {
                 return BadRequest();
             }
@@ -201,7 +200,7 @@ namespace Washouse.Web.Controllers
                 }
                 else { return BadRequest(); }
             }
-            catch (Exception ex)
+            catch
             {
                 return BadRequest();
             }

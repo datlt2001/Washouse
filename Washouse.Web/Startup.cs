@@ -24,7 +24,6 @@ using Washouse.Data.Repositories;
 using Washouse.Service;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Web.Models;
 
 namespace Washouse.Web
@@ -84,9 +83,6 @@ namespace Washouse.Web
             services.AddTransient<IServiceCategoryRepository, ServiceCategoryRepository>();
             services.AddTransient<IServiceService, ServiceService>();
             services.AddTransient<IServiceRepository, ServiceRepository>();
-            services.AddTransient<IErrorService, ErrorService>();
-            services.AddTransient<IErrorRepository, ErrorRepository>();
-            services.AddTransient<ErrorLogger>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IAccountRepository, AccountRepository>();
             services.AddTransient<IServiceRequestService, ServiceRequestService>();
