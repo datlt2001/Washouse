@@ -358,9 +358,9 @@ namespace Washouse.Web.Controllers
             string id = User.FindFirst("Id")?.Value;
             var user = _accountService.GetById(int.Parse(id));
             string token = GenerateToken(user.Result);
-            return Ok(new
+            return Ok(new ResponseModel
             {
-                Success = true,
+                StatusCode = StatusCodes.Status200OK,
                 Message = "success",
                 Data = new
                 {
