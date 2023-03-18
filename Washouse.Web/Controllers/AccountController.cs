@@ -19,6 +19,7 @@ using Washouse.Common.Mails;
 using Washouse.Data;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
+using Washouse.Model.ResponseModels;
 using Washouse.Service;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
@@ -364,7 +365,7 @@ namespace Washouse.Web.Controllers
                 {
                     StatusCode = StatusCodes.Status200OK,
                     Message = "success",
-                    Data = new
+                    Data = new CurrentUserResponseModel
                     {
                         TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
                         AccountId = int.Parse(id),
