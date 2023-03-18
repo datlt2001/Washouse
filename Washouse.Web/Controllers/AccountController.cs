@@ -355,25 +355,37 @@ namespace Washouse.Web.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            string id = User.FindFirst("Id")?.Value;
-            var user = _accountService.GetById(int.Parse(id));
-            string token = GenerateToken(user.Result);
-            return Ok(new ResponseModel
+            try
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = new
+                string id = User.FindFirst("Id")?.Value;
+                var user = _accountService.GetById(int.Parse(id));
+                string token = GenerateToken(user.Result);
+                return Ok(new ResponseModel
                 {
-                    TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
-                    AccountId = int.Parse(id),
-                    Email = User.FindFirst(ClaimTypes.Email)?.Value,
-                    Phone = User.FindFirst("Phone")?.Value,
-                    RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
-                    Name = User.FindFirst(ClaimTypes.Name)?.Value,
-                    Avatar = user.Result.ProfilePic
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
+                    {
+                        TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
+                        AccountId = int.Parse(id),
+                        Email = User.FindFirst(ClaimTypes.Email)?.Value,
+                        Phone = User.FindFirst("Phone")?.Value,
+                        RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
+                        Name = User.FindFirst(ClaimTypes.Name)?.Value,
+                        Avatar = user.Result.ProfilePic
 
-                }
-            });
+                    }
+                });
+            } catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+            
         }
     }
 }
