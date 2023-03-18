@@ -21,10 +21,12 @@ namespace Washouse.Web.Controllers
     public class CenterController : ControllerBase
     {
         #region Initialize
-        private readonly ICenterService _centerService;
-        public CenterController(ICenterService centerService)
+        private readonly ICenterService _centerService; 
+        private readonly ICloudStorageService _cloudStorageService;
+        public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService)
         {
-            this._centerService = centerService;
+            this._centerService = centerService; 
+            _cloudStorageService = cloudStorageService;
         }
 
         #endregion
@@ -93,7 +95,7 @@ namespace Washouse.Web.Controllers
                     response.Add(new CenterResponseModel
                     {
                         Id = center.Id,
-                        Thumbnail = center.Image,
+                        Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null,
                         Title = center.CenterName,
                         Alias = center.Alias,
                         Description = center.Description,
@@ -140,7 +142,7 @@ namespace Washouse.Web.Controllers
                             CategoryId = item.CategoryId,
                             ServiceName = item.ServiceName,
                             Description = item.Description,
-                            Image  = item.Image,
+                            Image  = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                             Price = item.Price == null ? 0 : (decimal)item.Price,
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
@@ -183,7 +185,7 @@ namespace Washouse.Web.Controllers
                     }
                     //}
                     response.Id = center.Id;
-                    response.Thumbnail = center.Image;
+                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
                     response.Title = center.CenterName;
                     response.Alias = center.Alias;
                     response.Description = center.Description;
