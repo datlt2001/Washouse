@@ -11,7 +11,6 @@ using Washouse.Model.RequestModels;
 using System.Linq;
 using System.Collections.Generic;
 using Washouse.Model.ResponseModels;
-using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
