@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 
 namespace Washouse.Web.Controllers
 {
@@ -13,13 +12,11 @@ namespace Washouse.Web.Controllers
     public class WardController : ControllerBase
     {
         #region Initialize
-        private IWardService _wardService;
-        private ErrorLogger _errorLogger;
+        private readonly IWardService _wardService;
 
-        public WardController(IWardService wardService, ErrorLogger errorLogger)
+        public WardController(IWardService wardService)
         {
             this._wardService = wardService;
-            this._errorLogger = errorLogger;
         }
         #endregion
 
@@ -38,9 +35,7 @@ namespace Washouse.Web.Controllers
                     return NotFound();
                 }
             }
-            catch (Exception ex)
-            {
-                await _errorLogger.LogErrorAsync(ex);
+            catch {
                 return BadRequest();
             }
         }

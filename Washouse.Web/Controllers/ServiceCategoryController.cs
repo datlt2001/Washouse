@@ -13,7 +13,7 @@ namespace Washouse.Web.Controllers
     [ApiController]
     public class ServiceCategoryController : ControllerBase
     {
-        private IServiceCategoryService _serviceCategoryService;
+        private readonly IServiceCategoryService _serviceCategoryService;
 
         public ServiceCategoryController(IServiceCategoryService serviceCategoryService)
         {

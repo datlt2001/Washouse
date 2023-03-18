@@ -9,7 +9,7 @@ namespace Washouse.Web.Controllers
     [ApiController]
     public class StaffController : ControllerBase
     {
-        public IStaffService _staffService;
+        public readonly IStaffService _staffService;
 
         public StaffController(IStaffService staffService)
         {

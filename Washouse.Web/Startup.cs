@@ -18,13 +18,13 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Washouse.Common.Mails;
+using Washouse.Common.Utils;
 using Washouse.Data;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Web.Models;
 
 namespace Washouse.Web
@@ -49,18 +49,47 @@ namespace Washouse.Web
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Washouse.Web", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                    {
+                        new OpenApiSecurityScheme {
+                            Reference = new OpenApiReference {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
 
             services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
+            services.Configure<GCSConfigOptions>(Configuration.GetSection("GCSConfigOptions"));
+            //services.Configure<GCSConfigOptions>(Configuration.GetSection("GoogleCloudStorageBucketName"));
             services.AddDbContext<WashouseDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("WashouseDB")));
 
             var secretKey = Configuration["AppSettings:SecretKey"];
             var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(options =>
                 {
+                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
@@ -71,8 +100,20 @@ namespace Washouse.Web
 
                         ClockSkew = TimeSpan.Zero
                     };
+                    /*options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidAudience = Configuration["JWT:ValidAudience"],
+                        ValidIssuer = Configuration["JWT:ValidIssuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes)
+                    };*/
                 });
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ICloudStorageService, CloudStorageService>();
             services.AddTransient<IUnitOfWork, UnitOfWork>(); 
             services.AddTransient<IDbFactory, DbFactory>(); 
             services.AddTransient<ICenterService, CenterService>(); 
@@ -81,9 +122,6 @@ namespace Washouse.Web
             services.AddTransient<IServiceCategoryRepository, ServiceCategoryRepository>();
             services.AddTransient<IServiceService, ServiceService>();
             services.AddTransient<IServiceRepository, ServiceRepository>();
-            services.AddTransient<IErrorService, ErrorService>();
-            services.AddTransient<IErrorRepository, ErrorRepository>();
-            services.AddTransient<ErrorLogger>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IAccountRepository, AccountRepository>();
             services.AddTransient<IServiceRequestService, ServiceRequestService>();

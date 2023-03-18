@@ -11,7 +11,7 @@ namespace Washouse.Web.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private ICustomerService _customerService;
+        private readonly ICustomerService _customerService;
 
         public CustomerController(ICustomerService customerService)
         {

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 
@@ -15,16 +14,14 @@ namespace Washouse.Web.Controllers
     public class ServiceRequestController : ControllerBase
     {
         #region Initialize
-        private IServiceRequestService _serviceRequestService;
-        private IServiceService _serviceService;
-        private ErrorLogger _errorLogger;
+        private readonly IServiceRequestService _serviceRequestService;
+        private readonly IServiceService _serviceService;
 
         public ServiceRequestController(IServiceRequestService serviceRequestService, 
-            IServiceService serviceService, ErrorLogger errorLogger)
+            IServiceService serviceService)
         {
             this._serviceRequestService = serviceRequestService;
             this._serviceService = serviceService;
-            this._errorLogger = errorLogger;
         }
         #endregion
 
@@ -68,10 +65,9 @@ namespace Washouse.Web.Controllers
                 }
                 else { return BadRequest(); }
             }
-            catch (Exception ex)
+            catch
             {
-                await _errorLogger.LogErrorAsync(ex);
-                return BadRequest();
+                    return BadRequest();
             }
         }
 

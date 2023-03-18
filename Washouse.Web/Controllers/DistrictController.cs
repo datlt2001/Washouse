@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using System.Collections.Generic;
 using Washouse.Model.ResponseModels;
 using System.Linq;
@@ -19,13 +18,11 @@ namespace Washouse.Web.Controllers
     public class DistrictController : ControllerBase
     {
         #region Initialize
-        private IDistrictService _districtService;
-        private ErrorLogger _errorLogger;
+        private readonly IDistrictService _districtService;
 
-        public DistrictController(IDistrictService districtService, ErrorLogger errorLogger)
+        public DistrictController(IDistrictService districtService)
         {
             this._districtService = districtService;
-            this._errorLogger = errorLogger;
         }
 
         #endregion
@@ -43,7 +40,7 @@ namespace Washouse.Web.Controllers
                 {
                     response.Add(new DistrictResponseModel
                     {
-                        DistrictID = district.Id,
+                        DistrictId = district.Id,
                         DistrictName = district.DistrictName
                     });
                 }
@@ -51,13 +48,12 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }
 
         [HttpGet("getDistrictByLatLong")]
-        public async Task<IActionResult> getDistrictByLatLong(double latitude, double longitude)
+        public async Task<IActionResult> GetDistrictByLatLong(double latitude, double longitude)
         {
             string url = $"https://nominatim.openstreetmap.org/reverse?email=thanhdat3001@gmail.com&format=jsonv2&lat={latitude}&lon={longitude}";
             District district = new District();
@@ -77,10 +73,10 @@ namespace Washouse.Web.Controllers
                             DistrictName = DistrictNameResponse;
                         }
                         district = await _districtService.GetDistrictByName(DistrictName);
-                        return Ok(new
+                        return Ok(new DistrictResponseModel
                         {
                             DistrictId = district.Id,
-                            DistricName = district.DistrictName
+                            DistrictName = district.DistrictName
                         });
                     }
                     else

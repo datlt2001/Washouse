@@ -5,8 +5,8 @@ using System;
 using Washouse.Model.RequestModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Infrastructure;
 using Washouse.Model.Models;
+using Washouse.Model.ViewModel;
 
 namespace Washouse.Web.Controllers
 {
@@ -15,13 +15,11 @@ namespace Washouse.Web.Controllers
     public class LocationController : ControllerBase
     {
         #region Initialize
-        private ILocationService _locationService;
-        private ErrorLogger _errorLogger;
+        private readonly ILocationService _locationService;
 
-        public LocationController(ILocationService locationService, ErrorLogger errorLogger)
+        public LocationController(ILocationService locationService)
         {
             this._locationService = locationService;
-            this._errorLogger = errorLogger;
         }
 
         #endregion
@@ -44,7 +42,6 @@ namespace Washouse.Web.Controllers
             }
             catch (Exception ex)
             {
-                await _errorLogger.LogErrorAsync(ex);
                 return BadRequest();
             }
         }
@@ -56,6 +53,62 @@ namespace Washouse.Web.Controllers
             if (location == null)
                 return BadRequest("Cannot find location");
             return Ok(location);
+        }
+
+        [HttpGet("distance")]
+        public IActionResult Distance(decimal Latitude_1, decimal Longitude_1, decimal Latitude_2, decimal Longitude_2)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var location1 = new LocationLatLongViewModel
+                    {
+                        Latitude = Latitude_1,
+                        Longitude = Longitude_1
+                    };
+                    var location2 = new LocationLatLongViewModel
+                    {
+                        Latitude = Latitude_2,
+                        Longitude = Longitude_2
+                    };
+
+                    var result = CalculateDistance(location1, location2);
+                    return Ok(result);
+                }
+                else { return BadRequest(); }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        public static double CalculateDistance(LocationLatLongViewModel location1, LocationLatLongViewModel location2)
+        {
+            const double earthRadius = 6371; // Earth's radius in kilometers
+
+            var lat1 = ToRadians((double)location1.Latitude);
+            var lon1 = ToRadians((double)location1.Longitude);
+            var lat2 = ToRadians((double)location2.Latitude);
+            var lon2 = ToRadians((double)location2.Longitude);
+
+            var dLat = lat2 - lat1;
+            var dLon = lon2 - lon1;
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1) * Math.Cos(lat2) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            var distance = earthRadius * c;
+
+            return distance;
+        }
+
+        private static double ToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180;
         }
     }
 }
