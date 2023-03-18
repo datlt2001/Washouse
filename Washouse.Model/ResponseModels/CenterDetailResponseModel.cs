@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Washouse.Model.Models;
 
 namespace Washouse.Model.ResponseModels
 {
-    public class CenterResponseModel
+    public class CenterDetailResponseModel
     {
-        public CenterResponseModel()
+
+        public CenterDetailResponseModel()
         {
             CenterServices = new HashSet<CenterServiceResponseModel>();
             CenterOperatingHours = new HashSet<CenterOperatingHoursResponseModel>();
@@ -29,5 +28,6 @@ namespace Washouse.Model.ResponseModels
         public double Distance { get; set; }
         public CenterLocationResponseModel CenterLocation { get; set; }
         public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
+
     }
 }

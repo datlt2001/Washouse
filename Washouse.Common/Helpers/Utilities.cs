@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Washouse.Model.Models;
 
 namespace Washouse.Common.Helpers
 {
@@ -90,8 +91,11 @@ namespace Washouse.Common.Helpers
         }
 
 
-        public static double CalculateDistance(decimal Latitude_1, decimal Longitude_1, decimal Latitude_2, decimal Longitude_2)
+        public static double CalculateDistance(decimal? Latitude_1, decimal? Longitude_1, decimal? Latitude_2, decimal? Longitude_2)
         {
+            if (Latitude_1 == null || Longitude_1 == null || Latitude_2 == null || Longitude_2 == null)
+                return 0;
+
             const double earthRadius = 6371; // Earth's radius in kilometers
 
             var lat1 = ToRadians((double)Latitude_1);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Washouse.Common.Helpers;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
@@ -30,7 +31,7 @@ namespace Washouse.Web.Controllers
 
         [Route("getAll")]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(decimal? UserLatitude, decimal? UserLongitude)
         {
             try
             {
@@ -45,24 +46,50 @@ namespace Washouse.Web.Controllers
                         var centerService = new CenterServiceResponseModel
                         {
                             ServiceCategoryID = service.CategoryId,
-                            ServiceCategoryName = service.Category.CategoryName
+                            ServiceCategoryName = service.Category.CategoryName,
+                            Services = null
                         };
                         if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
                     }
                     //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
                     //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
                     //{
-                        foreach (var item in center.OperatingHours)
+                    List<int> dayOffs = new List<int>();
+                    for (int i = 0; i < 7; i++) {
+                        dayOffs.Add(i);
+                    }
+                    foreach (var item in center.OperatingHours)
+                    {
+                        dayOffs.Remove(item.DaysOfWeek.Id);
+                        var centerOperatingHour = new CenterOperatingHoursResponseModel
                         {
-                            var centerOperatingHour = new CenterOperatingHoursResponseModel
-                            {
-                                Day = item.DaysOfWeek.Id,
-                                OpenTime = item.OpenTime,
-                                CloseTime = item.CloseTime
-                            };
-                            centerOperatingHours.Add(centerOperatingHour);
-                        }
+                            Day = item.DaysOfWeek.Id,
+                            OpenTime = item.OpenTime,
+                            CloseTime = item.CloseTime
+                        };
+                        centerOperatingHours.Add(centerOperatingHour);
+                    }
+                    foreach (var item in dayOffs)
+                    {
+                        var dayOff = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item,
+                            OpenTime = null,
+                            CloseTime = null
+                        };
+                        centerOperatingHours.Add(dayOff);
+                    }
                     //}
+
+                    double distance = 0;
+                    if (center.Location.Latitude == null || center.Location.Longitude == null || UserLatitude == null || UserLongitude == null)
+                    {
+                        distance = 0;
+                    } else
+                    {
+                        distance = Utilities.CalculateDistance(Math.Round((decimal)UserLatitude, 6), Math.Round((decimal)UserLongitude, 6),
+                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                    }
                     response.Add(new CenterResponseModel
                     {
                         Id = center.Id,
@@ -75,12 +102,13 @@ namespace Washouse.Web.Controllers
                         NumOfRating = center.NumOfRating,
                         Phone = center.Phone,
                         CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
+                        Distance = Math.Round(distance, 1),
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
                             Longitude = center.Location.Longitude
                         },
-                        CenterOperatingHours = centerOperatingHours
+                        CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList(),
                     });
                 }
                 return Ok(response);
@@ -93,7 +121,7 @@ namespace Washouse.Web.Controllers
 
         //[Route("Details/{id}")]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, decimal? UserLatitude, decimal? UserLongitude)
         {
             try
             {
@@ -103,12 +131,30 @@ namespace Washouse.Web.Controllers
                     var response = new CenterResponseModel();
                     var centerServices = new List<CenterServiceResponseModel>();
                     var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                    var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                    foreach (var item in center.Services)
+                    {
+                        var service = new ServicesOfCenterResponseModel
+                        {
+                            ServiceId = item.Id,
+                            CategoryId = item.CategoryId,
+                            ServiceName = item.ServiceName,
+                            Description = item.Description,
+                            Image  = item.Image,
+                            Price = item.Price == null ? 0 : (decimal)item.Price,
+                            TimeEstimate = item.TimeEstimate,
+                            Rating = item.Rating,
+                            NumOfRating = item.NumOfRating
+                        };
+                        servicesOfCenter.Add(service);
+                    }
                     foreach (var service in center.Services)
                     {
                         var centerService = new CenterServiceResponseModel
                         {
                             ServiceCategoryID = service.CategoryId,
-                            ServiceCategoryName = service.Category.CategoryName
+                            ServiceCategoryName = service.Category.CategoryName,
+                            Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
                         };
                         if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
                     }
@@ -125,6 +171,16 @@ namespace Washouse.Web.Controllers
                         };
                         centerOperatingHours.Add(centerOperatingHour);
                     }
+                    double distance = 0;
+                    if (center.Location.Latitude == null || center.Location.Longitude == null || UserLatitude == null || UserLongitude == null)
+                    {
+                        distance = 0;
+                    }
+                    else
+                    {
+                        distance = Utilities.CalculateDistance(Math.Round((decimal)UserLatitude, 6), Math.Round((decimal)UserLongitude, 6),
+                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                    }
                     //}
                     response.Id = center.Id;
                     response.Thumbnail = center.Image;
@@ -136,6 +192,7 @@ namespace Washouse.Web.Controllers
                     response.NumOfRating = center.NumOfRating;
                     response.Phone = center.Phone;
                     response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    response.Distance = distance;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
                         Latitude = center.Location.Latitude,
