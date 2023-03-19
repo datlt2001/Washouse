@@ -7,6 +7,9 @@ using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Model.Models;
 using Washouse.Model.ViewModel;
+using Washouse.Model.ResponseModels;
+using Washouse.Web.Models;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace Washouse.Web.Controllers
 {
@@ -74,13 +77,33 @@ namespace Washouse.Web.Controllers
                     };
 
                     var result = CalculateDistance(location1, location2);
-                    return Ok(result);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            Distance = result
+                        }
+                    });
                 }
-                else { return BadRequest(); }
+                else {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Fail to calculator distance",
+                        Data = null
+                    });
+                }
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
         public static double CalculateDistance(LocationLatLongViewModel location1, LocationLatLongViewModel location2)

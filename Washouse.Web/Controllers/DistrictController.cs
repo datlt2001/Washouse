@@ -10,6 +10,10 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using Washouse.Model.Models;
 using Washouse.Common.Helpers;
+using Washouse.Web.Models;
+using static Google.Apis.Requests.BatchRequest;
+using Microsoft.Extensions.Logging;
+using Washouse.Service.Implement;
 
 namespace Washouse.Web.Controllers
 {
@@ -44,11 +48,21 @@ namespace Washouse.Web.Controllers
                         DistrictName = district.DistrictName
                     });
                 }
-                return Ok(response);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = response
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
@@ -67,27 +81,57 @@ namespace Washouse.Web.Controllers
                         string json = await response.Content.ReadAsStringAsync();
                         JObject jObject = JObject.Parse(json);
                         string DistrictNameResponse = (string)jObject["address"]["city_district"];
-                        string DistrictName = Utilities.MapDistrictName(DistrictNameResponse);
+                        string CityNameResponse = ((string)jObject["address"]["city"] != null) ? (string)jObject["address"]["city"] : "Not found";
+                        if (!CityNameResponse.ToLower().Contains("Hồ Chí Minh".ToLower()) && !CityNameResponse.ToLower().Contains("Thủ Đức".ToLower()))
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Location not in Ho Chi Minh City",
+                                Data = null
+                            });
+                        }
+                        string DistrictName = CityNameResponse;
+                        if (DistrictNameResponse != null)
+                        {
+                            DistrictName = Utilities.MapDistrictName(DistrictNameResponse);
+                        }
+                        
                         if (DistrictName == null)
                         {
                             DistrictName = DistrictNameResponse;
                         }
                         district = await _districtService.GetDistrictByName(DistrictName);
-                        return Ok(new DistrictResponseModel
+                        return Ok(new ResponseModel
                         {
-                            DistrictId = district.Id,
-                            DistrictName = district.DistrictName
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = new DistrictResponseModel
+                            {
+                                DistrictId = district.Id,
+                                DistrictName = district.DistrictName
+                            }
                         });
                     }
                     else
                     {
-                        return BadRequest("Error: " + response.ReasonPhrase);
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = response.ReasonPhrase,
+                            Data = null
+                        });
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
     }

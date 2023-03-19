@@ -4,6 +4,11 @@ using System.Threading.Tasks;
 using System;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
+using static Google.Apis.Requests.BatchRequest;
+using Washouse.Web.Models;
+using Washouse.Model.Models;
+using Washouse.Model.ResponseModels;
+using System.Collections.Generic;
 
 namespace Washouse.Web.Controllers
 {
@@ -26,17 +31,40 @@ namespace Washouse.Web.Controllers
             try
             {
                 var wardList = await _wardService.GetWardListByDistrictId(id);
+                var responseData = new List<WardResponseModel>();
                 if (wardList != null)
                 {
-                    return Ok(wardList);
+                    foreach (var item in wardList)
+                    {
+                        responseData.Add(new WardResponseModel { 
+                            WardId = item.Id,
+                            WardName = item.WardName
+                        });
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = responseData
+                    });
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not Found",
+                        Data = null
+                    });
                 }
             }
-            catch {
-                return BadRequest();
+            catch (Exception ex) {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
     }
