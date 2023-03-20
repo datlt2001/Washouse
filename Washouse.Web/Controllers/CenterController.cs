@@ -1,22 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.Build.Tasks.Deployment.Bootstrapper;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
+using Washouse.Model.ViewModel;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/center")]
+    [Route("api/centers")]
     [ApiController]
     public class CenterController : ControllerBase
     {
@@ -31,20 +36,74 @@ namespace Washouse.Web.Controllers
 
         #endregion
 
-        [Route("getAll")]
+        /// <summary>
+        /// Gets the list of all Centers.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/centers
+        ///     {        
+        ///       "page": 1,
+        ///       "pageSize": 5,
+        ///       "sort": "location",
+        ///       "budgetRange": "30000-50000",
+        ///       "categoryServices": "2,3",
+        ///       "searchString": "Dr"  
+        ///       "currentUserLatitude": 10.6
+        ///       "currentUserLongitude": 106.8
+        ///     }
+        /// </remarks>
+        /// <returns>The list of Centers.</returns>
+        /// <response code="200">Success return list ceters</response>   
+        /// <response code="404">Not found any center matched</response>   
+        /// <response code="400">One or more error occurs</response>   
+        // GET: api/centers
         [HttpGet]
-        public async Task<IActionResult> GetAll(decimal? UserLatitude, decimal? UserLongitude)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAll([FromQuery] FilterCentersRequestModel filterCentersRequestModel)
         {
             try
             {
                 var centerList = await _centerService.GetAll();
+                if (filterCentersRequestModel.SearchString != null)
+                {
+                    centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
+                                                  || res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
+                                             ).ToList();
+                }
                 var response = new List<CenterResponseModel>();
                 var centerServices = new List<CenterServiceResponseModel>();
                 var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                 foreach (var center in centerList)
                 {
+                    decimal minPrice = 0, maxPrice = 0;
                     foreach (var service in center.Services)
                     {
+                        if (service.PriceType)
+                        {
+                            foreach (var servicePrice in service.ServicePrices)
+                            {
+                                if (minPrice > service.Price || minPrice == 0)
+                                {
+                                    minPrice = (decimal)service.Price;
+                                }
+                            }
+                        } else
+                        {
+                            if (minPrice > service.Price || minPrice == 0)
+                            {
+                                minPrice = (decimal)service.Price;
+                            }
+                            if (maxPrice < service.Price || maxPrice == 0)
+                            {
+                                maxPrice = (decimal)service.Price;
+                            }
+                        }
+                        
                         var centerService = new CenterServiceResponseModel
                         {
                             ServiceCategoryID = service.CategoryId,
@@ -53,9 +112,6 @@ namespace Washouse.Web.Controllers
                         };
                         if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
                     }
-                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
-                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
-                    //{
                     List<int> dayOffs = new List<int>();
                     for (int i = 0; i < 7; i++) {
                         dayOffs.Add(i);
@@ -81,15 +137,13 @@ namespace Washouse.Web.Controllers
                         };
                         centerOperatingHours.Add(dayOff);
                     }
-                    //}
-
                     double distance = 0;
-                    if (center.Location.Latitude == null || center.Location.Longitude == null || UserLatitude == null || UserLongitude == null)
+                    if (center.Location.Latitude == null || center.Location.Longitude == null || filterCentersRequestModel.CurrentUserLatitude == null || filterCentersRequestModel.CurrentUserLongitude == null)
                     {
                         distance = 0;
                     } else
                     {
-                        distance = Utilities.CalculateDistance(Math.Round((decimal)UserLatitude, 6), Math.Round((decimal)UserLongitude, 6),
+                        distance = Utilities.CalculateDistance(Math.Round((decimal)filterCentersRequestModel.CurrentUserLatitude, 6), Math.Round((decimal)filterCentersRequestModel.CurrentUserLongitude, 6),
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
                     response.Add(new CenterResponseModel
@@ -105,6 +159,8 @@ namespace Washouse.Web.Controllers
                         Phone = center.Phone,
                         CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
                         Distance = Math.Round(distance, 1),
+                        MinPrice = minPrice,
+                        MaxPrice = maxPrice,
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
@@ -113,17 +169,112 @@ namespace Washouse.Web.Controllers
                         CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList(),
                     });
                 }
-                return Ok(response);
+                if (filterCentersRequestModel.Sort != null)
+                {
+                    string[] sorts = filterCentersRequestModel.Sort.Split(',');
+                    foreach (var item in sorts)
+                    {
+                        if (item.Equals("Rating"))
+                        {
+                            response = response.OrderByDescending(res => res.Rating).ThenBy(res => res.Distance).ToList();
+                        } else if (item.Equals("Location"))
+                        {
+                            response = response.OrderBy(res => res.Distance).ThenByDescending(res => res.Rating).ToList();
+                        }
+                    }
+                }
+                if (filterCentersRequestModel.BudgetRange != null)
+                {
+                    string[] budgetRanges = filterCentersRequestModel.BudgetRange.Split('-');
+                    decimal minPrice = decimal.Parse(budgetRanges[0]);
+                    decimal maxPrice = decimal.Parse(budgetRanges[1]);
+                    if (minPrice > maxPrice)
+                    {
+                        decimal exchange = minPrice;
+                        minPrice = maxPrice;
+                        maxPrice = exchange;
+                    }
+                    foreach (var item in response.ToList())
+                    {
+                        if (item.MaxPrice < minPrice || item.MinPrice > maxPrice) 
+                        {
+                            response.Remove(item); 
+                        }   
+                    }
+                }
+                if (filterCentersRequestModel.CategoryServices != null)
+                {
+                    string[] categories = filterCentersRequestModel.CategoryServices.Split(',');
+                    var categoryIds = new int[categories.Length];
+                    for (int i = 0; i < categories.Length; i++)
+                    {
+                        categoryIds[i] = int.Parse(categories[i]);
+                    }
+                    foreach (var item in response.ToList())
+                    {
+                        int count = 0;
+                        foreach (var category in item.CenterServices)
+                        {
+                            for (int i = 0; i < categoryIds.Length; i++)
+                            {
+                                if (category.ServiceCategoryID == categoryIds[i])
+                                {
+                                    count++;
+                                }
+                            }
+                        }
+                        if (count == 0)
+                        {
+                            response.Remove(item);
+                        }
+                    }
+
+                }
+                int totalItems = response.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
+
+                response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize).Take(filterCentersRequestModel.PageSize).ToList();
+
+                if (response.Count != 0)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new {
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
+                            ItemsPerPage = filterCentersRequestModel.PageSize,
+                            PageNumber = filterCentersRequestModel.Page,
+                            Items = response
+                        }
+                    });
+                } else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
         //[Route("Details/{id}")]
+        // GET: api/centers/2
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id, decimal? UserLatitude, decimal? UserLongitude)
+        public async Task<IActionResult> GetById(int id, decimal? CurrentUserLatitude, decimal? CurrentUserLongitude)
         {
             try
             {
@@ -174,13 +325,13 @@ namespace Washouse.Web.Controllers
                         centerOperatingHours.Add(centerOperatingHour);
                     }
                     double distance = 0;
-                    if (center.Location.Latitude == null || center.Location.Longitude == null || UserLatitude == null || UserLongitude == null)
+                    if (center.Location.Latitude == null || center.Location.Longitude == null || CurrentUserLatitude == null || CurrentUserLongitude == null)
                     {
                         distance = 0;
                     }
                     else
                     {
-                        distance = Utilities.CalculateDistance(Math.Round((decimal)UserLatitude, 6), Math.Round((decimal)UserLongitude, 6),
+                        distance = Utilities.CalculateDistance(Math.Round((decimal)CurrentUserLatitude, 6), Math.Round((decimal)CurrentUserLongitude, 6),
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
                     //}

@@ -41,7 +41,7 @@ namespace Washouse.Data.Repositories
                         .ThenInclude(oh => oh.DaysOfWeek)
                     .Include(center => center.Services)
                         .ThenInclude(service => service.Category)
-                    .ToListAsync(); ;
+                    .ToListAsync();
             return data;
         }
 
@@ -55,6 +55,8 @@ namespace Washouse.Data.Repositories
                         .ThenInclude(oh => oh.DaysOfWeek)
                     .Include(center => center.Services)
                         .ThenInclude(service => service.Category)
+                    .Include(center => center.Services)
+                        .ThenInclude(service => service.ServicePrices)
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }

@@ -26,7 +26,7 @@ using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/account")]
+    [Route("api/accounts")]
     [ApiController]
     public class AccountController : ControllerBase
     {

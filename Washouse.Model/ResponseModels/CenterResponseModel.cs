@@ -27,6 +27,8 @@ namespace Washouse.Model.ResponseModels
         public string Phone { get; set; }
         public string CenterAddress { get; set; }
         public double Distance { get; set; }
+        public decimal MinPrice { get; set; }
+        public decimal MaxPrice { get; set; }
         public CenterLocationResponseModel CenterLocation { get; set; }
         public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
     }
