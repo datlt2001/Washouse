@@ -8,7 +8,7 @@ using Washouse.Model.Models;
 
 namespace Washouse.Data.Repositories
 {
-    public interface IPromotionRepository : IRepository<Customer>
+    public interface IPromotionRepository : IRepository<Promotion>
     {
     }
 }

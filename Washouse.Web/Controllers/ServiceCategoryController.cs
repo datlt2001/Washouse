@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
 
@@ -61,7 +62,7 @@ namespace Washouse.Web.Controllers
                 Input.category.CreatedDate = DateTime.Now;
                 Input.category.UpdatedDate = DateTime.Now;
                 Input.category.Status = false;
-                Input.category.Image =  await Utilities.UploadFile(Input.Image, @"images\categories", Input.Image.FileName);
+                //Input.category.Image =  await Utilities.UploadFile(Input.Image, @"images\categories", Input.Image.FileName);
                 var categories = _serviceCategoryService.Add(Input.category);
                 return Ok(categories);
             }
@@ -70,18 +71,21 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("updateCategory")]
-        public async Task<IActionResult> Update(Category category, int id) 
+        public async Task<IActionResult> Update([FromForm] CategoryRequestModel category, int id) 
         {
             if(!ModelState.IsValid) { return BadRequest(); }
             else
             {
-                //Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
-                Category existingCategorySevice = new Category();
+                Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
+                //Category existingCategorySevice = new Category();
                 if (existingCategorySevice == null) { return NotFound(); }
                 else
                 {
-                    category.Id = existingCategorySevice.Id;
-                    existingCategorySevice = category;
+                    existingCategorySevice.CategoryName = category.CategoryName;
+                    existingCategorySevice.Description = category.Description;
+                    existingCategorySevice.UpdatedDate = DateTime.Now;
+                    existingCategorySevice.Status = category.Status;
+                    existingCategorySevice.HomeFlag= category.HomeFlag;
 
                     await _serviceCategoryService.Update(existingCategorySevice);
                     return Ok(existingCategorySevice);

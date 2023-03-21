@@ -114,8 +114,8 @@ namespace Washouse.Web.Controllers
                 Image = animal.SavedFileName
 
             };
-            await _context.Categories.AddAsync(cate);
-            await _context.SaveChangesAsync();
+            //await _context.Categories.AddAsync(cate);
+            //await _context.SaveChangesAsync();
             return Ok(animal);
         }
 

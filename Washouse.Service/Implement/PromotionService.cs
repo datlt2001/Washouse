@@ -21,22 +21,22 @@ namespace Washouse.Service.Implement
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task Add(Customer promotion)
+        public async Task Add(Promotion promotion)
         {
             await _promotionRepository.Add(promotion);
         }
 
-        public async Task Update(Customer promotion)
+        public async Task Update(Promotion promotion)
         {
             await _promotionRepository.Update(promotion);
         }
 
-        public IEnumerable<Customer> GetAll()
+        public IEnumerable<Promotion> GetAll()
         {
             return _promotionRepository.Get();
         }
 
-        public async Task<Customer> GetById(int id)
+        public async Task<Promotion> GetById(int id)
         {
             return await _promotionRepository.GetById(id);
         }

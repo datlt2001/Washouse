@@ -9,12 +9,12 @@ namespace Washouse.Service.Interface
 {
     public interface IPromotionService
     {
-        public Task Add(Customer promotion);
+        public Task Add(Promotion promotion);
 
-        public Task Update(Customer promotion);
+        public Task Update(Promotion promotion);
 
-        IEnumerable<Customer> GetAll();
+        IEnumerable<Promotion> GetAll();
 
-        public Task<Customer> GetById(int id);
+        public Task<Promotion> GetById(int id);
     }
 }

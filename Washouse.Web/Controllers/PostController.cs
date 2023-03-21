@@ -11,10 +11,11 @@ using Washouse.Model.RequestModels;
 using System.Linq;
 using System.Collections.Generic;
 using Washouse.Model.ResponseModels;
+using Microsoft.AspNetCore.Http;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/post")]
+    [Route("api/posts")]
     [ApiController]
     public class PostController : ControllerBase
     {
@@ -45,7 +46,12 @@ namespace Washouse.Web.Controllers
 
                 });
             }
-            return Ok(response);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = response
+            });
             }
             catch (Exception ex)
             {
@@ -58,8 +64,21 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> GetPostById(int id)
         {
             var post = await _postService.GetById(id);
+            var response = new PostResponseModel{
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                Thumbnail = post.Thumbnail,
+                CreatedDate = DateTime.Now,
+            };
+            
             if (post == null) { return NotFound(); }
-            return Ok(post);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = response
+            });
         }
 
         [HttpPost("addPost")]
@@ -79,7 +98,12 @@ namespace Washouse.Web.Controllers
                     //CreatedBy = "Admin",
                 };
                 await _postService.Add(posts);
-                return Ok(posts);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = posts
+                });
             }
             else { return BadRequest(); }
 

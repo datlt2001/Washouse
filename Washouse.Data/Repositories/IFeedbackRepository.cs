@@ -8,11 +8,8 @@ using Washouse.Model.Models;
 
 namespace Washouse.Data.Repositories
 {
-    public class PromotionRepository : RepositoryBase<Promotion>, IPromotionRepository
+    public interface IFeedbackRepository :IRepository<Feedback>
     {
-       public PromotionRepository(IDbFactory dbFactory) : base(dbFactory)
-        {
-
-        }
+        public IEnumerable<int> GetIDList();
     }
 }

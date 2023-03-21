@@ -153,6 +153,10 @@ namespace Washouse.Web
             services.AddTransient<ISendMailService, SendMailService>();
             services.AddTransient<IPostRepository, PostRepository>();
             services.AddTransient<IPostService, PostService>();
+            services.AddTransient<IPromotionRepository, PromotionRepository>();
+            services.AddTransient<IPromotionService, PromotionService>();
+            services.AddTransient<IFeedbackRepository, FeedbackRepository>();
+            services.AddTransient<IFeedbackService, FeedbackService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
