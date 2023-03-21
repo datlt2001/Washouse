@@ -1,9 +1,9 @@
 {
   "type": "service_account",
-  "project_id": process.env.project_id,
-  "private_key_id": process.env.private_key_id,
-  "private_key": process.env.private_key,
-  "client_email": process.env.client_email,
+  "project_id": "washouse-381309",
+  "private_key_id": "51df6b03284964510f53a0ae5b85350871ac4fab",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCzav3Th4IAXA3b\nrdEHSwyEUiMcBXvlijCXniGMKgZ/UP/yVbjIl/C8Twee+GKR/cR+TEs8f3GDAcOq\nBvsrQueUb7cQwM0wNs7y9x762mYX3xuaO+bv782RMx5SshJHSfjeLXxIECq8Bfx/\nKdeaRdRWmSdUeTYAn7En/bcyjuyIrL6kU5GOuyBNc1ZZjvShShMGU0rBfktbkdcK\nLOuu0llgnfU64/YUhX/r87FazTT2GfQfkBl8wRpmqQI7Mn14j/rKkBMJ/e+37yuT\n/P1Cu1JxlFtCyoCJ+UfvqaW6O+YEQdlLkeiz1afuCDIi/TxJ/sC0LdyUtUqXTE5F\ns5YJyxJ7AgMBAAECggEAEIw7KfHTEy5qVssSvt30oxWiSFjXIwYaUjmS9YcAv2hc\nmuC+IL4mxW9yj/5vtPBXWaC2xbcpZIBaqAlpzAUpL78X/tMRebNsZetV76QKC4SX\n2qNQuut+pbg1wUHMPsf7TJ6cWlcnYd0Zey8ERCXRnkUU5A0j5m3UHJChf2fAOCCz\nDqIc92FaW+adPpxo5wbGlmRt1/tOfzFKjIqtOxYa1RfqleA1sJz7AwEzP26Bfqc8\nqnqdzoOgllypWmQJucxrIMDbdrJ4MpCTRgdlj7HW88bik/lQeu1ms7Rmdg3HyKRZ\nQu1s8JYiRus+0cQXfLj0VdVLaUUyTW0AhH7AbeHvxQKBgQDb+ti9H8r7NmYN9zYP\nXOjk9cVUcweYw1XGHMWB+jM5WBY9tarX0NR3X+kGLvB+9nzI6yPcNE5k3akUxYN3\nq9IAkhXzqLtYLq9aNfZ9sLyn7oHtfjMU1H+jZnqH9hTS0EX3dNbsSu22TkTL/lxM\nOOAzGvwNZqDUZW/tUNcU3OY6DQKBgQDQy9zkl1QxUbYYB3kq6ygKoTAT5L7Nw4yR\nbpyuTjhWw/5BDEXdEfZhYdQQxP+MjL53LRV31HJ+OSIpFwJYq2Ijl37gx9HVLccD\nl87oIobt3mmDA4LBL/FN66DTaxMyhqvyIgEQW3omkAHWdik9HTE6Z+QEu2fkpSGw\n6xEGY78EpwKBgGKRtkiYVGXYbEZZvXmI0jq1/ePnX0IOVQLepYmmSQmq9NxV6OWn\nh2yuJ0ZEBjN901BcPMdREMeVo0vRbSVUclcbHob91mSfFqe/gmGzrfU5pDJ81/q/\ndSoMo18E3zPPa2qEikF7GaUU0TLvGQB2g8+iicqfb/V8NnkKPjX0/ZyJAoGBAJpH\nWHPL4ZkDoIJG22A8G/0mtyir59SQfohjbABbqcNq1K7py6GbCStRpumxNoZ65K2Y\nsXk2kFb2DmjAKKquEDjuUwDyhPh498mO3YKnKH4QznPRH0dyDmIeDlrJjojR+7FR\nMOoOPcbKt6Do9HXE4UAfzds1QoIvBiL8vjqzb0yXAoGBAMtr1E+K7dpokz2UViDe\nRlxUTYmOySxz5xhQKj2M4y38SyEEUemjuvXacasjFJ7L5ljMPI5XGYiaoEZASHih\nlslj+rWq0apBoqKpEfPscKxIr5iJmSDvXDqtAuUXr8nn0pNhH0mEMzVkEv+XyV5T\njVWpVSKbeLJKeUDlbuFjOfhP\n-----END PRIVATE KEY-----\n",
+  "client_email": "washouse-sa@washouse-381309.iam.gserviceaccount.com",
   "client_id": "104924127993938027641",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
   "token_uri": "https://oauth2.googleapis.com/token",
