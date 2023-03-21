@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -95,28 +96,26 @@ namespace Washouse.Web.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [HttpPost("addCategory")]
-        public async Task<IActionResult> Create([FromForm] CategoryRequestModel animal)
+        [HttpPost("uploadImage")]
+        public async Task<IActionResult> Create(IFormFile Photo)
         {
-            if (animal.Photo != null)
+            string SavedUrl = null;
+            string SignedUrl = null;
+            string SavedFileName = null;
+            if (Photo != null)
             {
-                animal.SavedFileName = GenerateFileNameToSave(animal.Photo.FileName);
-                animal.SavedUrl = await _cloudStorageService.UploadFileAsync(animal.Photo, animal.SavedFileName);
+                SavedFileName = GenerateFileNameToSave(Photo.FileName);
+                SavedUrl = await _cloudStorageService.UploadFileAsync(Photo, SavedFileName);
             }
-            var cate = new Category
-            {
-                CategoryName = animal.CategoryName,
-                Alias = animal.Alias,
-                ParentId = animal.ParentId,
-                Description = animal.Description,
-                Status = animal.Status,
-                HomeFlag = animal.HomeFlag,
-                Image = animal.SavedFileName
-
-            };
             //await _context.Categories.AddAsync(cate);
             //await _context.SaveChangesAsync();
-            return Ok(animal);
+            return Ok(new
+            {
+                SavedUrl = SavedUrl,
+                SavedFileName = SavedFileName,
+                SignedUrl = SignedUrl,
+                Link = await _cloudStorageService.GetSignedUrlAsync(SavedFileName)
+            }); 
         }
 
         private string? GenerateFileNameToSave(string incomingFileName)
