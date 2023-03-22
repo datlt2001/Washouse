@@ -396,7 +396,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCenter([FromBody] CreateCenterRequestModel createCenterRequestModel)
+        public async Task<IActionResult> CreateCenter([FromForm] CreateCenterRequestModel createCenterRequestModel)
         {
             try
             {
