@@ -8,9 +8,10 @@ using Washouse.Model.Models;
 
 namespace Washouse.Data.Repositories
 {
-    public interface IWardRepository : IRepository<Ward>
+    public class OperatingHourRepository : RepositoryBase<OperatingHour>, IOperatingHourRepository
     {
-        Task<IEnumerable<Ward>> GetWardListByDistrictId(int DistrictId);
-        Task<Ward> GetWardById(int WardId);
+        public OperatingHourRepository(IDbFactory dbFactory) : base(dbFactory)
+        {
+        }
     }
 }

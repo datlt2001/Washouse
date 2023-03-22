@@ -13,5 +13,7 @@ namespace Washouse.Model.RequestModels
     {
         public string AddressString { get; set; }
         public int WardId { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
     }
 }

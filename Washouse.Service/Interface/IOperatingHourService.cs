@@ -7,9 +7,8 @@ using Washouse.Model.Models;
 
 namespace Washouse.Service.Interface
 {
-    public interface IWardService
+    public interface IOperatingHourService
     {
-        Task<IEnumerable<Ward>> GetWardListByDistrictId(int DistrictId);
-        Task<Ward> GetWardById(int WardId);
+        Task Add(OperatingHour operatingHour);
     }
 }

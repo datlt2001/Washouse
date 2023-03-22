@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Org.BouncyCastle.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
@@ -120,6 +123,22 @@ namespace Washouse.Common.Helpers
         private static double ToRadians(double degrees)
         {
             return degrees * Math.PI / 180;
+        }
+
+        public static string? GenerateFileNameToSave(string incomingFileName)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(incomingFileName);
+            var extension = Path.GetExtension(incomingFileName);
+            return $"{fileName}-{DateTime.Now.ToUniversalTime().ToString("yyyyMMddHHmmss")}{extension}";
+        }
+
+        public static string GetLatLong(string address)
+        {
+            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={address}&format=json&addressdetails=1&limit=1&polygon_svg=1";
+
+            
+
+            return "";
         }
     }
 }

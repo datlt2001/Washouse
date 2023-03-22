@@ -2,13 +2,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Model.Models;
@@ -28,10 +32,18 @@ namespace Washouse.Web.Controllers
         #region Initialize
         private readonly ICenterService _centerService; 
         private readonly ICloudStorageService _cloudStorageService;
-        public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService)
+        private readonly ILocationService _locationService;
+        private readonly IWardService _wardService;
+        private readonly IOperatingHourService _operatingHourService;
+        public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
+                                ILocationService locationService, IWardService wardService,
+                                IOperatingHourService operatingHourService)
         {
             this._centerService = centerService; 
-            _cloudStorageService = cloudStorageService;
+            this._locationService = locationService; 
+            this._cloudStorageService = cloudStorageService;
+            this._wardService = wardService;
+            this._operatingHourService = operatingHourService;
         }
 
         #endregion
@@ -76,10 +88,11 @@ namespace Washouse.Web.Controllers
                                              ).ToList();
                 }
                 var response = new List<CenterResponseModel>();
-                var centerServices = new List<CenterServiceResponseModel>();
-                var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                 foreach (var center in centerList)
                 {
+                    var centerServices = new List<CenterServiceResponseModel>();
+                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+
                     decimal minPrice = 0, maxPrice = 0;
                     foreach (var service in center.Services)
                     {
@@ -92,7 +105,8 @@ namespace Washouse.Web.Controllers
                                     minPrice = (decimal)service.Price;
                                 }
                             }
-                        } else
+                        } 
+                        else
                         {
                             if (minPrice > service.Price || minPrice == 0)
                             {
@@ -380,35 +394,101 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPost("createCenter")]
-        public async Task<IActionResult> CreateCenter([FromForm] CenterRequestModel centerRequestModel)
+        [HttpPost]
+        public async Task<IActionResult> CreateCenter([FromBody] CreateCenterRequestModel createCenterRequestModel)
         {
             try
             {
                 Center center = new Center();
+                Location location = new Location();
                 if (ModelState.IsValid)
                 {
-                    center.Id = 0;
-                    center.CenterName = centerRequestModel.CenterName;
-                    center.CenterName = centerRequestModel.CenterName;
-                    center.CenterName = centerRequestModel.CenterName;
-                    center.CenterName = centerRequestModel.CenterName;
-                    /*if (!serviceRequest.PriceType)
+                    //Add Location
+                    location.AddressString = createCenterRequestModel.Location.AddressString;
+                    location.WardId = createCenterRequestModel.Location.WardId;
+                    var ward = await _wardService.GetWardById(location.WardId);
+                    string fullAddress = createCenterRequestModel.Location.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+                    using (HttpClient client = new HttpClient())
                     {
-                        serviceRequest.Price = serviceRequestmodel.Price;
+                        var response = await client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var json = await response.Content.ReadAsStringAsync();
+                            dynamic result = JsonConvert.DeserializeObject(json);
+                            if (result.Count > 0)
+                            {
+
+                                location.Latitude = result[0].lat;
+                                location.Longitude = result[0].lon;
+                            }
+                        }
                     }
-                    serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
-                    serviceRequest.Status = "addRequest";
-                    serviceRequest.HomeFlag = false;
-                    serviceRequest.HotFlag = false;
-                    serviceRequest.Rating = 0;
-                    serviceRequest.CreatedDate = DateTime.Now;
-                    serviceRequest.UpdatedDate = DateTime.Now;
-                    serviceRequest.CenterId =*/
-                    var result = _centerService.Add(center);
-                    return Ok(result);
+                    if (createCenterRequestModel.Location.Latitude != null)
+                    {
+                        location.Latitude = createCenterRequestModel.Location.Latitude;
+                    }
+                    if (createCenterRequestModel.Location.Longitude != null)
+                    {
+                        location.Longitude = createCenterRequestModel.Location.Longitude;
+                    }
+                    await _locationService.Add(location);
+
+
+                    // save Image
+                    string SavedUrl = null;
+                    string SavedFileName = null;
+                    if (createCenterRequestModel.Center.Image != null)
+                    {
+                        SavedFileName = Utilities.GenerateFileNameToSave(createCenterRequestModel.Center.Image.FileName);
+                        SavedUrl = await _cloudStorageService.UploadFileAsync(createCenterRequestModel.Center.Image, SavedFileName);
+                    }
+
+                    //Add Center 
+                    center.Id = 0;
+                    center.CenterName = createCenterRequestModel.Center.CenterName;
+                    center.Alias = createCenterRequestModel.Center.Alias;
+                    center.LocationId = location.Id;
+                    center.Phone = createCenterRequestModel.Center.Phone;
+                    center.Description = createCenterRequestModel.Center.Description;
+                    center.MonthOff = createCenterRequestModel.Center.MonthOff;
+                    center.IsAvailable = false;
+                    center.Status = "CreatePending";
+                    center.Image = SavedFileName;
+                    center.HotFlag = false;
+                    center.Rating = null;
+                    center.NumOfRating = 0;
+                    center.CreatedDate = DateTime.Now;
+                    center.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    center.UpdatedDate = null;
+                    center.UpdatedBy = null;
+
+                    await _centerService.Add(center);
+
+                    //Add Operating time
+                    //List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(json);
+                    foreach (var item in createCenterRequestModel.CenterOperatingHours.ToList())
+                    {
+                        var operatingTime = new OperatingHour();
+                        operatingTime.CenterId = center.Id;
+                        operatingTime.DaysOfWeekId = item.Day;
+                        var openTime = item.OpenTime.Split(':');
+                        operatingTime.OpenTime = new TimeSpan(int.Parse(openTime[0]), int.Parse(openTime[1]), 0);
+                        var closeTime = item.CloseTime.Split(':');
+                        operatingTime.CloseTime = new TimeSpan(int.Parse(closeTime[0]), int.Parse(closeTime[1]), 0);
+                        operatingTime.CreatedDate = DateTime.Now;
+                        operatingTime.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                        operatingTime.UpdatedDate = null;
+                        operatingTime.UpdatedBy = null;
+
+                        await _operatingHourService.Add(operatingTime);
+                    }
+                    return Ok();
                 }
-                else { return BadRequest(); }
+                else 
+                { 
+                    return BadRequest(); 
+                }
             }
             catch
             {

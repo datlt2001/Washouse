@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Washouse.Model.RequestModels
 {
@@ -13,12 +14,10 @@ namespace Washouse.Model.RequestModels
     {
         public string CenterName { get; set; }
         public string Alias { get; set; }
-        public int LocationId { get; set; }
+        //public int LocationId { get; set; }
+        public string Phone { get; set; }
         public string Description { get; set; }
-        public TimeSpan? OpenTime { get; set; }
-        public TimeSpan? CloseTime { get; set; }
-        public int? MonthOff { get; set; }
-        public string WeekOff { get; set; }
-        public string Image { get; set; }
+        public string MonthOff { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }

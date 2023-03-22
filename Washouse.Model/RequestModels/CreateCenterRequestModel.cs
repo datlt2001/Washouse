@@ -9,5 +9,7 @@ namespace Washouse.Model.RequestModels
     public class CreateCenterRequestModel
     {
         public CenterRequestModel Center { get; set; }
+        public LocationRequestModel Location { get; set; }
+        public ICollection<OperatingHoursRequestModel> CenterOperatingHours { get; set; }
     }
 }
