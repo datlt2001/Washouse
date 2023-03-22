@@ -18,6 +18,6 @@ namespace Washouse.Model.RequestModels
         public string Phone { get; set; }
         public string Description { get; set; }
         public string MonthOff { get; set; }
-        public IFormFile? Image { get; set; }
+        public string? SavedFileName { get; set; }
     }
 }

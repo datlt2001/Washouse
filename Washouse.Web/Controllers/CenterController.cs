@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -434,16 +435,6 @@ namespace Washouse.Web.Controllers
                     }
                     await _locationService.Add(location);
 
-
-                    // save Image
-                    string SavedUrl = null;
-                    string SavedFileName = null;
-                    if (createCenterRequestModel.Center.Image != null)
-                    {
-                        SavedFileName = Utilities.GenerateFileNameToSave(createCenterRequestModel.Center.Image.FileName);
-                        SavedUrl = await _cloudStorageService.UploadFileAsync(createCenterRequestModel.Center.Image, SavedFileName);
-                    }
-
                     //Add Center 
                     center.Id = 0;
                     center.CenterName = createCenterRequestModel.Center.CenterName;
@@ -454,7 +445,7 @@ namespace Washouse.Web.Controllers
                     center.MonthOff = createCenterRequestModel.Center.MonthOff;
                     center.IsAvailable = false;
                     center.Status = "CreatePending";
-                    center.Image = SavedFileName;
+                    center.Image = createCenterRequestModel.Center.SavedFileName;
                     center.HotFlag = false;
                     center.Rating = null;
                     center.NumOfRating = 0;
@@ -466,8 +457,8 @@ namespace Washouse.Web.Controllers
                     await _centerService.Add(center);
 
                     //Add Operating time
-                    //List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(json);
-                    foreach (var item in createCenterRequestModel.CenterOperatingHours.ToList())
+                    List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel.CenterOperatingHours.ToJson());
+                    foreach (var item in operatings)
                     {
                         var operatingTime = new OperatingHour();
                         operatingTime.CenterId = center.Id;

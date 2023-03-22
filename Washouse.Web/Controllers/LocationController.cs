@@ -10,29 +10,34 @@ using Washouse.Model.ViewModel;
 using Washouse.Model.ResponseModels;
 using Washouse.Web.Models;
 using static Google.Apis.Requests.BatchRequest;
+using Microsoft.CodeAnalysis;
+using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/location")]
+    [Route("api/locations")]
     [ApiController]
     public class LocationController : ControllerBase
     {
         #region Initialize
         private readonly ILocationService _locationService;
+        private readonly IWardService _wardService;
 
-        public LocationController(ILocationService locationService)
+        public LocationController(ILocationService locationService, IWardService wardService)
         {
             this._locationService = locationService;
+            this._wardService = wardService;
         }
 
         #endregion
 
-        [HttpPost("createLocation")]
+        [HttpPost]
         public async Task<IActionResult> CreateLocation([FromForm] LocationRequestModel locationRequest)
         {
             try
             {
-                Location location = new Location();
+                Model.Models.Location location = new Model.Models.Location();
                 if (ModelState.IsValid)
                 {
                     location.AddressString = locationRequest.AddressString;
@@ -132,6 +137,102 @@ namespace Washouse.Web.Controllers
         private static double ToRadians(double degrees)
         {
             return degrees * Math.PI / 180;
+        }
+
+        /// <summary>
+        /// Gets lat/long by address.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/locations/search
+        ///     {        
+        ///       "addressString": 30 Thủy Lợi,
+        ///       "wardId": 41
+        ///     }
+        /// </remarks>
+        /// <returns>Latitude and longitude of this address.</returns>
+        /// <response code="200">Success return latitude and longitude of this address</response>   
+        /// <response code="404">Not found latitude and longitude of this address</response>   
+        /// <response code="400">One or more error occurs</response>   
+        // GET: api/centers
+        [HttpGet("search")]
+        public async Task<IActionResult> search(string AddressString, int WardId)
+        {
+            try
+            { 
+                if (ModelState.IsValid)
+                {
+                    decimal? Latitude = null;
+                    decimal? Longitude = null;
+                    var ward = await _wardService.GetWardById(WardId);
+                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+                    using (HttpClient client = new HttpClient())
+                    {
+                        var response = await client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var json = await response.Content.ReadAsStringAsync();
+                            dynamic result = JsonConvert.DeserializeObject(json);
+                            if (result.Count > 0)
+                            {
+
+                                Latitude = result[0].lat;
+                                Longitude = result[0].lon;
+
+                                return Ok(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status200OK,
+                                    Message = "success",
+                                    Data = new
+                                    {
+                                        Latitude = Latitude,
+                                        Longitude = Longitude
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                return NotFound(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status404NotFound,
+                                    Message = "Not found latitude and longitude of this address",
+                                    Data = null
+                                });
+                            }
+                        }
+                        else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Fail to get latitude and longitude",
+                                Data = null
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
     }
 }
