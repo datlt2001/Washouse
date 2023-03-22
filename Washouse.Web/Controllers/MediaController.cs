@@ -99,8 +99,8 @@ namespace Washouse.Web.Controllers
         /// <response code="404">Not found any file choosen</response>   
         /// <response code="400">One or more error occurs</response>   
         // POST: api/medias
-        [HttpPost("upload-multile")]
-        public async Task<IActionResult> UploadMultile(List<IFormFile> Photos)
+        [HttpPost("upload-multiple")]
+        public async Task<IActionResult> UploadMultiple(List<IFormFile> Photos)
         {
             try
             {

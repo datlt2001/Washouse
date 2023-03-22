@@ -371,12 +371,23 @@ namespace Washouse.Web.Controllers
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
                 }
+
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
@@ -394,7 +405,73 @@ namespace Washouse.Web.Controllers
                 return BadRequest();
             }
         }
-
+        /// <summary>
+        /// Create a center.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST api/centers
+        ///     { 
+        ///       "center": 
+        ///       {
+        ///         "centerName": "Giặt sấy Quỳnh Phát",
+        ///         "alias": "Giặt sấy Quỳnh Phát",
+        ///         "phone": "0988714029",
+        ///         "description": "Giặt nhanh, sạch, thơm",
+        ///         "monthOff": "16",
+        ///         "savedFileName": "ThumbnailCenter01-20230322184337.png"
+        ///       },
+        ///       location: {
+        ///         "addressString": "103 Quang Trung",
+        ///         "wardId": 40,
+        ///         "latitude": 0,
+        ///         "longitude": 0
+        ///       },
+        ///       "centerOperatingHours": [
+        ///         {
+        ///             "day": 0,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 1,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 2,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 3,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 4,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 5,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "21:00"
+        ///         },
+        ///         {
+        ///             "day": 6,
+        ///             "openTime": "06:00",
+        ///             "closeTime": "12:00"
+        ///         },
+        ///       ]
+        ///     }
+        ///   
+        /// </remarks>
+        /// <returns>Center created.</returns>
+        /// <response code="200">Success create a ceter</response>     
+        /// <response code="400">One or more error occurs</response>   
+        // POST: api/centers
         [HttpPost]
         public async Task<IActionResult> CreateCenter([FromBody] CreateCenterRequestModel createCenterRequestModel)
         {
@@ -474,16 +551,32 @@ namespace Washouse.Web.Controllers
 
                         await _operatingHourService.Add(operatingTime);
                     }
-                    return Ok();
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new { CenterId = center.Id }
+                });
                 }
                 else 
-                { 
-                    return BadRequest(); 
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
                 }
+
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
     }
