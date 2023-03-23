@@ -34,6 +34,7 @@ namespace Washouse.Model.Models
         public bool? HotFlag { get; set; }
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }
+        public bool HasDelivery { get; set; }
 
         public virtual Location Location { get; set; }
         public virtual ICollection<AdditionService> AdditionServices { get; set; }

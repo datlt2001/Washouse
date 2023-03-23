@@ -12,5 +12,6 @@ namespace Washouse.Data.Repositories
     {
         Task<IEnumerable<Ward>> GetWardListByDistrictId(int DistrictId);
         Task<Ward> GetWardById(int WardId);
+        Task<Ward> GetWardByName(string Name);
     }
 }

@@ -30,5 +30,10 @@ namespace Washouse.Service.Implement
             return await _wardRepository.GetWardById(id);
         }
 
+        public async Task<Ward> GetWardByName(string name)
+        {
+            return await _wardRepository.GetWardByName(name);
+        }
+
     }
 }

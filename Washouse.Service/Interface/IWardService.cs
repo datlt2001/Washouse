@@ -11,5 +11,6 @@ namespace Washouse.Service.Interface
     {
         Task<IEnumerable<Ward>> GetWardListByDistrictId(int DistrictId);
         Task<Ward> GetWardById(int WardId);
+        Task<Ward> GetWardByName(string Name);
     }
 }

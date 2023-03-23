@@ -128,6 +128,7 @@ namespace Washouse.Web.Controllers
                         if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
                     }
                     List<int> dayOffs = new List<int>();
+                    bool MonthOff = false;
                     for (int i = 0; i < 7; i++) {
                         dayOffs.Add(i);
                     }
@@ -161,6 +162,16 @@ namespace Washouse.Web.Controllers
                         distance = Utilities.CalculateDistance(Math.Round((decimal)filterCentersRequestModel.CurrentUserLatitude, 6), Math.Round((decimal)filterCentersRequestModel.CurrentUserLongitude, 6),
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
+                    if (center.MonthOff != null)
+                    {
+                        string[] offs = center.MonthOff.Split('-');
+                        for (int i = 0; i < offs.Length; i++)
+                        {
+                            if (DateTime.Now.Day == (int.Parse(offs[i]))) {
+                                MonthOff = true;
+                            }
+                        }
+                    }
                     response.Add(new CenterResponseModel
                     {
                         Id = center.Id,
@@ -176,12 +187,14 @@ namespace Washouse.Web.Controllers
                         Distance = Math.Round(distance, 1),
                         MinPrice = minPrice,
                         MaxPrice = maxPrice,
+                        HasDelivery = center.HasDelivery,
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
                             Longitude = center.Location.Longitude
                         },
                         CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList(),
+                        MonthOff = MonthOff
                     });
                 }
                 if (filterCentersRequestModel.Sort != null)
@@ -350,6 +363,19 @@ namespace Washouse.Web.Controllers
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
                     //}
+                    bool MonthOff = false;
+                    if (center.MonthOff != null)
+                    {
+                        string[] offs = center.MonthOff.Split('-');
+                        for (int i = 0; i < offs.Length; i++)
+                        {
+                            if (DateTime.Now.Day == (int.Parse(offs[i])))
+                            {
+                                MonthOff = true;
+                            }
+                        }
+                    }
+
                     response.Id = center.Id;
                     response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
                     response.Title = center.CenterName;
@@ -361,13 +387,20 @@ namespace Washouse.Web.Controllers
                     response.Phone = center.Phone;
                     response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
                     response.Distance = distance;
+                    response.MonthOff = MonthOff;
+                    response.HasDelivery = center.HasDelivery;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
                         Latitude = center.Location.Latitude,
                         Longitude = center.Location.Longitude
                     };
                     response.CenterOperatingHours = centerOperatingHours;
-                    return Ok(response);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
                 }
                 else
                 {
@@ -391,20 +424,6 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpGet("search")]
-        public async Task<IActionResult> Search(string searchKey, int page, int pageSize)
-        {
-            int totalRow = 0;
-            try
-            {
-                var centerList = _centerService.GetAllBySearchKeyPaging(searchKey, page, pageSize, out totalRow);
-                return Ok(centerList);
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
         /// <summary>
         /// Create a center.
         /// </summary>
@@ -486,6 +505,7 @@ namespace Washouse.Web.Controllers
         ///     }
         ///   
         /// </remarks>
+        /// 
         /// <returns>Center created.</returns>
         /// <response code="200">Success create a ceter</response>     
         /// <response code="400">One or more error occurs</response>   
@@ -556,6 +576,10 @@ namespace Washouse.Web.Controllers
                     await _locationService.Add(location);
 
                     //Add Center 
+                    if (createCenterRequestModel.Center.HasDelivery == null)
+                    {
+                        createCenterRequestModel.Center.HasDelivery = false;
+                    }
                     center.Id = 0;
                     center.CenterName = createCenterRequestModel.Center.CenterName;
                     center.Alias = createCenterRequestModel.Center.Alias;
@@ -569,6 +593,7 @@ namespace Washouse.Web.Controllers
                     center.HotFlag = false;
                     center.Rating = null;
                     center.NumOfRating = 0;
+                    center.HasDelivery = (bool)createCenterRequestModel.Center.HasDelivery;
                     center.CreatedDate = DateTime.Now;
                     center.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     center.UpdatedDate = null;
@@ -596,7 +621,7 @@ namespace Washouse.Web.Controllers
                     }
 
                     //Add Resources
-                    List<ResourceRequestModel> resources = JsonConvert.DeserializeObject<List<ResourceRequestModel>>(createCenterRequestModel.Resources.ToJson());
+                    /*List<ResourceRequestModel> resources = JsonConvert.DeserializeObject<List<ResourceRequestModel>>(createCenterRequestModel.Resources.ToJson());
                     foreach (var item in resources)
                     {
                         var resource = new Resourse();
@@ -613,7 +638,7 @@ namespace Washouse.Web.Controllers
                         resource.UpdatedDate = null;
                         resource.UpdatedBy = null;
 
-                    }
+                    }*/
 
                     return Ok(new ResponseModel
                     {

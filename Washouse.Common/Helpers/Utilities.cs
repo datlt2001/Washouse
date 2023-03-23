@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Newtonsoft.Json;
 
 namespace Washouse.Common.Helpers
 {
@@ -132,13 +133,42 @@ namespace Washouse.Common.Helpers
             return $"{fileName}-{DateTime.Now.ToUniversalTime().ToString("yyyyMMddHHmmss")}{extension}";
         }
 
-        public static string GetLatLong(string address)
+        public static async Task<dynamic> SearchRelativeAddress(string query)
         {
-            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={address}&format=json&addressdetails=1&limit=1&polygon_svg=1";
+            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={query}&format=json&limit=1";
+            try
+            {
 
-            
-
-            return "";
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(json);
+                        if (result.Count > 0)
+                        {
+                            return new
+                            {
+                                lat = result[0].lat,
+                                lon = result[0].lon
+                            };
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

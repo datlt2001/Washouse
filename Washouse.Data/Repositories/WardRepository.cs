@@ -29,5 +29,14 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync();
             return data;
         }
+
+        public async Task<Ward> GetWardByName(string Name)
+        {
+            var data = await this._dbContext.Wards
+                    .Include(a => a.District)
+                    .Where(ward => ward.WardName == Name)
+                    .FirstOrDefaultAsync();
+            return data;
+        }
     }
 }

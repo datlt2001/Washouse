@@ -216,52 +216,7 @@ namespace Washouse.Web.Controllers
                             });
                         }
                     }
-                        /*string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
-                        using (HttpClient client = new HttpClient())
-                        {
-                            var response = await client.GetAsync(url);
-                            if (response.IsSuccessStatusCode)
-                            {
-                                var json = await response.Content.ReadAsStringAsync();
-                                dynamic result = JsonConvert.DeserializeObject(json);
-                                if (result.Count > 0)
-                                {
-
-                                    Latitude = result[0].lat;
-                                    Longitude = result[0].lon;
-
-                                    return Ok(new ResponseModel
-                                    {
-                                        StatusCode = StatusCodes.Status200OK,
-                                        Message = "success",
-                                        Data = new
-                                        {
-                                            Latitude = Latitude,
-                                            Longitude = Longitude
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    return NotFound(new ResponseModel
-                                    {
-                                        StatusCode = StatusCodes.Status404NotFound,
-                                        Message = "Not found latitude and longitude of this address",
-                                        Data = null
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                return BadRequest(new ResponseModel
-                                {
-                                    StatusCode = StatusCodes.Status400BadRequest,
-                                    Message = "Fail to get latitude and longitude",
-                                    Data = null
-                                });
-                            }
-                        }*/
-                    }
+                }
                 else
                 {
                     return BadRequest(new ResponseModel

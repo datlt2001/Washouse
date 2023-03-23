@@ -17,7 +17,9 @@ namespace Washouse.Model.RequestModels
         //public int LocationId { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
-        public string MonthOff { get; set; }
+        [RegularExpression(@"^(0?[1-9]|[1-2][0-9]|3[0-1])(-(0?[1-9]|[1-2][0-9]|3[0-1]))*$", ErrorMessage = "Please insert a valid MonthOff. Formatted like 1-2-10-11-12-13")]
+        public string? MonthOff { get; set; }
         public string? SavedFileName { get; set; }
+        public bool? HasDelivery { get; set; }
     }
 }
