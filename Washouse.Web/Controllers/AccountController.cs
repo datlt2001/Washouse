@@ -15,6 +15,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
@@ -433,7 +434,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("RegisterAsCustomer")]
-        public async Task<IActionResult> RegisterAsCustomer([FromForm] CustomerRequestModel Input)
+        public async Task<IActionResult> RegisterAsCustomer([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
             {
@@ -442,15 +443,21 @@ namespace Washouse.Web.Controllers
                     Phone = Input.Phone,
                     Email = Input.Email,
                     Password = Input.Password,
-                    FullName = Input.FullName,
-                    Dob = Input.Dob,
                     Status = false,
+                    FullName = Input.Phone,
                     RoleType = "Customer",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\customer", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
-                    CreatedBy = Input.FullName,                   
+                    CreatedBy = Input.Email,
 
                 };
+                if (Input.confirmPass != Input.Password) { 
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Sai ConfirmPassword",
+                        Data = null
+                    }); }
                 await _accountService.Add(accounts);
                 var customer = new Customer()
                 {
@@ -463,14 +470,25 @@ namespace Washouse.Web.Controllers
                     CreatedDate= DateTime.Now,
                 };
                 await _customerService.Add(customer);
-                return Ok(accounts);
+                //string path = "./Templates_email/VerifyAccount.txt";
+                //string content = System.IO.File.ReadAllText(path);
+                //content = content.Replace("{recipient}", customer.Fullname);
+                //string url = "https://localhost:44360/api/accounts/veriyAccount/"+ customer.AccountId;
+                //content = content.Replace("{link}", url);
+                //await _sendMailService.SendEmailAsync("minhkilo64@gmail.com", "Verify Account", content);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = accounts
+                });
             }
             else { return BadRequest(); }
 
         }
 
         [HttpPost("RegisterAsManager")]
-        public async Task<IActionResult> RegisterAsManager([FromForm] StaffRequestModel Input)
+        public async Task<IActionResult> RegisterAsManager([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
             {
@@ -479,15 +497,23 @@ namespace Washouse.Web.Controllers
                     Phone = Input.Phone,
                     Email = Input.Email,
                     Password = Input.Password,
-                    FullName = Input.FullName,
-                    Dob = Input.Dob,
+                    FullName = Input.Phone,                    
                     Status = false,
                     RoleType = "Manager",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\managers", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
-                    CreatedBy = Input.FullName,
+                    CreatedBy = Input.Email,
 
                 };
+                if (Input.confirmPass != Input.Password)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Sai ConfirmPass",
+                        Data = null
+                    });
+                }
                 await _accountService.Add(accounts);
                 var manager = new Staff()
                 {
@@ -495,14 +521,18 @@ namespace Washouse.Web.Controllers
                     Status = false,
                     IsManager = true,
                     CenterId = null,
-                    IdNumber = Input.IdNumber,
                     //IdFrontImg = await Utilities.UploadFile(Input.IdFrontImg, @"images\accounts\managers", Input.profilePic.FileName),
                     //IdBackImg = await Utilities.UploadFile(Input.IdBackImg, @"images\accounts\managers", Input.profilePic.FileName),
                     CreatedBy = accounts.CreatedBy,
                     CreatedDate = DateTime.Now,
                 };
                 await _staffService.Add(manager);
-                return Ok(accounts);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = accounts
+                });
             }
             else { return BadRequest(); }
 

@@ -18,5 +18,9 @@ namespace Washouse.Service.Interface
         public Task<Feedback> GetById(int id);
 
         public IEnumerable<int> GetIDList();
+
+        public IEnumerable<Feedback> GetAllByCenterId(int id);
+
+        public IEnumerable<Feedback> GetAllByOrderDetailId(int orderdetailId);
     }
 }

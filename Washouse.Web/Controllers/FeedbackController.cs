@@ -31,7 +31,7 @@ namespace Washouse.Web.Controllers
             {
                 var account = _accountService.GetById(userid);
                 var idlist = _feedbackService.GetIDList();
-                int lastId = idlist.Last();
+                //int lastId = idlist.Last();
                 if (centerId == 0) centerId = null;
                 if (orderDetailId == 0) orderDetailId = null;
                 var feedback = new Feedback()
@@ -42,7 +42,7 @@ namespace Washouse.Web.Controllers
                     CenterId = centerId,
                     CreatedBy = account.Result.FullName,
                     CreatedDate= DateTime.Now,
-                    Id = lastId +1,
+                    //Id = lastId +1,
 
                 };
                 await _feedbackService.Add(feedback);
@@ -82,6 +82,32 @@ namespace Washouse.Web.Controllers
             }
             else { return BadRequest(); }
 
+        }
+
+        [HttpGet("get-feedback-by-centerId")]
+        public  IActionResult GetFeedbackByCenterId (int centerId)
+        {
+            var feedbacks = _feedbackService.GetAllByCenterId(centerId);
+            if( feedbacks == null) return NotFound();
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = feedbacks
+            });
+        }
+
+        [HttpGet("get-feedback-by-orderdetailid")]
+        public IActionResult GetAllByOrderDetailId(int orderdetailid)
+        {
+            var feedbacks = _feedbackService.GetAllByOrderDetailId(orderdetailid);
+            if (feedbacks == null) return NotFound();
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = feedbacks
+            });
         }
     }
 }

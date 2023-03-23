@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,22 @@ namespace Washouse.Data.Repositories
             var query = from fb in DbContext.Feedbacks
                         select fb.Id ;
             return query.ToList();
+        }
+
+        public  IEnumerable<Feedback> GetAllByCenterId(int centerid)
+        {
+            var data =  this._dbContext.Feedbacks
+                        .Where(fb => fb.CenterId == centerid)
+                        .ToList();
+            return data;
+        }
+
+        public IEnumerable<Feedback> GetAllByOrderDetailId(int orderdetailId)
+        {
+            var data = this._dbContext.Feedbacks
+                        .Where(fb => fb.OrderDetailId == orderdetailId)
+                        .ToList();
+            return data;
         }
     }
 }

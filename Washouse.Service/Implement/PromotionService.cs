@@ -40,5 +40,10 @@ namespace Washouse.Service.Implement
         {
             return await _promotionRepository.GetById(id);
         }
+
+        public IEnumerable<Promotion> GetAllByCenterId(int centerid)
+        {
+            return _promotionRepository.GetAllByCenterId(centerid);
+        }
     }
 }

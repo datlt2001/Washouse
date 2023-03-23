@@ -14,5 +14,13 @@ namespace Washouse.Data.Repositories
         {
 
         }
+
+        public IEnumerable<Promotion> GetAllByCenterId(int centerid)
+        {
+            var data = this._dbContext.Promotions
+                        .Where(fb => fb.CenterId == centerid)
+                        .ToList();
+            return data;
+        }
     }
 }
