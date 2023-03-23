@@ -14,6 +14,7 @@ namespace Washouse.Model.Models
             NotificationAccounts = new HashSet<NotificationAccount>();
             Posts = new HashSet<Post>();
             staff = new HashSet<Staff>();
+            RefreshTokens = new HashSet<RefreshToken>();
         }
 
         public int Id { get; set; }
@@ -34,5 +35,6 @@ namespace Washouse.Model.Models
         public virtual ICollection<NotificationAccount> NotificationAccounts { get; set; }
         public virtual ICollection<Post> Posts { get; set; }
         public virtual ICollection<Staff> staff { get; set; }
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; }
     }
 }

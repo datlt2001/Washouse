@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
@@ -11,9 +12,10 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    partial class WashouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230323160415_update table RefreshTokens")]
+    partial class updatetableRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1025,46 +1027,6 @@ namespace Washouse.Data.Migrations
                     b.ToTable("Promotions");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ExpiredAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("IssuedAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("JwtId")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
                 {
                     b.Property<int>("Id")
@@ -1742,17 +1704,6 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Center");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.RefreshToken", b =>
-                {
-                    b.HasOne("Washouse.Model.Models.Account", "Account")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("AccountId")
-                        .IsRequired()
-                        .HasConstraintName("FK_RefreshTokens_Accounts");
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Center", "Center")
@@ -1861,8 +1812,6 @@ namespace Washouse.Data.Migrations
                     b.Navigation("NotificationAccounts");
 
                     b.Navigation("Posts");
-
-                    b.Navigation("RefreshTokens");
 
                     b.Navigation("staff");
                 });

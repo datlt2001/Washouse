@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
@@ -11,9 +12,10 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    partial class WashouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230323150752_Add table RefreshTokens")]
+    partial class AddtableRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1028,10 +1030,7 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AccountId")
                         .HasColumnType("int");

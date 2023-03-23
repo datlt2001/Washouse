@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -12,6 +14,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
@@ -48,7 +51,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Validate(LoginModel model)
+        public async Task<IActionResult> Validate(LoginModel model)
         {
             //var user = _context.Accounts.SingleOrDefault(p =>
             //p.Phone == model.Phone && p.Password == model.Password);
@@ -61,18 +64,16 @@ namespace Washouse.Web.Controllers
                     Message = "Invalid username/password"
                 });
             }
-            string token = GenerateToken(user);
-            return Ok(new
+            var token = await GenerateToken(user);
+            return Ok(new ResponseModel
             {
-                Success = true,
+                StatusCode = StatusCodes.Status200OK,
                 Message = "Authenticate success",
                 Data = token
-                //,
-                //Email  = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("Email".ToLower())).Value
-        });
+            });
         }
 
-        private string GenerateToken(Account nguoiDung)
+        private async Task<TokenModel> GenerateToken(Account nguoiDung)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
@@ -85,18 +86,184 @@ namespace Washouse.Web.Controllers
                     new Claim(ClaimTypes.Email, nguoiDung.Email),
                     new Claim("Phone", nguoiDung.Phone),
                     new Claim("Id", nguoiDung.Id.ToString()),
-
+                    new Claim(JwtRegisteredClaimNames.Email, nguoiDung.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, nguoiDung.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
                     new Claim(ClaimTypes.Role, nguoiDung.RoleType.Trim().ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(1),
+                Expires = DateTime.UtcNow.AddMinutes(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
             };
 
             var token = jwtTokenHandler.CreateToken(tokenDescription);
+            var accessToken = jwtTokenHandler.WriteToken(token);
+            var refreshToken = GenerateRefreshToken();
 
-            return jwtTokenHandler.WriteToken(token);
+            var refreshTokenEntity = new RefreshToken
+            {
+                JwtId = token.Id,
+                AccountId = nguoiDung.Id,
+                Token = refreshToken,
+                IsUsed = false,
+                IsRevoked = false,
+                IssuedAt = DateTime.UtcNow,
+                ExpiredAt = DateTime.UtcNow.AddHours(1)
+            };
+
+            await _context.AddAsync(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+
+            return new TokenModel
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+        }
+        private string GenerateRefreshToken()
+        {
+            var random = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(random);
+
+                return Convert.ToBase64String(random);
+            }
+        }
+
+        [HttpPost("renewToken")]
+        public async Task<IActionResult> RenewToken(TokenModel model)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
+            var tokenValidateParam = new TokenValidationParameters
+            {
+                //tự cấp token
+                ValidateIssuer = false,
+                ValidateAudience = false,
+
+                //ký vào token
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
+
+                ClockSkew = TimeSpan.Zero,
+
+                ValidateLifetime = false //ko kiểm tra token hết hạn
+            };
+            try
+            {
+                //check 1: AccessToken valid format
+                var tokenInVerification = jwtTokenHandler.ValidateToken(model.AccessToken, tokenValidateParam, out var validatedToken);
+
+                //check 2: Check alg
+                if (validatedToken is JwtSecurityToken jwtSecurityToken)
+                {
+                    var result = jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512, StringComparison.InvariantCultureIgnoreCase);
+                    if (!result)//false
+                    {
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "Invalid token",
+                            Data = null
+                        });
+                    }
+                }
+
+                //check 3: Check accessToken expire?
+                var utcExpireDate = long.Parse(tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+
+                var expireDate = ConvertUnixTimeToDateTime(utcExpireDate);
+                if (expireDate > DateTime.UtcNow)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Access token has not yet expired",
+                        Data = null
+                    });
+                }
+
+                //check 4: Check refreshtoken exist in DB
+                var storedToken = _context.RefreshTokens.FirstOrDefault(x => x.Token == model.RefreshToken);
+                if (storedToken == null)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Refresh token does not exist",
+                        Data = null
+                    });
+
+                }
+
+                //check 5: check refreshToken is used/revoked?
+                if (storedToken.IsUsed)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Refresh token has been used",
+                        Data = null
+                    });
+                }
+                if (storedToken.IsRevoked)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Refresh token has been revoked",
+                        Data = null
+                    });
+                }
+
+                //check 6: AccessToken id == JwtId in RefreshToken
+                var jti = tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+                if (storedToken.JwtId != jti)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Token doesn't match",
+                        Data = null
+                    });
+                }
+
+                //Update token is used
+                storedToken.IsRevoked = true;
+                storedToken.IsUsed = true;
+                _context.Update(storedToken);
+                await _context.SaveChangesAsync();
+
+                //create new token
+                var user = await _context.Accounts.SingleOrDefaultAsync(nd => nd.Id == storedToken.AccountId);
+                var token = await GenerateToken(user);
+
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Renew token success",
+                    Data = token
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
+        {
+            var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTimeInterval.AddSeconds(utcExpireDate).ToUniversalTime();
+
+            return dateTimeInterval;
         }
 
         [Authorize(Roles ="Admin")]
@@ -360,14 +527,14 @@ namespace Washouse.Web.Controllers
             {
                 string id = User.FindFirst("Id")?.Value;
                 var user = _accountService.GetById(int.Parse(id));
-                string token = GenerateToken(user.Result);
+                var token = GenerateToken(user.Result);
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
                     Message = "success",
                     Data = new CurrentUserResponseModel
                     {
-                        TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
+                        //TokenId = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token).Claims.First(claim => claim.Type.ToLower().Equals("TokenId".ToLower())).Value,
                         AccountId = int.Parse(id),
                         Email = User.FindFirst(ClaimTypes.Email)?.Value,
                         Phone = User.FindFirst("Phone")?.Value,

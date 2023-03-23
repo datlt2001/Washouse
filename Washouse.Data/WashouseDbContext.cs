@@ -48,6 +48,7 @@ namespace Washouse.Data
         public virtual DbSet<Staff> Staffs { get; set; }
         public virtual DbSet<Tracking> Trackings { get; set; }
         public virtual DbSet<Ward> Wards { get; set; }
+        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -721,6 +722,27 @@ namespace Washouse.Data
                     .HasConstraintName("FK_Promotions_Centers");
             });
 
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
+
+                entity.Property(e => e.IssuedAt).HasColumnType("datetime");
+
+                entity.Property(e => e.JwtId)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Token)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.RefreshTokens)
+                    .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_RefreshTokens_Accounts");
+            });
+
             modelBuilder.Entity<Resourse>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
@@ -973,14 +995,14 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-                /*configuration = new ConfigurationBuilder()
+                configuration = new ConfigurationBuilder()
                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                        .AddJsonFile("appsettings.json")
-                       .Build();*/
-                configuration = new ConfigurationBuilder()
+                       .Build();
+                /*configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
-                                   .Build();
+                                   .Build();*/
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
