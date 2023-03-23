@@ -463,7 +463,25 @@ namespace Washouse.Web.Controllers
         ///             "day": 6,
         ///             "openTime": "06:00",
         ///             "closeTime": "12:00"
+        ///         }
+        ///       ],
+        ///       "resources": [
+        ///         {
+        ///             "name": "Máy giặt cửa ngang 10kg UltimateCare 300",
+        ///             "alias": "ewf1024d3wb",
+        ///             "quantity": 4,
+        ///             "washCapacity": 10,
+        ///             "dryCapacity": 0,
+        ///             "availableQuantity": 4
         ///         },
+        ///         {
+        ///             "name": "Máy giặt sấy 11/7kg UltimateCare 700",
+        ///             "alias": "EWW1142Q7WB",
+        ///             "quantity": 6,
+        ///             "washCapacity": 11,
+        ///             "dryCapacity": 7,
+        ///             "availableQuantity": 4
+        ///         }
         ///       ]
         ///     }
         ///   
@@ -484,7 +502,19 @@ namespace Washouse.Web.Controllers
                     //Add Location
                     location.AddressString = createCenterRequestModel.Location.AddressString;
                     location.WardId = createCenterRequestModel.Location.WardId;
-                    var ward = await _wardService.GetWardById(location.WardId);
+                    var ward = new Ward();
+                    try
+                    {
+                        ward = await _wardService.GetWardById(location.WardId);
+                    } catch(Exception ex)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found ward by wardId.",
+                            Data = null
+                        });
+                    }
                     string fullAddress = createCenterRequestModel.Location.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
                     string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                     using (HttpClient client = new HttpClient())
@@ -509,6 +539,19 @@ namespace Washouse.Web.Controllers
                     if (createCenterRequestModel.Location.Longitude != null)
                     {
                         location.Longitude = createCenterRequestModel.Location.Longitude;
+                    }
+                    if (location.Latitude != null && location.Longitude != null)
+                    {
+                        location.Latitude = Math.Round((decimal)location.Latitude,9);
+                        location.Longitude = Math.Round((decimal)location.Longitude, 9);
+                    } else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                            Data = null
+                        });
                     }
                     await _locationService.Add(location);
 
@@ -551,6 +594,27 @@ namespace Washouse.Web.Controllers
 
                         await _operatingHourService.Add(operatingTime);
                     }
+
+                    //Add Resources
+                    List<ResourceRequestModel> resources = JsonConvert.DeserializeObject<List<ResourceRequestModel>>(createCenterRequestModel.Resources.ToJson());
+                    foreach (var item in resources)
+                    {
+                        var resource = new Resourse();
+                        resource.CenterId = center.Id;
+                        resource.ResourceName = item.Name;
+                        resource.Alias = item.Alias;
+                        resource.Quantity = item.Quantity;
+                        resource.AvailableQuantity = item.AvailableQuantity;
+                        resource.WashCapacity = item.WashCapacity;
+                        resource.DryCapacity = item.DryCapacity;
+                        resource.Status = true;
+                        resource.CreatedDate = DateTime.Now;
+                        resource.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                        resource.UpdatedDate = null;
+                        resource.UpdatedBy = null;
+
+                    }
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,

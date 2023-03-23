@@ -11,5 +11,6 @@ namespace Washouse.Model.RequestModels
         public CenterRequestModel Center { get; set; }
         public LocationRequestModel Location { get; set; }
         public ICollection<OperatingHoursRequestModel> CenterOperatingHours { get; set; }
+        public ICollection<ResourceRequestModel> Resources { get; set; }
     }
 }

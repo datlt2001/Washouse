@@ -167,52 +167,101 @@ namespace Washouse.Web.Controllers
                     decimal? Longitude = null;
                     var ward = await _wardService.GetWardById(WardId);
                     string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                    string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
-                    using (HttpClient client = new HttpClient())
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    var result = await SearchRelativeAddress(fullAddress);
+                    if (result != null)
                     {
-                        var response = await client.GetAsync(url);
-                        if (response.IsSuccessStatusCode)
+
+                        Latitude = result.lat;
+                        Longitude = result.lon;
+
+                        return Ok(new ResponseModel
                         {
-                            var json = await response.Content.ReadAsStringAsync();
-                            dynamic result = JsonConvert.DeserializeObject(json);
-                            if (result.Count > 0)
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = new
                             {
-
-                                Latitude = result[0].lat;
-                                Longitude = result[0].lon;
-
-                                return Ok(new ResponseModel
-                                {
-                                    StatusCode = StatusCodes.Status200OK,
-                                    Message = "success",
-                                    Data = new
-                                    {
-                                        Latitude = Latitude,
-                                        Longitude = Longitude
-                                    }
-                                });
+                                Latitude = Latitude,
+                                Longitude = Longitude
                             }
-                            else
+                        });
+                    }
+                    else
+                    {
+                        result = await SearchRelativeAddress(wardAddress);
+                        if (result != null)
+                        {
+
+                            Latitude = result.lat;
+                            Longitude = result.lon;
+
+                            return Ok(new ResponseModel
                             {
-                                return NotFound(new ResponseModel
+                                StatusCode = StatusCodes.Status200OK,
+                                Message = "return ward latitude and longitude",
+                                Data = new
                                 {
-                                    StatusCode = StatusCodes.Status404NotFound,
-                                    Message = "Not found latitude and longitude of this address",
-                                    Data = null
-                                });
-                            }
+                                    Latitude = Latitude,
+                                    Longitude = Longitude
+                                }
+                            });
                         }
                         else
                         {
-                            return BadRequest(new ResponseModel
+                            return NotFound(new ResponseModel
                             {
-                                StatusCode = StatusCodes.Status400BadRequest,
-                                Message = "Fail to get latitude and longitude",
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Not found latitude and longitude of this address",
                                 Data = null
                             });
                         }
                     }
-                }
+                        /*string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+                        using (HttpClient client = new HttpClient())
+                        {
+                            var response = await client.GetAsync(url);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var json = await response.Content.ReadAsStringAsync();
+                                dynamic result = JsonConvert.DeserializeObject(json);
+                                if (result.Count > 0)
+                                {
+
+                                    Latitude = result[0].lat;
+                                    Longitude = result[0].lon;
+
+                                    return Ok(new ResponseModel
+                                    {
+                                        StatusCode = StatusCodes.Status200OK,
+                                        Message = "success",
+                                        Data = new
+                                        {
+                                            Latitude = Latitude,
+                                            Longitude = Longitude
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    return NotFound(new ResponseModel
+                                    {
+                                        StatusCode = StatusCodes.Status404NotFound,
+                                        Message = "Not found latitude and longitude of this address",
+                                        Data = null
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Fail to get latitude and longitude",
+                                    Data = null
+                                });
+                            }
+                        }*/
+                    }
                 else
                 {
                     return BadRequest(new ResponseModel
@@ -232,6 +281,43 @@ namespace Washouse.Web.Controllers
                     Message = ex.Message,
                     Data = null
                 });
+            }
+        }
+
+        private static async Task<dynamic> SearchRelativeAddress(string query)
+        {
+            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={query}&format=json&limit=1";
+            try
+            {
+
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(json);
+                        if (result.Count > 0)
+                        {
+                            return new
+                            {
+                                lat = result[0].lat,
+                                lon = result[0].lon
+                            };
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            } catch
+            {
+                return null;
             }
         }
     }
