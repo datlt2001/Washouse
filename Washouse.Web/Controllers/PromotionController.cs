@@ -22,11 +22,16 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetPrmotionList()
+        public IActionResult GetPromotionList()
         {
             var promotion = _promotionService.GetAll();
             if (promotion == null) { return NotFound(); }
-            return Ok(promotion);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = promotion
+            });
         }
 
         [HttpGet("{id}")]
@@ -34,6 +39,19 @@ namespace Washouse.Web.Controllers
         {
             var promotion = _promotionService.GetById(id);
             if (promotion == null) { return NotFound(); }
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = promotion
+            });
+        }
+
+        [HttpGet("get-promotion-by-centerId")]
+        public IActionResult GetFeedbackByCenterId(int centerId)
+        {
+            var promotion = _promotionService.GetAllByCenterId(centerId);
+            if (promotion == null) return NotFound();
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,

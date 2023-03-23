@@ -10,5 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface IPromotionRepository : IRepository<Promotion>
     {
+        public IEnumerable<Promotion> GetAllByCenterId(int centerid);
     }
 }

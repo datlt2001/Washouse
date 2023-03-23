@@ -16,5 +16,7 @@ namespace Washouse.Service.Interface
         IEnumerable<Promotion> GetAll();
 
         public Task<Promotion> GetById(int id);
+
+        public IEnumerable<Promotion> GetAllByCenterId(int centerid);
     }
 }
