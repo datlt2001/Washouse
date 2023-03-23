@@ -77,6 +77,8 @@ namespace Washouse.Web.Controllers
                         JObject jObject = JObject.Parse(json);
                         string DistrictNameResponse = (string)jObject["address"]["city_district"];
                         string WardNameResponse = (string)jObject["address"]["suburb"];
+                        string AddressName = (string)jObject["name"];
+                        string DisplayName = (string)jObject["display_name"];
                         string CityNameResponse = ((string)jObject["address"]["city"] != null) ? (string)jObject["address"]["city"] : "Not found";
                         if (!CityNameResponse.ToLower().Contains("Hồ Chí Minh".ToLower()) && !CityNameResponse.ToLower().Contains("Thủ Đức".ToLower()))
                         {
@@ -108,7 +110,9 @@ namespace Washouse.Web.Controllers
                                 DistrictId = district.Id,
                                 DistrictName = district.DistrictName,
                                 WardId = ward.Id,
-                                WardName = ward.WardName
+                                WardName = ward.WardName,
+                                AddressName = AddressName,
+                                DisplayName = DisplayName
                             }
                         });
                     }
