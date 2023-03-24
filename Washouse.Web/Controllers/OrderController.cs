@@ -28,13 +28,18 @@ namespace Washouse.Web.Controllers
 
         //POST: api/orders
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] CreateCenterRequestModel createCenterRequestModel)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestModel createOrderRequestModel)
         {
             try
             {
-                
+                var order = new Order();
+                if (ModelState.IsValid)
+                {
 
-                    return Ok(new ResponseModel
+                }
+                //List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel.CenterOperatingHours.ToJson());
+
+                return Ok(new ResponseModel
                     {
                     });
 

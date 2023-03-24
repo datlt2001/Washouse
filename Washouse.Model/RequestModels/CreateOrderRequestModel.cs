@@ -10,6 +10,5 @@ namespace Washouse.Model.RequestModels
     {
         public OrderRequestModel Order { get; set; }
         public ICollection<OrderDetailRequestModel> OrderDetails { get; set; }
-        public ICollection<OrderAdditionRequestModel> OrderAdditions { get; set; }
     }
 }

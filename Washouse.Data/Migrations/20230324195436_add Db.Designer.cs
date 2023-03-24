@@ -12,7 +12,7 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230324090111_add Db")]
+    [Migration("20230324195436_add Db")]
     partial class addDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -137,17 +137,21 @@ namespace Washouse.Data.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<decimal?>("MaxDistance")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal?>("MaxWeight")
-                        .HasColumnType("decimal(6,3)");
+                    b.Property<string>("Image")
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
@@ -581,6 +585,53 @@ namespace Washouse.Data.Migrations
                     b.ToTable("Deliveries");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.DeliveryPriceChart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal?>("MaxDistance")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("MaxWeight")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CenterId");
+
+                    b.ToTable("DeliveryPriceCharts");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.District", b =>
                 {
                     b.Property<int>("Id")
@@ -602,7 +653,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int?>("CenterId")
                         .HasColumnType("int");
@@ -808,6 +862,9 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal?>("DeliveryPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
@@ -824,44 +881,6 @@ namespace Washouse.Data.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("Washouse.Model.Models.OrderAddition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AdditionId")
-                        .HasColumnType("int")
-                        .HasColumnName("additionId");
-
-                    b.Property<string>("CustomerNote")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("orderId");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("price");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdditionId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderAdditions");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
@@ -960,7 +979,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Post", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
@@ -1006,7 +1028,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Promotion", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("CenterId")
                         .HasColumnType("int");
@@ -1227,6 +1252,11 @@ namespace Washouse.Data.Migrations
                     b.Property<int?>("TimeEstimate")
                         .HasColumnType("int");
 
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -1379,6 +1409,11 @@ namespace Washouse.Data.Migrations
 
                     b.Property<int>("TimeEstimate")
                         .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
@@ -1611,6 +1646,17 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.DeliveryPriceChart", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Center", "Center")
+                        .WithMany("DeliveryPriceCharts")
+                        .HasForeignKey("CenterId")
+                        .IsRequired()
+                        .HasConstraintName("FK_DeliveryPriceCharts_Centers");
+
+                    b.Navigation("Center");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Feedback", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Center", "Center")
@@ -1697,25 +1743,6 @@ namespace Washouse.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("Washouse.Model.Models.OrderAddition", b =>
-                {
-                    b.HasOne("Washouse.Model.Models.AdditionService", "Addition")
-                        .WithMany("OrderAdditions")
-                        .HasForeignKey("AdditionId")
-                        .IsRequired()
-                        .HasConstraintName("FK_OrderAdditions_AdditionService");
-
-                    b.HasOne("Washouse.Model.Models.Order", "Order")
-                        .WithMany("OrderAdditions")
-                        .HasForeignKey("OrderId")
-                        .IsRequired()
-                        .HasConstraintName("FK_OrderAdditions_Orders");
-
-                    b.Navigation("Addition");
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
@@ -1902,11 +1929,6 @@ namespace Washouse.Data.Migrations
                     b.Navigation("staff");
                 });
 
-            modelBuilder.Entity("Washouse.Model.Models.AdditionService", b =>
-                {
-                    b.Navigation("OrderAdditions");
-                });
-
             modelBuilder.Entity("Washouse.Model.Models.Category", b =>
                 {
                     b.Navigation("Services");
@@ -1919,6 +1941,8 @@ namespace Washouse.Data.Migrations
                     b.Navigation("CenterGalleries");
 
                     b.Navigation("CenterRequests");
+
+                    b.Navigation("DeliveryPriceCharts");
 
                     b.Navigation("Feedbacks");
 
@@ -1969,8 +1993,6 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Deliveries");
 
                     b.Navigation("Notifications");
-
-                    b.Navigation("OrderAdditions");
 
                     b.Navigation("OrderDetails");
 

@@ -28,6 +28,7 @@ namespace Washouse.Data
         public virtual DbSet<Customer> Customers { get; set; }
         public virtual DbSet<DaysOfWeek> DaysOfWeeks { get; set; }
         public virtual DbSet<Delivery> Deliveries { get; set; }
+        public virtual DbSet<DeliveryPriceChart> DeliveryPriceCharts { get; set; }
         public virtual DbSet<District> Districts { get; set; }
         public virtual DbSet<Feedback> Feedbacks { get; set; }
         public virtual DbSet<Location> Locations { get; set; }
@@ -35,11 +36,11 @@ namespace Washouse.Data
         public virtual DbSet<NotificationAccount> NotificationAccounts { get; set; }
         public virtual DbSet<OperatingHour> OperatingHours { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<OrderAddition> OrderAdditions { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual DbSet<Payment> Payments { get; set; }
         public virtual DbSet<Post> Posts { get; set; }
         public virtual DbSet<Promotion> Promotions { get; set; }
+        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
         public virtual DbSet<Resourse> Resourses { get; set; }
         public virtual DbSet<Service> Services { get; set; }
         public virtual DbSet<ServiceGallery> ServiceGalleries { get; set; }
@@ -48,7 +49,6 @@ namespace Washouse.Data
         public virtual DbSet<Staff> Staffs { get; set; }
         public virtual DbSet<Tracking> Trackings { get; set; }
         public virtual DbSet<Ward> Wards { get; set; }
-        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +56,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Account>(entity =>
             {
+                entity.HasIndex(e => e.LocationId, "IX_Accounts_LocationId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -111,6 +113,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<AdditionService>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_AdditionServices_CenterId");
+
                 entity.Property(e => e.AdditionName)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -124,11 +128,18 @@ namespace Washouse.Data
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.MaxDistance).HasColumnType("decimal(5, 2)");
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(500);
 
-                entity.Property(e => e.MaxWeight).HasColumnType("decimal(6, 3)");
+                entity.Property(e => e.Image)
+                    .HasMaxLength(256)
+                    .IsUnicode(false);
 
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
@@ -172,6 +183,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Center>(entity =>
             {
+                entity.HasIndex(e => e.LocationId, "IX_Centers_LocationId");
+
                 entity.Property(e => e.Alias).HasMaxLength(50);
 
                 entity.Property(e => e.CenterName)
@@ -223,6 +236,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<CenterGallery>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_CenterGalleries_CenterId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -241,6 +256,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<CenterRequest>(entity =>
             {
+                entity.HasIndex(e => e.CenterRequesting, "IX_CenterRequests_CenterRequesting");
+
                 entity.Property(e => e.Alias).HasMaxLength(50);
 
                 entity.Property(e => e.CenterName)
@@ -254,12 +271,6 @@ namespace Washouse.Data
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Phone)
-                    .IsRequired()
-                    .HasMaxLength(10)
-                    .IsUnicode(false)
-                    .IsFixedLength(true);
-
                 entity.Property(e => e.Description).IsRequired();
 
                 entity.Property(e => e.Image)
@@ -269,6 +280,12 @@ namespace Washouse.Data
                 entity.Property(e => e.MonthOff)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.Phone)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false)
+                    .IsFixedLength(true);
 
                 entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
 
@@ -295,6 +312,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Customer>(entity =>
             {
+                entity.HasIndex(e => e.AccountId, "IX_Customers_AccountId");
+
+                entity.HasIndex(e => e.Address, "IX_Customers_Address");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -344,6 +365,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Delivery>(entity =>
             {
+                entity.HasIndex(e => e.LocationId, "IX_Deliveries_LocationId");
+
+                entity.HasIndex(e => e.OrderId, "IX_Deliveries_OrderId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -388,6 +413,34 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.OrderId);
             });
 
+            modelBuilder.Entity<DeliveryPriceChart>(entity =>
+            {
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.MaxDistance).HasColumnType("decimal(5, 2)");
+
+                entity.Property(e => e.MaxWeight).HasColumnType("decimal(6, 3)");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.UpdatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Center)
+                    .WithMany(p => p.DeliveryPriceCharts)
+                    .HasForeignKey(d => d.CenterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DeliveryPriceCharts_Centers");
+            });
+
             modelBuilder.Entity<District>(entity =>
             {
                 entity.Property(e => e.DistrictName)
@@ -397,6 +450,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Feedback>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_Feedbacks_CenterId");
+
+                entity.HasIndex(e => e.OrderDetailId, "IX_Feedbacks_OrderDetailId");
+
                 entity.Property(e => e.Content)
                     .IsRequired()
                     .HasMaxLength(500);
@@ -429,6 +486,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Location>(entity =>
             {
+                entity.HasIndex(e => e.WardId, "IX_Locations_WardId");
+
                 entity.Property(e => e.AddressString)
                     .IsRequired()
                     .HasMaxLength(256);
@@ -444,6 +503,7 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Notification>(entity =>
             {
+                entity.HasIndex(e => e.OrderId, "IX_Notifications_OrderId");
 
                 entity.Property(e => e.Content)
                     .IsRequired()
@@ -467,6 +527,8 @@ namespace Washouse.Data
             {
                 entity.HasKey(e => new { e.NotificationId, e.AccountId });
 
+                entity.HasIndex(e => e.AccountId, "IX_NotificationAccounts_AccountId");
+
                 entity.Property(e => e.ReadDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Account)
@@ -485,6 +547,8 @@ namespace Washouse.Data
             modelBuilder.Entity<OperatingHour>(entity =>
             {
                 entity.HasKey(e => new { e.CenterId, e.DaysOfWeekId });
+
+                entity.HasIndex(e => e.DaysOfWeekId, "IX_OperatingHours_DaysOfWeekId");
 
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
@@ -514,6 +578,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Order>(entity =>
             {
+                entity.HasIndex(e => e.CustomerId, "IX_Orders_CustomerId");
+
                 entity.Property(e => e.Id)
                     .HasMaxLength(20)
                     .IsUnicode(false);
@@ -546,6 +612,8 @@ namespace Washouse.Data
                     .IsRequired()
                     .HasMaxLength(50);
 
+                entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -557,35 +625,12 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.CustomerId);
             });
 
-            modelBuilder.Entity<OrderAddition>(entity =>
-            {
-                entity.Property(e => e.AdditionId).HasColumnName("additionId");
-
-                entity.Property(e => e.OrderId)
-                    .IsRequired()
-                    .HasMaxLength(20)
-                    .IsUnicode(false)
-                    .HasColumnName("orderId");
-
-                entity.Property(e => e.Price)
-                    .HasColumnType("decimal(18, 2)")
-                    .HasColumnName("price");
-
-                entity.HasOne(d => d.Addition)
-                    .WithMany(p => p.OrderAdditions)
-                    .HasForeignKey(d => d.AdditionId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_OrderAdditions_AdditionService");
-
-                entity.HasOne(d => d.Order)
-                    .WithMany(p => p.OrderAdditions)
-                    .HasForeignKey(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_OrderAdditions_Orders");
-            });
-
             modelBuilder.Entity<OrderDetail>(entity =>
             {
+                entity.HasIndex(e => e.OrderId, "IX_OrderDetails_OrderId");
+
+                entity.HasIndex(e => e.ServiceId, "IX_OrderDetails_ServiceId");
+
                 entity.Property(e => e.OrderId)
                     .IsRequired()
                     .HasMaxLength(20)
@@ -604,6 +649,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Payment>(entity =>
             {
+                entity.HasIndex(e => e.OrderId, "IX_Payments_OrderId");
+
+                entity.HasIndex(e => e.PromoCode, "IX_Payments_PromoCode");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -642,6 +691,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Post>(entity =>
             {
+                entity.HasIndex(e => e.AuthorId, "IX_Posts_AuthorId");
+
                 entity.Property(e => e.Content).HasMaxLength(500);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
@@ -674,6 +725,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Promotion>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_Promotions_CenterId");
+
                 entity.Property(e => e.Code)
                     .IsRequired()
                     .HasMaxLength(20)
@@ -709,6 +762,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<RefreshToken>(entity =>
             {
+                entity.HasIndex(e => e.AccountId, "IX_RefreshTokens_AccountId");
+
                 entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
 
                 entity.Property(e => e.IssuedAt).HasColumnType("datetime");
@@ -730,6 +785,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Resourse>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_Resourses_CenterId");
+
                 entity.Property(e => e.Alias).HasMaxLength(50);
 
                 entity.Property(e => e.CreatedBy)
@@ -762,6 +819,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Service>(entity =>
             {
+                entity.HasIndex(e => e.CategoryId, "IX_Services_CategoryId");
+
+                entity.HasIndex(e => e.CenterId, "IX_Services_CenterId");
+
                 entity.Property(e => e.Alias)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -789,6 +850,11 @@ namespace Washouse.Data
                     .IsRequired()
                     .HasMaxLength(20)
                     .IsUnicode(false);
+
+                entity.Property(e => e.Unit)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasDefaultValueSql("(N'')");
 
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
@@ -807,6 +873,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<ServiceGallery>(entity =>
             {
+                entity.HasIndex(e => e.ServiceId, "IX_ServiceGalleries_ServiceId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -825,6 +893,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<ServicePrice>(entity =>
             {
+                entity.HasIndex(e => e.ServiceId, "IX_ServicePrices_ServiceId");
+
                 entity.Property(e => e.MaxWeight).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.MinWeight).HasColumnType("decimal(18, 2)");
@@ -838,6 +908,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<ServiceRequest>(entity =>
             {
+                entity.HasIndex(e => e.ServiceRequesting, "IX_ServiceRequests_ServiceRequesting");
+
                 entity.Property(e => e.Alias)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -866,6 +938,11 @@ namespace Washouse.Data
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Unit)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasDefaultValueSql("(N'')");
+
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -880,6 +957,10 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Staff>(entity =>
             {
+                entity.HasIndex(e => e.AccountId, "IX_Staffs_AccountId");
+
+                entity.HasIndex(e => e.CenterId, "IX_Staffs_CenterId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -916,6 +997,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Tracking>(entity =>
             {
+                entity.HasIndex(e => e.OrderId, "IX_Trackings_OrderId");
+
                 entity.Property(e => e.CreatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -945,6 +1028,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Ward>(entity =>
             {
+                entity.HasIndex(e => e.DistrictId, "IX_Wards_DistrictId");
+
                 entity.Property(e => e.WardName)
                     .IsRequired()
                     .HasMaxLength(256);

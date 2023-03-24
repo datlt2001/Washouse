@@ -12,7 +12,6 @@ namespace Washouse.Model.Models
         {
             Deliveries = new HashSet<Delivery>();
             Notifications = new HashSet<Notification>();
-            OrderAdditions = new HashSet<OrderAddition>();
             OrderDetails = new HashSet<OrderDetail>();
             Payments = new HashSet<Payment>();
             Trackings = new HashSet<Tracking>();
@@ -25,12 +24,12 @@ namespace Washouse.Model.Models
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
         public int CustomerId { get; set; }
+        public decimal? DeliveryPrice { get; set; }
         public string Status { get; set; }
 
         public virtual Customer Customer { get; set; }
         public virtual ICollection<Delivery> Deliveries { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
-        public virtual ICollection<OrderAddition> OrderAdditions { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<Tracking> Trackings { get; set; }

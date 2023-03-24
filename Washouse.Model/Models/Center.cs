@@ -13,6 +13,7 @@ namespace Washouse.Model.Models
             AdditionServices = new HashSet<AdditionService>();
             CenterGalleries = new HashSet<CenterGallery>();
             CenterRequests = new HashSet<CenterRequest>();
+            DeliveryPriceCharts = new HashSet<DeliveryPriceChart>();
             Feedbacks = new HashSet<Feedback>();
             OperatingHours = new HashSet<OperatingHour>();
             Promotions = new HashSet<Promotion>();
@@ -40,6 +41,7 @@ namespace Washouse.Model.Models
         public virtual ICollection<AdditionService> AdditionServices { get; set; }
         public virtual ICollection<CenterGallery> CenterGalleries { get; set; }
         public virtual ICollection<CenterRequest> CenterRequests { get; set; }
+        public virtual ICollection<DeliveryPriceChart> DeliveryPriceCharts { get; set; }
         public virtual ICollection<Feedback> Feedbacks { get; set; }
         public virtual ICollection<OperatingHour> OperatingHours { get; set; }
         public virtual ICollection<Promotion> Promotions { get; set; }

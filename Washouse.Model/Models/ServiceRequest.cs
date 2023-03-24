@@ -18,6 +18,7 @@ namespace Washouse.Model.Models
         public bool PriceType { get; set; }
         public string Image { get; set; }
         public decimal? Price { get; set; }
+        public string Unit { get; set; }
         public int TimeEstimate { get; set; }
         public bool IsAvailable { get; set; }
         public string Status { get; set; }

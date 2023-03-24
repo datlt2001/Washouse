@@ -14,18 +14,16 @@ namespace Washouse.Service.Implement
     {
         IOrderRepository _orderRepository;
         IOrderDetailRepository _orderDetailRepository;
-        IOrderAdditionRepository _orderAdditionRepository;
         IUnitOfWork _unitOfWork;
 
-        public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository, IOrderAdditionRepository orderAdditionRepository, IUnitOfWork unitOfWork)
+        public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository, IUnitOfWork unitOfWork)
         {
             this._orderRepository = orderRepository;
             this._orderDetailRepository = orderDetailRepository;
-            this._orderAdditionRepository = orderAdditionRepository;
             this._unitOfWork = unitOfWork;
         }
 
-        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<OrderAddition> orderAdditions)
+        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails)
         {
             try
             {
@@ -37,13 +35,6 @@ namespace Washouse.Service.Implement
                     orderDetail.OrderId = order.Id;
                     await _orderDetailRepository.Add(orderDetail);
                 }
-
-                foreach (var orderAddition in orderAdditions)
-                {
-                    orderAddition.OrderId = order.Id;
-                    await _orderAdditionRepository.Add(orderAddition);
-                }
-
                 return order;
             }
             catch (Exception ex)
