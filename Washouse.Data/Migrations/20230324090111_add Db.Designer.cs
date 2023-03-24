@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230323160415_update table RefreshTokens")]
-    partial class updatetableRefreshTokens
+    [Migration("20230324090111_add Db")]
+    partial class addDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -111,7 +111,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.AdditionService", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("AdditionName")
                         .IsRequired()
@@ -677,7 +680,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -802,6 +808,9 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -820,11 +829,17 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.OrderAddition", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AdditionId")
                         .HasColumnType("int")
                         .HasColumnName("additionId");
+
+                    b.Property<string>("CustomerNote")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderId")
                         .IsRequired()
@@ -836,6 +851,9 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("price");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -849,7 +867,13 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CustomerNote")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderId")
                         .IsRequired()
@@ -866,6 +890,9 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
+                    b.Property<string>("StaffNote")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -878,7 +905,10 @@ namespace Washouse.Data.Migrations
             modelBuilder.Entity("Washouse.Model.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -1027,10 +1057,53 @@ namespace Washouse.Data.Migrations
                     b.ToTable("Promotions");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Alias")
                         .HasMaxLength(50)
@@ -1704,6 +1777,17 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Center");
                 });
 
+            modelBuilder.Entity("Washouse.Model.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Washouse.Model.Models.Account", "Account")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("AccountId")
+                        .IsRequired()
+                        .HasConstraintName("FK_RefreshTokens_Accounts");
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("Washouse.Model.Models.Resourse", b =>
                 {
                     b.HasOne("Washouse.Model.Models.Center", "Center")
@@ -1812,6 +1896,8 @@ namespace Washouse.Data.Migrations
                     b.Navigation("NotificationAccounts");
 
                     b.Navigation("Posts");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("staff");
                 });

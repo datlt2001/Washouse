@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Washouse.Data.Migrations
 {
-    public partial class AddDB : Migration
+    public partial class addDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -149,6 +149,7 @@ namespace Washouse.Data.Migrations
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
+                    HasDelivery = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -223,10 +224,35 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "varchar(max)", unicode: false, nullable: false),
+                    JwtId = table.Column<string>(type: "varchar(max)", unicode: false, nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false),
+                    IsRevoked = table.Column<bool>(type: "bit", nullable: false),
+                    IssuedAt = table.Column<DateTime>(type: "datetime", nullable: false),
+                    ExpiredAt = table.Column<DateTime>(type: "datetime", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_Accounts",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AdditionServices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     AdditionName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     MaxDistance = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
@@ -368,7 +394,8 @@ namespace Washouse.Data.Migrations
                 name: "Resourses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CenterId = table.Column<int>(type: "int", nullable: false),
                     ResourceName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -466,8 +493,7 @@ namespace Washouse.Data.Migrations
                         name: "FK_Staffs_Centers_CenterId",
                         column: x => x.CenterId,
                         principalTable: "Centers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -481,6 +507,7 @@ namespace Washouse.Data.Migrations
                     CustomerMobile = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     CustomerMessage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CustomerId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -618,7 +645,8 @@ namespace Washouse.Data.Migrations
                 name: "Notifications",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false)
@@ -637,10 +665,13 @@ namespace Washouse.Data.Migrations
                 name: "OrderAdditions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     orderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     additionId = table.Column<int>(type: "int", nullable: false),
-                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CustomerNote = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -661,11 +692,14 @@ namespace Washouse.Data.Migrations
                 name: "OrderDetails",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     ServiceId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CustomerNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StaffNote = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -688,7 +722,8 @@ namespace Washouse.Data.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PlatformFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -913,6 +948,11 @@ namespace Washouse.Data.Migrations
                 column: "CenterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_AccountId",
+                table: "RefreshTokens",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Resourses_CenterId",
                 table: "Resourses",
                 column: "CenterId");
@@ -991,6 +1031,9 @@ namespace Washouse.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "Resourses");

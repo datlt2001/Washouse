@@ -111,8 +111,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<AdditionService>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.AdditionName)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -399,8 +397,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Feedback>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Content)
                     .IsRequired()
                     .HasMaxLength(500);
@@ -448,7 +444,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Notification>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Content)
                     .IsRequired()
@@ -564,8 +559,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<OrderAddition>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.AdditionId).HasColumnName("additionId");
 
                 entity.Property(e => e.OrderId)
@@ -593,8 +586,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<OrderDetail>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.OrderId)
                     .IsRequired()
                     .HasMaxLength(20)
@@ -613,8 +604,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -653,8 +642,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Post>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Content).HasMaxLength(500);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
@@ -687,8 +674,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Promotion>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Code)
                     .IsRequired()
                     .HasMaxLength(20)
@@ -745,8 +730,6 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Resourse>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Alias).HasMaxLength(50);
 
                 entity.Property(e => e.CreatedBy)

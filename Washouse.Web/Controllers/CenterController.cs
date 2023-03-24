@@ -511,6 +511,9 @@ namespace Washouse.Web.Controllers
         /// <response code="400">One or more error occurs</response>   
         // POST: api/centers
         [HttpPost]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> CreateCenter([FromBody] CreateCenterRequestModel createCenterRequestModel)
         {
             try

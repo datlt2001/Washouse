@@ -25,6 +25,7 @@ namespace Washouse.Model.Models
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
         public int CustomerId { get; set; }
+        public string Status { get; set; }
 
         public virtual Customer Customer { get; set; }
         public virtual ICollection<Delivery> Deliveries { get; set; }

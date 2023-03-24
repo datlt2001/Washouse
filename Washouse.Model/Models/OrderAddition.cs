@@ -11,6 +11,8 @@ namespace Washouse.Model.Models
         public string OrderId { get; set; }
         public int AdditionId { get; set; }
         public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        public string CustomerNote { get; set; }
 
         public virtual AdditionService Addition { get; set; }
         public virtual Order Order { get; set; }
