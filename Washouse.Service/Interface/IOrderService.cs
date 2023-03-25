@@ -12,5 +12,7 @@ namespace Washouse.Service.Interface
         Task<Order> Create(Order order, List<OrderDetail> orderDetails);
         void UpdateStatus(int orderId);
         void Save();
+        Task<IEnumerable<Order>> GetAll();
+        Task<IEnumerable<Order>> GetAllOfDay(string date);
     }
 }

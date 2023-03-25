@@ -46,6 +46,12 @@ namespace Washouse.Service.Implement
             return await _customerRepository.GetById(id);
         }
 
+        public async Task<Customer> GetByPhone(string phone)
+        {
+            var customers = await _customerRepository.GetAll();
+            return customers.FirstOrDefault(x => x.Phone == phone);
+        }
+
         public async Task Update(Customer customer)
         {
             await _customerRepository.Update(customer);

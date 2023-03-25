@@ -609,6 +609,10 @@ namespace Washouse.Data
                     .IsRequired()
                     .HasMaxLength(50);
 
+                entity.Property(e => e.DeliveryType)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.UpdatedBy)
@@ -639,7 +643,7 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 3)");
+                entity.Property(e => e.Measurement).HasColumnType("decimal(18, 3)");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
@@ -843,6 +847,8 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.Rate).HasColumnType("decimal(18, 3)");
+
                 entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
 
                 entity.Property(e => e.ServiceName)
@@ -928,7 +934,9 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Image).HasMaxLength(256);
 
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)"); 
+
+                entity.Property(e => e.Rate).HasColumnType("decimal(18, 3)");
 
                 entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
 

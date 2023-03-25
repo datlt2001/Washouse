@@ -24,7 +24,9 @@ namespace Washouse.Model.Models
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
         public int CustomerId { get; set; }
+        public int DeliveryType { get; set; }
         public decimal? DeliveryPrice { get; set; }
+
         public string Status { get; set; }
 
         public virtual Location Location { get; set; }

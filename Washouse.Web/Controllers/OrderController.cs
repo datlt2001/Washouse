@@ -29,8 +29,10 @@ namespace Washouse.Web.Controllers
         private readonly ILocationService _locationService;
         private readonly IServiceService _serviceService;
         private readonly ICenterService _centerService;
+        private readonly IPromotionService _promotionService;
         public OrderController(IOrderService orderService, ICustomerService customerService, 
-            IWardService wardService, ILocationService locationService, IServiceService serviceService, ICenterService centerService)
+            IWardService wardService, ILocationService locationService, IServiceService serviceService,
+            ICenterService centerService, IPromotionService promotionService)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -38,6 +40,7 @@ namespace Washouse.Web.Controllers
             this._locationService = locationService;
             this._serviceService = serviceService;
             this._centerService = centerService;
+            this._promotionService = promotionService;
         }
         #endregion
 
@@ -51,20 +54,6 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
-                    //tính tổng khối lượng
-                    decimal weight = 0;
-                    foreach (var item in createOrderRequestModel.OrderDetails.ToList())
-                    {
-                        var service = await _serviceService.GetById(item.ServiceId);
-                        if (service.Unit.ToLower().Equals("kg"))
-                        {
-                            weight += item.Quantity;
-                        }
-                        else
-                        {
-                            weight = weight + ((decimal)(0.3) * item.Quantity);
-                        }
-                    }
                     //location
                     decimal? Latitude = null;
                     decimal? Longitude = null;
@@ -104,41 +93,99 @@ namespace Washouse.Web.Controllers
                     location.Longitude = Longitude;
                     var locationResult = await _locationService.Add(location);
 
-                    //add Order
+                    var customerByPhone = await _customerService.GetByPhone(createOrderRequestModel.Order.CustomerMobile);
 
-                    if (User.FindFirst(ClaimTypes.Role).Value == null)
+                    if (User.FindFirst(ClaimTypes.Role)?.Value == null && customerByPhone == null)
                     {
+                        //add Customer
                         customer.Fullname = createOrderRequestModel.Order.CustomerName;
                         customer.Phone = createOrderRequestModel.Order.CustomerMobile;
                         customer.Address = locationResult.Id;
                         customer.Email = createOrderRequestModel.Order.CustomerEmail;
+                        customer.Status = true;
+                        customer.AccountId = null;
+                        customer.CreatedDate = DateTime.Now;
+                        customer.CreatedBy = "AutoInsert";
                         await _customerService.Add(customer);
-                    } else if (User.FindFirst(ClaimTypes.Role).Value == "Customer")
+                    } 
+                    else if(User.FindFirst(ClaimTypes.Role)?.Value == null && customerByPhone != null)
+                    {
+                        customer = customerByPhone;
+                    }
+                    else if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
                     {
                         customer.Id = int.Parse(User.FindFirst("Id")?.Value);
                     }
-
-
+                    
+                    var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
+                    
+                    int lastId = 0;
+                    if (orders.ToList().Count > 0)
+                    {
+                        var lastOrder = orders.LastOrDefault();
+                        lastId = int.Parse(lastOrder.Id.Substring(10));
+                    }
+                    //add Order
+                    int newId = lastId + 1;
+                    order.Id = $"{DateTime.Now.ToString("yyyyMMdd")}_{newId.ToString("D7")}";
                     order.CustomerName = createOrderRequestModel.Order.CustomerName;
                     order.LocationId = locationResult.Id;
                     order.CustomerEmail = createOrderRequestModel.Order.CustomerEmail;
                     order.CustomerMobile = createOrderRequestModel.Order.CustomerMobile;
                     order.CustomerMessage = createOrderRequestModel.Order.CustomerMessage;
                     order.CustomerId = customer.Id;
-                    if (createOrderRequestModel.Order.DeliveryChoosen == true)
+                    order.DeliveryType = createOrderRequestModel.Order.DeliveryType;
+                    if (createOrderRequestModel.Order.DeliveryType == 0)
                     {
-
+                        order.DeliveryPrice = null;
+                    }
+                    if (createOrderRequestModel.Order.DeliveryPrice != null)
+                    {
+                        order.DeliveryPrice = createOrderRequestModel.Order.DeliveryPrice;
                     } else
                     {
                         order.DeliveryPrice = null;
                     }
                     order.Status = "Received";
-                }
-                //List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel.CenterOperatingHours.ToJson());
+                    order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
+                    order.CreatedDate = DateTime.Now;
 
-                return Ok(new ResponseModel
+                    //create List OrderDetails
+                    var orderDetails = new List<OrderDetail>();
+                    List<OrderDetailRequestModel> orderDetailRequestModels = JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(createOrderRequestModel.OrderDetails.ToJson());
+
+                    foreach (var item in orderDetailRequestModels)
                     {
+                        orderDetails.Add(new OrderDetail
+                        {
+                            OrderId = order.Id,
+                            ServiceId = item.ServiceId,
+                            Measurement = item.Measurement,
+                            Price = item.Price,
+                            CustomerNote = User.FindFirst(ClaimTypes.Role)?.Value == "Staff" ? null : item.CustomerNote,
+                            StaffNote = User.FindFirst(ClaimTypes.Role)?.Value == "Staff" ? item.StaffNote : null,
+                        });
+                    }
+
+                    var orderAdded = await _orderService.Create(order, orderDetails);
+
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "sucess",
+                        Data = orderAdded
                     });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
 
             }
             catch (Exception ex)
@@ -153,27 +200,13 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("getDeliveryPrice")]
-        //public async Task<IActionResult> GetDeliveryPrice([FromQuery]GetDeliveryPriceRequestModel requestModel)
         public async Task<IActionResult> GetDeliveryPrice([FromQuery] GetDeliveryPriceRequestModel requestModel)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    decimal weight = 0;
-                    List<OrderDetailRequestModel> orderDetails = JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(requestModel.OrderDetails.ToJson());
-                    foreach (var item in orderDetails)
-                    {
-                        var service = await _serviceService.GetById(item.ServiceId);
-                        if (service.Unit.ToLower().Equals("kg"))
-                        {
-                            weight += item.Quantity;
-                        }
-                        else
-                        {
-                            weight = weight + ((decimal)(0.3) * item.Quantity);
-                        }
-                    }
+                    decimal weight = requestModel.TotalWeight;
 
                     decimal? Latitude = null;
                     decimal? Longitude = null;
@@ -220,24 +253,46 @@ namespace Washouse.Web.Controllers
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
 
-                    var deliveryPriceCharts = center.DeliveryPriceCharts.OrderByDescending(a => a.MaxDistance).ThenByDescending(a => a.MaxWeight).ToList();
+                    var deliveryPriceCharts = center.DeliveryPriceCharts.Where(c => c.Status == true).OrderByDescending(a => a.MaxDistance).ThenByDescending(a => a.MaxWeight).ToList();
+                    if (deliveryPriceCharts.Count <= 0) 
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Center has not delivery available.",
+                            Data = null
+                        });
+                    }
                     var firstItem = deliveryPriceCharts.FirstOrDefault();
                     if (weight > firstItem.MaxWeight || distance > firstItem.MaxDistance)
                     {
-                        return Ok(new ResponseModel
+                        return NotFound(new ResponseModel
                         {
-                            StatusCode = StatusCodes.Status200OK,
+                            StatusCode = StatusCodes.Status404NotFound,
                             Message = "Weight or distance out of range available delivery. Please call center.",
                             Data = null
                         });
                     }
-                    decimal price = 0;
+                    decimal price = -1;
                     foreach (var item in center.DeliveryPriceCharts)
                     {
                         if (distance <= item.MaxDistance && weight <= item.MaxWeight)
                         {
                             price = item.Price;
                         }
+                    }
+                    if (requestModel.DeliveryType == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Delivery type not choosen",
+                            Data = null
+                        });
+                    }
+                    else if (requestModel.DeliveryType == 3)
+                    {
+                        price = price * 2;
                     }
                     return Ok(new ResponseModel
                     {

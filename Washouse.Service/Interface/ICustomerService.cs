@@ -17,6 +17,8 @@ namespace Washouse.Service.Interface
 
         public Task<Customer> GetById(int id);
 
+        public Task<Customer> GetByPhone(string phone);
+
         public Task DeactivateCustomer(int id);
 
         public Task ActivateCustomer(int id);

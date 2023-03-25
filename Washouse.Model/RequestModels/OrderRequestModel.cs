@@ -1,4 +1,6 @@
-﻿namespace Washouse.Model.RequestModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Washouse.Model.RequestModels
 {
     public class OrderRequestModel
     {
@@ -9,6 +11,9 @@
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
         public int CustomerId { get; set; }
-        public bool? DeliveryChoosen { get; set; }
+        [Required]
+        [Range(0, 3, ErrorMessage = "Please enter a value from 0 to 3")]
+        public int DeliveryType { get; set; }
+        public decimal? DeliveryPrice { get; set; }
     }
 }
