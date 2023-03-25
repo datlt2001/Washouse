@@ -57,6 +57,7 @@ namespace Washouse.Data.Repositories
                         .ThenInclude(service => service.Category)
                     .Include(center => center.Services)
                         .ThenInclude(service => service.ServicePrices)
+                    .Include(center => center.DeliveryPriceCharts)
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }

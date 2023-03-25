@@ -313,6 +313,7 @@ namespace Washouse.Web.Controllers
                     var centerServices = new List<CenterServiceResponseModel>();
                     var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                     var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
                     foreach (var item in center.Services)
                     {
                         var service = new ServicesOfCenterResponseModel
@@ -376,6 +377,19 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
+                    foreach (var item in center.DeliveryPriceCharts)
+                    {
+                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
+                        {
+                            Id = item.Id,
+                            MaxDistance = item.MaxDistance,
+                            MaxWeight = item.MaxWeight,
+                            Price = item.Price
+                        };
+                        centerDeliveryPrices.Add(centerDeliveryPrice);
+                    }
+
+
                     response.Id = center.Id;
                     response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
                     response.Title = center.CenterName;
@@ -389,6 +403,7 @@ namespace Washouse.Web.Controllers
                     response.Distance = distance;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
                         Latitude = center.Location.Latitude,
@@ -579,10 +594,10 @@ namespace Washouse.Web.Controllers
                     await _locationService.Add(location);
 
                     //Add Center 
-                    if (createCenterRequestModel.Center.HasDelivery == null)
+                    /*if (createCenterRequestModel.Center.HasDelivery == null)
                     {
                         createCenterRequestModel.Center.HasDelivery = false;
-                    }
+                    }*/
                     center.Id = 0;
                     center.CenterName = createCenterRequestModel.Center.CenterName;
                     center.Alias = createCenterRequestModel.Center.Alias;
@@ -596,7 +611,8 @@ namespace Washouse.Web.Controllers
                     center.HotFlag = false;
                     center.Rating = null;
                     center.NumOfRating = 0;
-                    center.HasDelivery = (bool)createCenterRequestModel.Center.HasDelivery;
+                    //center.HasDelivery = (bool)createCenterRequestModel.Center.HasDelivery;
+                    center.HasDelivery = false;
                     center.CreatedDate = DateTime.Now;
                     center.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     center.UpdatedDate = null;

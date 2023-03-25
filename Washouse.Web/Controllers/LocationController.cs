@@ -42,8 +42,10 @@ namespace Washouse.Web.Controllers
                 {
                     location.AddressString = locationRequest.AddressString;
                     location.WardId = locationRequest.WardId;
-                    var result = _locationService.Add(location);
-                    return RedirectToAction(nameof(GetById), new {locationId = location.Id});
+                    location.Latitude = locationRequest.Latitude;
+                    location.Longitude = locationRequest.Longitude;
+                    var result = await _locationService.Add(location);
+                    return Ok(result);
                     //return Ok(result);
                 }
                 else { return BadRequest(); }

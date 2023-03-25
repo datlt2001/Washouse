@@ -14,6 +14,7 @@ namespace Washouse.Model.ResponseModels
         {
             CenterServices = new HashSet<CenterServiceResponseModel>();
             CenterOperatingHours = new HashSet<CenterOperatingHoursResponseModel>();
+            CenterDeliveryPrices = new HashSet<CenterDeliveryPriceChartResponseModel>();
         }
         public int Id { get; set; }
         public string Thumbnail { get; set; }
@@ -29,9 +30,10 @@ namespace Washouse.Model.ResponseModels
         public double Distance { get; set; }
         public decimal MinPrice { get; set; }
         public decimal MaxPrice { get; set; }
-        public CenterLocationResponseModel CenterLocation { get; set; }
-        public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
         public bool MonthOff { get; set; }
         public bool HasDelivery { get; set; }
+        public virtual ICollection<CenterDeliveryPriceChartResponseModel> CenterDeliveryPrices { get; set; }
+        public CenterLocationResponseModel CenterLocation { get; set; }
+        public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
     }
 }

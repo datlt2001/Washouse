@@ -19,7 +19,7 @@ namespace Washouse.Model.Models
 
         public string Id { get; set; }
         public string CustomerName { get; set; }
-        public string CustomerAddress { get; set; }
+        public int LocationId { get; set; }
         public string CustomerEmail { get; set; }
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
@@ -27,6 +27,7 @@ namespace Washouse.Model.Models
         public decimal? DeliveryPrice { get; set; }
         public string Status { get; set; }
 
+        public virtual Location Location { get; set; }
         public virtual Customer Customer { get; set; }
         public virtual ICollection<Delivery> Deliveries { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Washouse.Data.Repositories;
 using Washouse.Model.Models;
 
 namespace Washouse.Service.Interface
@@ -20,5 +21,7 @@ namespace Washouse.Service.Interface
         public Task DeactivateStaff(int id);
 
         public Task ActivateStaff(int id);
+
+        Task<Staff> GetByAccountId(int accountId);
     }
 }

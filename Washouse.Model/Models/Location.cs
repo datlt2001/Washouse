@@ -11,6 +11,7 @@ namespace Washouse.Model.Models
         {
             Accounts = new HashSet<Account>();
             Centers = new HashSet<Center>();
+            Orders = new HashSet<Order>();
             Customers = new HashSet<Customer>();
             Deliveries = new HashSet<Delivery>();
         }
@@ -24,6 +25,7 @@ namespace Washouse.Model.Models
         public virtual Ward Ward { get; set; }
         public virtual ICollection<Account> Accounts { get; set; }
         public virtual ICollection<Center> Centers { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Customer> Customers { get; set; }
         public virtual ICollection<Delivery> Deliveries { get; set; }
     }

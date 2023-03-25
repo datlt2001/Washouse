@@ -79,6 +79,15 @@ namespace Washouse.Web.Controllers
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
+            string Role = nguoiDung.RoleType.Trim().ToString();
+            if (Role.ToLower().Equals("staff"))
+            {
+                var staff = await _staffService.GetByAccountId(nguoiDung.Id);
+                if (staff.IsManager)
+                {
+                    Role = "Manager";
+                }
+            }
 
             var tokenDescription = new SecurityTokenDescriptor
             {
@@ -91,7 +100,7 @@ namespace Washouse.Web.Controllers
                     new Claim(JwtRegisteredClaimNames.Sub, nguoiDung.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
-                    new Claim(ClaimTypes.Role, nguoiDung.RoleType.Trim().ToString()),
+                    new Claim(ClaimTypes.Role, Role),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(10),

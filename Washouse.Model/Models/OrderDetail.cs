@@ -15,7 +15,7 @@ namespace Washouse.Model.Models
         public int Id { get; set; }
         public string OrderId { get; set; }
         public int ServiceId { get; set; }
-        public int Quantity { get; set; }
+        public decimal Quantity { get; set; }
         public decimal Price { get; set; }
         public string CustomerNote { get; set; }
         public string StaffNote { get; set; }

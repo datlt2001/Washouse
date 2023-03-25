@@ -50,5 +50,13 @@ namespace Washouse.Service.Implement
         {
             await _staffReposity.Update(staff);
         }
+
+        public async Task<Staff> GetByAccountId(int accountId)
+        {
+            var staffs = await _staffReposity.GetAll();
+            return staffs.FirstOrDefault(staff => staff.AccountId == accountId);
+        }
+
+
     }
 }

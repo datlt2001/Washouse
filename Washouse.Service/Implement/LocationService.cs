@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,9 +23,26 @@ namespace Washouse.Service.Implement
             this._unitOfWork = unitOfWork;
         }
 
-        public async Task Add(Model.Models.Location location)
+        public async Task<Model.Models.Location> Add(Model.Models.Location location)
         {
+            var locations = await _locationRepository.GetAll();
+            foreach (var item in locations.ToList())
+            {
+                if (item.Latitude != null && item.Longitude != null && location.Latitude != null && location.Longitude != null) 
+                {
+                    if (item.WardId == location.WardId
+                        && (item.AddressString.ToLower().Contains(location.AddressString.ToLower()) || location.AddressString.ToLower().Contains(item.AddressString.ToLower()))
+                        && ((item.Latitude - location.Latitude) < (decimal)0.05)
+                        && ((item.Longitude - location.Longitude) < (decimal)0.05)
+                        )
+                    {
+                        return item;
+                    }
+                }
+            }
             await _locationRepository.Add(location);
+            return location;
+
         }
 
         public async Task<Model.Models.Location> GetById(int id)
