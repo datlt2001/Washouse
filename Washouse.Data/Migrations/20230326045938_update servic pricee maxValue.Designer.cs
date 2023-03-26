@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230324195436_add Db")]
-    partial class addDb
+    [Migration("20230326045938_update servic pricee maxValue")]
+    partial class updateservicpriceemaxValue
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -103,7 +103,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex(new[] { "LocationId" }, "IX_Accounts_LocationId");
 
                     b.ToTable("Accounts");
                 });
@@ -163,7 +163,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_AdditionServices_CenterId");
 
                     b.ToTable("AdditionServices");
                 });
@@ -306,7 +306,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex(new[] { "LocationId" }, "IX_Centers_LocationId");
 
                     b.ToTable("Centers");
                 });
@@ -338,7 +338,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_CenterGalleries_CenterId");
 
                     b.ToTable("CenterGalleries");
                 });
@@ -438,7 +438,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterRequesting");
+                    b.HasIndex(new[] { "CenterRequesting" }, "IX_CenterRequests_CenterRequesting");
 
                     b.ToTable("CenterRequests");
                 });
@@ -496,9 +496,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex(new[] { "AccountId" }, "IX_Customers_AccountId");
 
-                    b.HasIndex("Address");
+                    b.HasIndex(new[] { "Address" }, "IX_Customers_Address");
 
                     b.ToTable("Customers");
                 });
@@ -578,9 +578,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex(new[] { "LocationId" }, "IX_Deliveries_LocationId");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_Deliveries_OrderId");
 
                     b.ToTable("Deliveries");
                 });
@@ -695,9 +695,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_Feedbacks_CenterId");
 
-                    b.HasIndex("OrderDetailId");
+                    b.HasIndex(new[] { "OrderDetailId" }, "IX_Feedbacks_OrderDetailId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -726,7 +726,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WardId");
+                    b.HasIndex(new[] { "WardId" }, "IX_Locations_WardId");
 
                     b.ToTable("Locations");
                 });
@@ -755,7 +755,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_Notifications_OrderId");
 
                     b.ToTable("Notifications");
                 });
@@ -773,7 +773,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("NotificationId", "AccountId");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex(new[] { "AccountId" }, "IX_NotificationAccounts_AccountId");
 
                     b.ToTable("NotificationAccounts");
                 });
@@ -811,7 +811,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("CenterId", "DaysOfWeekId");
 
-                    b.HasIndex("DaysOfWeekId");
+                    b.HasIndex(new[] { "DaysOfWeekId" }, "IX_OperatingHours_DaysOfWeekId");
 
                     b.ToTable("OperatingHours");
                 });
@@ -831,11 +831,6 @@ namespace Washouse.Data.Migrations
 
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime");
-
-                    b.Property<string>("CustomerAddress")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("CustomerEmail")
                         .IsRequired()
@@ -865,6 +860,14 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal?>("DeliveryPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("DeliveryType")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
@@ -878,7 +881,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex(new[] { "CustomerId" }, "IX_Orders_CustomerId");
+
+                    b.HasIndex(new[] { "LocationId" }, "IX_Orders_LocationId");
 
                     b.ToTable("Orders");
                 });
@@ -894,6 +899,9 @@ namespace Washouse.Data.Migrations
                     b.Property<string>("CustomerNote")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Measurement")
+                        .HasColumnType("decimal(8,3)");
+
                     b.Property<string>("OrderId")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -903,9 +911,6 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
@@ -914,9 +919,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_OrderDetails_OrderId");
 
-                    b.HasIndex("ServiceId");
+                    b.HasIndex(new[] { "ServiceId" }, "IX_OrderDetails_ServiceId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -969,9 +974,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_Payments_OrderId");
 
-                    b.HasIndex("PromoCode");
+                    b.HasIndex(new[] { "PromoCode" }, "IX_Payments_PromoCode");
 
                     b.ToTable("Payments");
                 });
@@ -1020,7 +1025,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex(new[] { "AuthorId" }, "IX_Posts_AuthorId");
 
                     b.ToTable("Posts");
                 });
@@ -1077,7 +1082,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_Promotions_CenterId");
 
                     b.ToTable("Promotions");
                 });
@@ -1117,7 +1122,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex(new[] { "AccountId" }, "IX_RefreshTokens_AccountId");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -1176,7 +1181,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_Resourses_CenterId");
 
                     b.ToTable("Resourses");
                 });
@@ -1235,7 +1240,10 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("PriceType")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<string>("ServiceName")
@@ -1254,8 +1262,10 @@ namespace Washouse.Data.Migrations
 
                     b.Property<string>("Unit")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValueSql("(N'')");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
@@ -1267,9 +1277,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex(new[] { "CategoryId" }, "IX_Services_CategoryId");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_Services_CenterId");
 
                     b.ToTable("Services");
                 });
@@ -1301,7 +1311,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceId");
+                    b.HasIndex(new[] { "ServiceId" }, "IX_ServiceGalleries_ServiceId");
 
                     b.ToTable("ServiceGalleries");
                 });
@@ -1314,11 +1324,8 @@ namespace Washouse.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<decimal>("MaxWeight")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MinWeight")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("MaxValue")
+                        .HasColumnType("decimal(8,3)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -1328,7 +1335,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceId");
+                    b.HasIndex(new[] { "ServiceId" }, "IX_ServicePrices_ServiceId");
 
                     b.ToTable("ServicePrices");
                 });
@@ -1387,7 +1394,10 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("PriceType")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<bool>("RequestStatus")
@@ -1412,8 +1422,10 @@ namespace Washouse.Data.Migrations
 
                     b.Property<string>("Unit")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValueSql("(N'')");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
@@ -1425,7 +1437,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceRequesting");
+                    b.HasIndex(new[] { "ServiceRequesting" }, "IX_ServiceRequests_ServiceRequesting");
 
                     b.ToTable("ServiceRequests");
                 });
@@ -1484,9 +1496,9 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex(new[] { "AccountId" }, "IX_Staffs_AccountId");
 
-                    b.HasIndex("CenterId");
+                    b.HasIndex(new[] { "CenterId" }, "IX_Staffs_CenterId");
 
                     b.ToTable("Staffs");
                 });
@@ -1529,7 +1541,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex(new[] { "OrderId" }, "IX_Trackings_OrderId");
 
                     b.ToTable("Trackings");
                 });
@@ -1552,7 +1564,7 @@ namespace Washouse.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DistrictId");
+                    b.HasIndex(new[] { "DistrictId" }, "IX_Wards_DistrictId");
 
                     b.ToTable("Wards");
                 });
@@ -1638,7 +1650,7 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("Deliveries")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Location");
@@ -1742,7 +1754,15 @@ namespace Washouse.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Washouse.Model.Models.Location", "Location")
+                        .WithMany("Orders")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.OrderDetail", b =>
@@ -1750,13 +1770,11 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Service", "Service")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -1981,6 +1999,8 @@ namespace Washouse.Data.Migrations
                     b.Navigation("Customers");
 
                     b.Navigation("Deliveries");
+
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("Washouse.Model.Models.Notification", b =>

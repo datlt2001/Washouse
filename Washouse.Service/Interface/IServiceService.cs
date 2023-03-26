@@ -11,7 +11,7 @@ namespace Washouse.Service.Interface
     {
         Task<IEnumerable<Model.Models.Service>> GetAll();
         Task Add(Model.Models.Service service);
-
+        Task<Model.Models.Service> Create(Model.Models.Service service, List<ServicePrice> servicePrices, List<ServiceGallery> serviceGalleries);
         Task Update(Model.Models.Service service);
 
         //Task Delete(int id);

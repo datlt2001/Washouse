@@ -25,7 +25,7 @@ namespace Washouse.Web.Controllers
         }
         #endregion
 
-        [HttpPost("updateService")]
+        /*[HttpPost("updateService")]
         public async Task<IActionResult> Update([FromForm]ServiceRequestModel serviceRequestmodel, int id)
         {
             try
@@ -69,7 +69,7 @@ namespace Washouse.Web.Controllers
             {
                     return BadRequest();
             }
-        }
+        }*/
 
     }
 }

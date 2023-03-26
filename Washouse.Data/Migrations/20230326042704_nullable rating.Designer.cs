@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230325164942_add deliveryType on order table")]
-    partial class adddeliveryTypeonordertable
+    [Migration("20230326042704_nullable rating")]
+    partial class nullablerating
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -860,10 +860,10 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal?>("DeliveryPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("DeliveryType")
+                    b.Property<int>("DeliveryType")
                         .HasMaxLength(20)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("int");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
@@ -1243,7 +1243,7 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<string>("ServiceName")
@@ -1400,7 +1400,7 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<bool>("RequestStatus")
@@ -1653,7 +1653,7 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("Deliveries")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Location");
@@ -1773,13 +1773,11 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Service", "Service")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");

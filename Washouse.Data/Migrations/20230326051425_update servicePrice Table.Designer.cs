@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230325141326_update measurement and rate")]
-    partial class updatemeasurementandrate
+    [Migration("20230326051425_update servicePrice Table")]
+    partial class updateservicePriceTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -860,6 +860,11 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal?>("DeliveryPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("DeliveryType")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
@@ -895,7 +900,7 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Measurement")
-                        .HasColumnType("decimal(18,3)");
+                        .HasColumnType("decimal(8,3)");
 
                     b.Property<string>("OrderId")
                         .IsRequired()
@@ -1238,7 +1243,7 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<string>("ServiceName")
@@ -1319,17 +1324,31 @@ namespace Washouse.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<decimal>("MaxWeight")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
-                    b.Property<decimal>("MinWeight")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("MaxValue")
+                        .HasColumnType("decimal(8,3)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -1395,7 +1414,7 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<decimal>("Rating")
+                    b.Property<decimal?>("Rating")
                         .HasColumnType("decimal(2,1)");
 
                     b.Property<bool>("RequestStatus")
@@ -1648,7 +1667,7 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("Deliveries")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Location");
@@ -1768,13 +1787,11 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Service", "Service")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");

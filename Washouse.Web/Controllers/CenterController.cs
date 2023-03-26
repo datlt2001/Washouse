@@ -316,6 +316,16 @@ namespace Washouse.Web.Controllers
                     var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
                     foreach (var item in center.Services)
                     {
+                        var servicePriceViewModels = new List<ServicePriceViewModel>();
+                        foreach (var servicePrice in item.ServicePrices)
+                        {
+                            var sp = new ServicePriceViewModel
+                            {
+                                MaxValue = servicePrice.MaxValue,
+                                Price = servicePrice.Price
+                            };
+                            servicePriceViewModels.Add(sp);
+                        }
                         var service = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
@@ -323,7 +333,10 @@ namespace Washouse.Web.Controllers
                             ServiceName = item.ServiceName,
                             Description = item.Description,
                             Image  = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
-                            Price = item.Price == null ? 0 : (decimal)item.Price,
+                            PriceType = item.PriceType,
+                            Price = item.Price,
+                            MinPrice = item.MinPrice,
+                            Prices = servicePriceViewModels,
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
                             NumOfRating = item.NumOfRating

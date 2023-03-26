@@ -80,15 +80,17 @@ namespace Washouse.Web.Controllers
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
             string Role = nguoiDung.RoleType.Trim().ToString();
+            int? centerManaged = null;
             if (Role.ToLower().Equals("staff"))
             {
                 var staff = await _staffService.GetByAccountId(nguoiDung.Id);
                 if (staff.IsManager)
                 {
                     Role = "Manager";
+                    centerManaged = staff.CenterId;
                 }
             }
-
+            
             var tokenDescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
@@ -101,6 +103,7 @@ namespace Washouse.Web.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
                     new Claim(ClaimTypes.Role, Role),
+                    new Claim("CenterManaged", centerManaged.ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(10),

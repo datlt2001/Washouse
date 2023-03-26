@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -410,6 +411,7 @@ namespace Washouse.Data
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.Deliveries)
+                    .OnDelete(DeleteBehavior.NoAction)
                     .HasForeignKey(d => d.OrderId);
             });
 
@@ -643,14 +645,16 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
-                entity.Property(e => e.Measurement).HasColumnType("decimal(18, 3)");
+                entity.Property(e => e.Measurement).HasColumnType("decimal(8, 3)");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasForeignKey(d => d.OrderId);
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.OrderDetails)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasForeignKey(d => d.ServiceId);
             });
 
@@ -847,6 +851,8 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.MinPrice).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.Rate).HasColumnType("decimal(18, 3)");
 
                 entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
@@ -904,11 +910,22 @@ namespace Washouse.Data
             {
                 entity.HasIndex(e => e.ServiceId, "IX_ServicePrices_ServiceId");
 
-                entity.Property(e => e.MaxWeight).HasColumnType("decimal(18, 2)");
-
-                entity.Property(e => e.MinWeight).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.MaxValue).HasColumnType("decimal(8, 3)");
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.ServicePrices)
@@ -934,7 +951,9 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Image).HasMaxLength(256);
 
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)"); 
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.MinPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.Rate).HasColumnType("decimal(18, 3)");
 

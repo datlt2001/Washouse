@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Washouse.Model.ViewModel;
 
 namespace Washouse.Model.RequestModels
 {
@@ -13,12 +14,16 @@ namespace Washouse.Model.RequestModels
     {
         public string ServiceName { get; set; }
         public string Alias { get; set; }
-        public int CategoryId { get; set; }
-        public string Description { get; set; }
-        public bool PriceType { get; set; }
-        public string Image { get; set; }
-        public decimal? Price { get; set; }
+        public int ServiceCategory { get; set; }
+        public string ServiceDescription { get; set; }
+        public string ServiceImage { get; set; }
         public int TimeEstimate { get; set; }
-        public int CenterId { get; set; }
+        public string Unit { get; set; }
+        public decimal Rate { get; set; }
+        public bool PriceType { get; set; }
+        public decimal? Price { get; set; }
+        public decimal? MinPrice { get; set; }
+        public virtual ICollection<string> ServiceGalleries { get; set; }
+        public virtual ICollection<ServicePriceViewModel> Prices { get; set; }
     }
 }

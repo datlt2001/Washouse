@@ -13,12 +13,17 @@ namespace Washouse.Service.Implement
     public class ServiceService : IServiceService
     {
         IServiceRepository _serviceRepository;
+        IServicePriceRepository _servicePriceRepository;
+        IServiceGalleryRepository _serviceGalleryRepository;
         IUnitOfWork _unitOfWork;
 
-        public ServiceService(IServiceRepository serviceRepository, IUnitOfWork unitOfWork)
+        public ServiceService(IServiceRepository serviceRepository,  IUnitOfWork unitOfWork, 
+            IServicePriceRepository servicePriceRepository, IServiceGalleryRepository serviceGalleryRepository)
         {
             this._serviceRepository = serviceRepository;
             this._unitOfWork = unitOfWork;
+            this._servicePriceRepository = servicePriceRepository;
+            this._serviceGalleryRepository = serviceGalleryRepository;
         }
         public async Task Add(Model.Models.Service service)
         {
@@ -63,6 +68,33 @@ namespace Washouse.Service.Implement
         public async Task DeactivateService(int id)
         {
             await _serviceRepository.DeactivateService(id);
+        }
+
+        public async Task<Model.Models.Service> Create(Model.Models.Service service, List<ServicePrice> servicePrices, List<ServiceGallery> serviceGalleries)
+        {
+            try
+            {
+                await _serviceRepository.Add(service);
+                _unitOfWork.Commit();
+
+                foreach (var servicePrice in servicePrices)
+                {
+                    servicePrice.ServiceId = service.Id;
+                    await _servicePriceRepository.Add(servicePrice);
+                }
+
+                foreach (var serviceGallery in serviceGalleries)
+                {
+                    serviceGallery.ServiceId = service.Id;
+                    await _serviceGalleryRepository.Add(serviceGallery);
+                }
+
+                return service;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

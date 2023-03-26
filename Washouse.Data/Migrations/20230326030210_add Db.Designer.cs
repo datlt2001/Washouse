@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230325093714_update Quantity to decimal")]
-    partial class updateQuantitytodecimal
+    [Migration("20230326030210_add Db")]
+    partial class addDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -860,6 +860,11 @@ namespace Washouse.Data.Migrations
                     b.Property<decimal?>("DeliveryPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("DeliveryType")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
@@ -894,6 +899,9 @@ namespace Washouse.Data.Migrations
                     b.Property<string>("CustomerNote")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Measurement")
+                        .HasColumnType("decimal(18,3)");
+
                     b.Property<string>("OrderId")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -902,9 +910,6 @@ namespace Washouse.Data.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,3)");
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
@@ -1235,6 +1240,9 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("PriceType")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,3)");
+
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(2,1)");
 
@@ -1388,6 +1396,9 @@ namespace Washouse.Data.Migrations
 
                     b.Property<bool>("PriceType")
                         .HasColumnType("bit");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(2,1)");
@@ -1642,7 +1653,7 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("Deliveries")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Location");
@@ -1762,13 +1773,11 @@ namespace Washouse.Data.Migrations
                     b.HasOne("Washouse.Model.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Washouse.Model.Models.Service", "Service")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
