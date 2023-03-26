@@ -58,5 +58,10 @@ namespace Washouse.Service.Implement
         }
 
 
+
+        public IEnumerable<Staff> GetAllByCenterId(int centerid)
+        {
+            return _staffReposity.GetAllByCenterId(centerid);
+        }
     }
 }

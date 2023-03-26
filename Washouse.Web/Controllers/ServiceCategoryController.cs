@@ -38,16 +38,20 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("addCategory")]
-        public async Task<IActionResult> Create([FromForm]CategoryModel Input)
+        public async Task<IActionResult> Create([FromBody]CreateCategoryRequestModel Input)
         {
             if (ModelState.IsValid)
             {
-                Input.category.Id = 0;
-                Input.category.CreatedDate = DateTime.Now;
-                Input.category.UpdatedDate = DateTime.Now;
-                Input.category.Status = false;
-                //Input.category.Image =  await Utilities.UploadFile(Input.Image, @"images\categories", Input.Image.FileName);
-                var categories = _serviceCategoryService.Add(Input.category);
+                Category cate = new Category();
+                cate.CreatedDate = DateTime.Now;
+                //cate.CreatedBy = 
+                cate.CategoryName= Input.CategoryName;
+                cate.Status= Input.Status;
+                cate.Description= Input.Description;
+                cate.HomeFlag= Input.HomeFlag;
+                
+                
+                var categories =  _serviceCategoryService.Add(cate);
                 return Ok(categories);
             }
             else { return BadRequest(); }

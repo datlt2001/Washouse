@@ -24,8 +24,8 @@ namespace Washouse.Web.Controllers
             _accountService = accountService;
         }
 
-        [HttpPost("leave-feedback")]
-        public async Task<IActionResult> Create([FromForm] FeedbackRequestModel Input, int userid, int? centerId, int? orderDetailId)
+        [HttpPost("leaveFeedback")]
+        public async Task<IActionResult> Create([FromBody] FeedbackRequestModel Input, int userid, int? centerId, int? orderDetailId)
         {
             if (ModelState.IsValid)
             {
@@ -57,8 +57,8 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPost("leave-reply-feedback")]
-        public async Task<IActionResult> ReplyFeedback([FromForm] ReplyFeedbackRequestModel Input, int userid, 
+        [HttpPost("leaveReplyFeedback")]
+        public async Task<IActionResult> ReplyFeedback([FromBody] ReplyFeedbackRequestModel Input, int userid, 
                                                                     int? centerId, int? orderDetailId, int FbId)
         {
             if (ModelState.IsValid)
@@ -84,7 +84,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpGet("get-feedback-by-centerId")]
+        [HttpGet("getFeedbackByCenterId")]
         public  IActionResult GetFeedbackByCenterId (int centerId)
         {
             var feedbacks = _feedbackService.GetAllByCenterId(centerId);
@@ -97,7 +97,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpGet("get-feedback-by-orderdetailid")]
+        [HttpGet("getFeedbackByOrderdetailid")]
         public IActionResult GetAllByOrderDetailId(int orderdetailid)
         {
             var feedbacks = _feedbackService.GetAllByOrderDetailId(orderdetailid);

@@ -8,12 +8,10 @@ using Washouse.Model.Models;
 
 namespace Washouse.Data.Repositories
 {
-    public interface  IPostRepository :IRepository<Post>
+    public class NotificationRepository :RepositoryBase<Notification>, INotificationRepository
     {
-        public Task ActivatePost(int id);
-
-        public Task DeactivatePost(int id);
-
-        public IEnumerable<int> GetIDList();
+        public NotificationRepository(IDbFactory dbFactory) : base(dbFactory)
+        {
+        }
     }
 }

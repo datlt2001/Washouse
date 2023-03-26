@@ -18,5 +18,7 @@ namespace Washouse.Service.Interface
         public Task<Post> GetById(int id);
         public Task DeactivatePost(int id);
         public Task ActivatePost(int id);
+
+        public IEnumerable<int> GetIDList();
     }
 }

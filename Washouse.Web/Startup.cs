@@ -25,6 +25,7 @@ using Washouse.Data;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
@@ -165,6 +166,8 @@ namespace Washouse.Web
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IServicePriceRepository, ServicePriceRepository>();
             services.AddTransient<IServiceGalleryRepository, ServiceGalleryRepository>();
+            services.AddTransient<INotificationRepository, NotificationRepository>();
+            services.AddTransient<INotificationService, NotificationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

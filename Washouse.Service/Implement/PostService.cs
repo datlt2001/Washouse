@@ -50,5 +50,10 @@ namespace Washouse.Service.Implement
         {
             await _postRepository.ActivatePost(id);
         }
+
+        public IEnumerable<int> GetIDList()
+        {
+            return _postRepository.GetIDList();
+        }
     }
 }

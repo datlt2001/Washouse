@@ -45,5 +45,13 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public IEnumerable<Staff> GetAllByCenterId(int centerid)
+        {
+            var data = this._dbContext.Staffs
+                        .Where(s => s.CenterId == centerid)
+                        .ToList();
+            return data;
+        }
     }
 }

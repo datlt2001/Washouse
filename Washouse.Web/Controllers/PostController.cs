@@ -82,20 +82,21 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("addPost")]
-        public async Task<IActionResult> Create([FromForm] PostRequestModel Input, int id)
+        public async Task<IActionResult> Create([FromBody] PostRequestModel Input, int id)
         {
             if (ModelState.IsValid)
             {
+                //int lastID = _postService.GetIDList().Last();
                 var posts = new Post()
                 {
                     AuthorId = id,
                     Title= Input.Title,
                     Content= Input.Content,
-                    Thumbnail = await Utilities.UploadFile(Input.Thumbnail, @"images\post", Input.Thumbnail.FileName),
+                    //Thumbnail = await Utilities.UploadFile(Input.Thumbnail, @"images\post", Input.Thumbnail.FileName),
                     Status = "false",
                     Type = Input.Type,
                     CreatedDate =  DateTime.Now,
-                    //CreatedBy = "Admin",
+                    //Id = lastID +1,
                 };
                 await _postService.Add(posts);
                 return Ok(new ResponseModel

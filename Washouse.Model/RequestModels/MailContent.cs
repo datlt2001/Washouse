@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Washouse.Model.Models
+namespace Washouse.Model.RequestModels
 {
     public class MailContent
     {

@@ -14,5 +14,7 @@ namespace Washouse.Data.Repositories
 
         public Task ActivateStaff(int id);
 
+        public IEnumerable<Staff> GetAllByCenterId(int centerid);
+
     }
 }

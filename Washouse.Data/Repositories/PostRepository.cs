@@ -46,6 +46,13 @@ namespace Washouse.Data.Repositories
             }
         }
 
+        public IEnumerable<int> GetIDList()
+        {
+            var query = from p in DbContext.Posts
+                        select p.Id;
+            return query.ToList();
+        }
+
     }
 
 }

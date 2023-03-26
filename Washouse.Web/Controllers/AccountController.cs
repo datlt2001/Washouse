@@ -297,7 +297,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost("addStaffByManager")]
-        public async Task<IActionResult> Create([FromForm] StaffRequestModel Input)
+        public async Task<IActionResult> Create([FromBody] CreateStaffRequestModel Input)
         {
             if (ModelState.IsValid)
             {
@@ -306,8 +306,7 @@ namespace Washouse.Web.Controllers
                     Phone = Input.Phone,
                     Email = Input.Email,
                     Password = Input.Password,
-                    FullName = Input.FullName,
-                    Dob = Input.Dob,
+                    FullName = Input.FullName,                    
                     Status = false,
                     //RoleType = "Staff",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\staffs", Input.profilePic.FileName),
@@ -320,7 +319,7 @@ namespace Washouse.Web.Controllers
                 {
                     AccountId = accounts.Id,
                     Status = false,
-                    IsManager = true,
+                    IsManager = false,
                     IdNumber = Input.IdNumber,
                     //IdFrontImg = await Utilities.UploadFile(Input.IdFrontImg, @"images\accounts\staffs", Input.profilePic.FileName),
                     //IdBackImg = await Utilities.UploadFile(Input.IdBackImg, @"images\accounts\staffs", Input.profilePic.FileName),
@@ -328,8 +327,13 @@ namespace Washouse.Web.Controllers
                     CreatedDate = DateTime.Now,
                 };
                 await _staffService.Add(staff);
-                return Ok(accounts);
-                return Ok(accounts);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Updated",
+                    Data = staff
+                });
+
             }
             else { return BadRequest(); }
 

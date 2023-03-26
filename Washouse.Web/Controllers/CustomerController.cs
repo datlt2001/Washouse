@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
+using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
@@ -12,10 +15,12 @@ namespace Washouse.Web.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerService _customerService;
+        public IAccountService _accountService;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(ICustomerService customerService, IAccountService accountService)
         {
             this._customerService = customerService;
+            this._accountService = accountService;
         }
 
         [HttpGet]
@@ -66,6 +71,52 @@ namespace Washouse.Web.Controllers
 
                     await _customerService.Update(existingCustomer);
                     return Ok(existingCustomer);
+                }
+
+
+            }
+        }
+
+        [HttpPut("updateProfileCustomer")]
+        public async Task<IActionResult> UpdateProfile([FromBody] CustomerRequestModel input, int customerId)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            else
+            {
+                Customer existingCustomer = await _customerService.GetById(customerId);
+                var accountId = existingCustomer.AccountId;
+                int userId = accountId ?? 0;
+                Account user = await _accountService.GetById(userId);
+
+
+                
+                if (existingCustomer == null) { return NotFound(); }
+                else
+                {
+                    existingCustomer.Fullname = input.FullName;
+                    existingCustomer.Email = input.Email;
+                    existingCustomer.UpdatedDate = DateTime.Now;
+                    existingCustomer.UpdatedBy = input.FullName;
+                    //existingCustomer.Address = input.LocationId;
+                    //existingCustomer.
+                    await _customerService.Update(existingCustomer);
+
+                    user.UpdatedDate = DateTime.Now;
+                    user.UpdatedBy = user.FullName;
+                    user.FullName = input.FullName;
+                    user.Dob = input.Dob;
+                    user.Email = input.Email;
+                    user.ProfilePic = input.SavedFileName;
+                    
+                    await _accountService.Update(user);
+
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Updated",
+                        Data = existingCustomer
+                    });
                 }
 
 
