@@ -5,7 +5,7 @@ using Washouse.Service.Interface;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/staff")]
+    [Route("api/staffs")]
     [ApiController]
     public class StaffController : ControllerBase
     {

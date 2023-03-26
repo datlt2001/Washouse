@@ -55,16 +55,6 @@ namespace Washouse.Service.Implement
             return await _ServiceCategoryRepository.GetById(id);
         }
 
-        public IEnumerable<Category> GetCategoryByParentId(int id)
-        {
-            return _ServiceCategoryRepository.GetCategoryByParentId(id);
-        }
-
-        public IEnumerable<Category> GetAllParentCategory()
-        {
-            return _ServiceCategoryRepository.GetAllParentCategory();
-        }
-
         public async Task Update(Category ServiceCategory)
         {
             await _ServiceCategoryRepository.Update(ServiceCategory);

@@ -82,6 +82,12 @@ namespace Washouse.Web.Controllers
             try
             {
                 var centerList = await _centerService.GetAll();
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role == null || role.Trim().ToLower().Equals("customer"))
+                {
+                    centerList = centerList.Where(center => center.Status.Trim().ToLower().Equals("active")
+                                                        || center.Status.Trim().ToLower().Equals("updatepending"));
+                }
                 if (filterCentersRequestModel.SearchString != null)
                 {
                     centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())

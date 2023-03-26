@@ -70,10 +70,10 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var services = await _serviceService.GetById(id);
-                if (services != null)
+                var service = await _serviceService.GetById(id);
+                if (service != null)
                 {
-                    return Ok(services);
+                    return Ok(service);
                 }
                 else
                 {

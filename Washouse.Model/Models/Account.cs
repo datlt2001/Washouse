@@ -24,7 +24,7 @@ namespace Washouse.Model.Models
         public string FullName { get; set; }
         public DateTime? Dob { get; set; }
         public bool Status { get; set; }
-        public string RoleType { get; set; }
+        public bool IsAdmin { get; set; }
         public string ProfilePic { get; set; }
         public int? LocationId { get; set; }
         public bool IsResetPassword { get; set; }

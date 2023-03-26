@@ -16,17 +16,7 @@ namespace Washouse.Data.Repositories
            : base(dbFactory)
         {
         }
-        public IEnumerable<Category> GetAllParentCategory()
-        {
-            return this.DbContext.Categories.Where(x => x.ParentId == 0);
-        }
 
-        public IEnumerable<Category> GetCategoryByParentId(int id)
-        {
-            //var data = await _dbSet.FindAsync(id);
-            return this.DbContext.Categories.Where(x => x.ParentId == id && x.Status == true);
-            //return data;
-        }
         public async Task DeactivateCategory(int id)
         {
             try

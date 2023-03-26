@@ -17,7 +17,7 @@ using Washouse.Service.Implement;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/district")]
+    [Route("api/districts")]
     [ApiController]
     public class DistrictController : ControllerBase
     {
@@ -31,7 +31,6 @@ namespace Washouse.Web.Controllers
 
         #endregion
 
-        [Route("getAll")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

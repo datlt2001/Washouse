@@ -10,7 +10,7 @@ using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/serviceCategory")]
+    [Route("api/serviceCategories")]
     [ApiController]
     public class ServiceCategoryController : ControllerBase
     {
@@ -29,26 +29,10 @@ namespace Washouse.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpGet("getParentCategoryList")]
-        public IActionResult GetParentCategoryList()
-        {
-            var categories = _serviceCategoryService.GetAllParentCategory();
-            if (categories == null) { return NotFound(); }
-            return Ok(categories);
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
             var categories = await _serviceCategoryService.GetById(id);
-            if (categories == null) { return NotFound(); }
-            return Ok(categories);
-        }
-
-        [HttpGet("getCategoryByParentId/{id}")]
-        public IActionResult GetCategoryByParentId(int id)
-        {
-            var categories =  _serviceCategoryService.GetCategoryByParentId(id);
             if (categories == null) { return NotFound(); }
             return Ok(categories);
         }

@@ -10,10 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface IServiceCategoryRepository : IRepository<Category>
     {
-        IEnumerable<Category> GetAllParentCategory();
-
-        IEnumerable<Category> GetCategoryByParentId(int id);
-
         public Task ActivateCategory(int id);
 
         public Task DeactivateCategory(int id);

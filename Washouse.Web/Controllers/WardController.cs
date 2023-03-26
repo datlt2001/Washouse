@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/ward")]
+    [Route("api/wards")]
     [ApiController]
     public class WardController : ControllerBase
     {

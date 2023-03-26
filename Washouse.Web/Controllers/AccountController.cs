@@ -79,7 +79,7 @@ namespace Washouse.Web.Controllers
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
-            string Role = nguoiDung.RoleType.Trim().ToString();
+            /*//string Role = nguoiDung.RoleType.Trim().ToString();
             int? centerManaged = null;
             if (Role.ToLower().Equals("staff"))
             {
@@ -89,7 +89,7 @@ namespace Washouse.Web.Controllers
                     Role = "Manager";
                     centerManaged = staff.CenterId;
                 }
-            }
+            }*/
             
             var tokenDescription = new SecurityTokenDescriptor
             {
@@ -102,8 +102,8 @@ namespace Washouse.Web.Controllers
                     new Claim(JwtRegisteredClaimNames.Sub, nguoiDung.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
-                    new Claim(ClaimTypes.Role, Role),
-                    new Claim("CenterManaged", centerManaged.ToString()),
+                    //new Claim(ClaimTypes.Role, Role),
+                    //new Claim("CenterManaged", centerManaged.ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(10),
@@ -309,7 +309,7 @@ namespace Washouse.Web.Controllers
                     FullName = Input.FullName,
                     Dob = Input.Dob,
                     Status = false,
-                    RoleType = "Staff",
+                    //RoleType = "Staff",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\staffs", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.FullName,
@@ -445,7 +445,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPost("RegisterAsCustomer")]
+        [HttpPost("registerAsCustomer")]
         public async Task<IActionResult> RegisterAsCustomer([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -457,7 +457,7 @@ namespace Washouse.Web.Controllers
                     Password = Input.Password,
                     Status = false,
                     FullName = Input.Phone,
-                    RoleType = "Customer",
+                    //RoleType = "Customer",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\customer", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.Email,
@@ -499,7 +499,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPost("RegisterAsManager")]
+        [HttpPost("registerAsManager")]
         public async Task<IActionResult> RegisterAsManager([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -511,7 +511,7 @@ namespace Washouse.Web.Controllers
                     Password = Input.Password,
                     FullName = Input.Phone,                    
                     Status = false,
-                    RoleType = "Manager",
+                    //RoleType = "Manager",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\managers", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.Email,
@@ -550,7 +550,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("veriyAccount/{id}")]
+        [HttpPut("verifyAccount/{id}")]
         public async Task<IActionResult> VerifyAccount(int id)
         {
             var account = await _accountService.GetById(id);

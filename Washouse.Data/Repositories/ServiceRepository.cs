@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,18 @@ namespace Washouse.Data.Repositories
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public new async Task<Service> GetById(int id)
+        {
+            var data = await this._dbContext.Services
+                    .Include(service => service.OrderDetails)
+                    .Include(service => service.ServiceGalleries)
+                    .Include(service => service.ServicePrices)
+                    .Include(service => service.Center)
+                    .Include(service => service.Category)
+                    .FirstOrDefaultAsync(service => service.Id == id);
+            return data;
         }
     }
 }

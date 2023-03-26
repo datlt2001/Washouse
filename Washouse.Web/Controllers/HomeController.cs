@@ -38,7 +38,7 @@ namespace Washouse.Web.Controllers
                 {
                     CategoryName = animal.CategoryName,
                     Alias = animal.Alias,
-                    ParentId = animal.ParentId,
+                    //ParentId = animal.ParentId,
                     Description = animal.Description,
                     Status = animal.Status,
                     HomeFlag = animal.HomeFlag,
@@ -69,7 +69,7 @@ namespace Washouse.Web.Controllers
             {
                 CategoryName = animal.CategoryName,
                 Alias = animal.Alias,
-                ParentId = animal.ParentId,
+                //ParentId = animal.ParentId,
                 Description = animal.Description,
                 Status = animal.Status,
                 HomeFlag = animal.HomeFlag,
