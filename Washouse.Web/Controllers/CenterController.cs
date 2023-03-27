@@ -720,28 +720,79 @@ namespace Washouse.Web.Controllers
                 var center = await _centerService.GetById(id);
                 if (center != null)
                 {
-                    var services = _serviceService.GetAll().Result.Where(a => a.CenterId == id);
+                    var services = center.Services.ToList();
                     if (services != null)
                     {
-                        return Ok(services);
+                        var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                        foreach (var item in services)
+                        {
+                            var servicePriceViewModels = new List<ServicePriceViewModel>();
+                            foreach (var servicePrice in item.ServicePrices)
+                            {
+                                var sp = new ServicePriceViewModel
+                                {
+                                    MaxValue = servicePrice.MaxValue,
+                                    Price = servicePrice.Price
+                                };
+                                servicePriceViewModels.Add(sp);
+                            }
+                            var itemResponse = new ServicesOfCenterResponseModel
+                            {
+                                ServiceId = item.Id,
+                                CategoryId = item.CategoryId,
+                                ServiceName = item.ServiceName,
+                                Description = item.Description,
+                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                                PriceType = item.PriceType,
+                                Price = item.Price,
+                                MinPrice = item.MinPrice,
+                                Prices = servicePriceViewModels,
+                                TimeEstimate = item.TimeEstimate,
+                                Rating = item.Rating,
+                                NumOfRating = item.NumOfRating
+                            };
+                            servicesOfCenter.Add(itemResponse);
+                        }
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = servicesOfCenter
+                        });
                     }
                     else
                     {
-                        return NotFound();
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found services",
+                            Data = null
+                        });
                     }
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
-        [HttpGet("{id}/staffs")]
+
+        [HttpGet("{centerId}/staffs")]
         public IActionResult GetStaffByCenterId(int centerId)
         {
             var staff = _staffService.GetAllByCenterId(centerId);
