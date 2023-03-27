@@ -59,13 +59,14 @@ namespace Washouse.Web.Controllers
             var user = _accountService.GetLoginAccount(model.Phone, model.Password);
             if (user == null)
             {
-                return Ok(new
+                return Ok(new ResponseModel
                 {
-                    Success = false,
-                    Message = "Invalid username/password"
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Invalid username/password",
+                    Data = null
                 });
             }
-            var token = await GenerateToken(user);
+            var token = await GenerateToken(user, false);
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -74,35 +75,80 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        private async Task<TokenModel> GenerateToken(Account nguoiDung)
+        [HttpPost("login-staff")]
+        public async Task<IActionResult> ValidateStaff(LoginModel model)
+        {
+            //var user = _context.Accounts.SingleOrDefault(p =>
+            //p.Phone == model.Phone && p.Password == model.Password);
+            var user = _accountService.GetLoginAccount(model.Phone, model.Password);
+            if (user == null)
+            {
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Invalid username/password",
+                    Data = null
+                });
+            }
+            var staff = await _staffService.GetByAccountId(user.Id);
+            if (staff == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Account is not a staff or manager.",
+                    Data = null
+                });
+            }
+            var token = await GenerateToken(user, true);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Authenticate success",
+                Data = token
+            });
+        }
+
+        private async Task<TokenModel> GenerateToken(Account user, bool isManage)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
-            /*//string Role = nguoiDung.RoleType.Trim().ToString();
-            int? centerManaged = null;
-            if (Role.ToLower().Equals("staff"))
+            string Role = null;
+            if (user.IsAdmin)
             {
-                var staff = await _staffService.GetByAccountId(nguoiDung.Id);
-                if (staff.IsManager)
+                Role = "Admin";
+            } else if (!isManage)
+            {
+                Role = "Customer";
+            } else
+            {
+                var staff = await _staffService.GetByAccountId(user.Id);
+                if (staff != null)
                 {
-                    Role = "Manager";
-                    centerManaged = staff.CenterId;
+                    if (staff.IsManager)
+                    {
+                        Role = "Manager";
+                    }
+                    else
+                    {
+                        Role = "Staff";
+                    }
                 }
-            }*/
-            
+            }
+
             var tokenDescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
-                    new Claim(ClaimTypes.Name, nguoiDung.FullName),
-                    new Claim(ClaimTypes.Email, nguoiDung.Email),
-                    new Claim("Phone", nguoiDung.Phone),
-                    new Claim("Id", nguoiDung.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, nguoiDung.Email),
-                    new Claim(JwtRegisteredClaimNames.Sub, nguoiDung.Email),
+                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim("Phone", user.Phone),
+                    new Claim("Id", user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
-                    //new Claim(ClaimTypes.Role, Role),
+                    new Claim(ClaimTypes.Role, Role),
                     //new Claim("CenterManaged", centerManaged.ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
@@ -117,7 +163,7 @@ namespace Washouse.Web.Controllers
             var refreshTokenEntity = new RefreshToken
             {
                 JwtId = token.Id,
-                AccountId = nguoiDung.Id,
+                AccountId = user.Id,
                 Token = refreshToken,
                 IsUsed = false,
                 IsRevoked = false,
@@ -251,7 +297,13 @@ namespace Washouse.Web.Controllers
 
                 //create new token
                 var user = await _context.Accounts.SingleOrDefaultAsync(nd => nd.Id == storedToken.AccountId);
-                var token = await GenerateToken(user);
+                var token = new TokenModel();
+                if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
+                {
+                    token = await GenerateToken(user, false);
+                } else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer") {
+                    token = await GenerateToken(user, true);
+                }
 
                 return Ok(new ResponseModel
                 {
@@ -572,7 +624,14 @@ namespace Washouse.Web.Controllers
             {
                 string id = User.FindFirst("Id")?.Value;
                 var user = _accountService.GetById(int.Parse(id));
-                var token = GenerateToken(user.Result);
+                var token = new TokenModel();
+                if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
+                {
+                    token = await GenerateToken(user.Result, false);
+                } else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer")
+                {
+                    token = await GenerateToken(user.Result, true);
+                }
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,

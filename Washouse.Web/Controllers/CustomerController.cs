@@ -123,7 +123,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("/deactivate")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateCustomer(int id)
         {
             var customer = await _customerService.GetById(id);
