@@ -36,15 +36,20 @@ namespace Washouse.Web.Controllers
         private readonly ILocationService _locationService;
         private readonly IWardService _wardService;
         private readonly IOperatingHourService _operatingHourService;
+        private readonly IServiceService _serviceService;
+        private readonly IStaffService _staffService;
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
-                                IOperatingHourService operatingHourService)
+                                IOperatingHourService operatingHourService, IServiceService serviceService,
+                                IStaffService staffService)
         {
             this._centerService = centerService; 
             this._locationService = locationService; 
             this._cloudStorageService = cloudStorageService;
             this._wardService = wardService;
             this._operatingHourService = operatingHourService;
+            this._serviceService = serviceService;
+            this._staffService = staffService;
         }
 
         #endregion
@@ -705,6 +710,48 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+        }
+
+        [HttpGet("{id}/services")]
+        public async Task<IActionResult> GetServicesOfACenter(int id)
+        {
+            try
+            {
+                var center = await _centerService.GetById(id);
+                if (center != null)
+                {
+                    var services = _serviceService.GetAll().Result.Where(a => a.CenterId == id);
+                    if (services != null)
+                    {
+                        return Ok(services);
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("{id}/staffs")]
+        public IActionResult GetStaffByCenterId(int centerId)
+        {
+            var staff = _staffService.GetAllByCenterId(centerId);
+            if (staff == null) return NotFound();
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = staff
+            });
         }
     }
 }

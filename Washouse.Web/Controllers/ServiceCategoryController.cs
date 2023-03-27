@@ -10,7 +10,7 @@ using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
-    [Route("api/serviceCategories")]
+    [Route("api/service-categories")]
     [ApiController]
     public class ServiceCategoryController : ControllerBase
     {
@@ -37,7 +37,7 @@ namespace Washouse.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpPost("addCategory")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody]CreateCategoryRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -58,7 +58,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("updateCategory")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromForm] CategoryRequestModel category, int id) 
         {
             if(!ModelState.IsValid) { return BadRequest(); }
@@ -83,7 +83,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("deactivateCategory/{id}")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateCategory(int id)
         {
             var category = await _serviceCategoryService.GetById(id);
@@ -95,7 +95,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("activateCategory/{id}")]
+        [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateCategory(int id)
         {
             var category = await _serviceCategoryService.GetById(id);

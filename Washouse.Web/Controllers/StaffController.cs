@@ -39,7 +39,7 @@ namespace Washouse.Web.Controllers
             return Ok(staff);
         }
 
-        [HttpPut("deactivateStaff/{id}")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateStaff(int id)
         {
             var staff = await _staffService.GetById(id);
@@ -51,7 +51,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("activateStaff/{id}")]
+        [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateStaff(int id)
         {
             var staff = await _staffService.GetById(id);
@@ -63,7 +63,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("updateProfileStaff")]
+        [HttpPut("{staffId}")]
         public async Task<IActionResult> UpdateProfile([FromBody] StaffRequestModel input, int staffId)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
@@ -111,17 +111,6 @@ namespace Washouse.Web.Controllers
             
         }
 
-        [HttpGet("getStaffByCenterId")]
-        public IActionResult GetStaffByCenterId(int centerId)
-        {
-            var staff = _staffService.GetAllByCenterId(centerId);
-            if (staff == null) return NotFound();
-            return Ok(new ResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = staff
-            });
-        }
+        
     }
 }

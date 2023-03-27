@@ -39,7 +39,7 @@ namespace Washouse.Web.Controllers
             return Ok(customer);
         }
 
-        [HttpPost("addCustomer")]
+        [HttpPost]
         public IActionResult Create(Customer customer)
         {
             if (ModelState.IsValid)
@@ -123,7 +123,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("deactivateCustomer/{id}")]
+        [HttpPut("/deactivate")]
         public async Task<IActionResult> DeactivateCustomer(int id)
         {
             var customer = await _customerService.GetById(id);
@@ -135,7 +135,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("activateCustomer/{id}")]
+        [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateCustomer(int id)
         {
             var customer = await _customerService.GetById(id);

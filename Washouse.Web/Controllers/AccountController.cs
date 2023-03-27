@@ -145,7 +145,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPost("renewToken")]
+        [HttpPost("token")]
         public async Task<IActionResult> RenewToken(TokenModel model)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -296,7 +296,7 @@ namespace Washouse.Web.Controllers
             return Ok(accounts);
         }
 
-        [HttpPost("addStaffByManager")]
+        [HttpPost("staffs")]
         public async Task<IActionResult> Create([FromBody] CreateStaffRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -308,7 +308,7 @@ namespace Washouse.Web.Controllers
                     Password = Input.Password,
                     FullName = Input.FullName,                    
                     Status = false,
-                    //RoleType = "Staff",
+                    IsAdmin = false,
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\staffs", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.FullName,
@@ -336,11 +336,10 @@ namespace Washouse.Web.Controllers
 
             }
             else { return BadRequest(); }
-
         }
 
 
-        [HttpPut("deactivateAccount/{id}")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
@@ -352,7 +351,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("activateAccount/{id}")]
+        [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
@@ -364,7 +363,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("changePassword/{id}")]
+        [HttpPut("{id}/password")]
         public async Task<IActionResult> ChangePassword(int id,string oldPass,string newPass)
         {
             var account = await _accountService.GetById(id);
@@ -396,7 +395,7 @@ namespace Washouse.Web.Controllers
         }
 
 
-        [HttpPut("resetPassword/{id}")]
+        [HttpPut("{id}/password/reset")]
         public async Task<IActionResult> ResetPassword(int id)
         {
             var account = await _accountService.GetById(id);
@@ -422,7 +421,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("forgotPassword/{id}")]
+        [HttpPut("{id}/password/forgot")]
         public async Task<IActionResult> ForgotPassword(int id)
         {
             var account = await _accountService.GetById(id);
@@ -449,7 +448,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPost("registerAsCustomer")]
+        [HttpPost("customers")]
         public async Task<IActionResult> RegisterAsCustomer([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -503,7 +502,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPost("registerAsManager")]
+        [HttpPost("managers")]
         public async Task<IActionResult> RegisterAsManager([FromBody] AccountRegisRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -554,7 +553,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("verifyAccount/{id}")]
+        [HttpPut("{id}/verify")]
         public async Task<IActionResult> VerifyAccount(int id)
         {
             var account = await _accountService.GetById(id);

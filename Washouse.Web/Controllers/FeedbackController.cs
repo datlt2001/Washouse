@@ -24,7 +24,7 @@ namespace Washouse.Web.Controllers
             _accountService = accountService;
         }
 
-        [HttpPost("leaveFeedback")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] FeedbackRequestModel Input, int userid, int? centerId, int? orderDetailId)
         {
             if (ModelState.IsValid)
@@ -41,7 +41,7 @@ namespace Washouse.Web.Controllers
                     OrderDetailId = orderDetailId,
                     CenterId = centerId,
                     CreatedBy = account.Result.FullName,
-                    CreatedDate= DateTime.Now,
+                    CreatedDate = DateTime.Now,
                     //Id = lastId +1,
 
                 };
@@ -57,8 +57,8 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPost("leaveReplyFeedback")]
-        public async Task<IActionResult> ReplyFeedback([FromBody] ReplyFeedbackRequestModel Input, int userid, 
+        [HttpPost("reply")]
+        public async Task<IActionResult> ReplyFeedback([FromBody] ReplyFeedbackRequestModel Input, int userid,
                                                                     int? centerId, int? orderDetailId, int FbId)
         {
             if (ModelState.IsValid)
@@ -67,10 +67,10 @@ namespace Washouse.Web.Controllers
                 if (centerId == 0) centerId = null;
                 if (orderDetailId == 0) orderDetailId = null;
                 Feedback existingFB = await _feedbackService.GetById(FbId);
-               
-                
+
+
                 existingFB.ReplyDate = DateTime.Now;
-                existingFB.ReplyBy =account.Result.FullName;
+                existingFB.ReplyBy = account.Result.FullName;
                 existingFB.ReplyMessage = Input.ReplyMessage;
                 await _feedbackService.Update(existingFB);
                 return Ok(new ResponseModel
@@ -84,11 +84,11 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpGet("getFeedbackByCenterId")]
-        public  IActionResult GetFeedbackByCenterId (int centerId)
+        [HttpGet("centers/{id}")]
+        public IActionResult GetFeedbackByCenterId(int centerId)
         {
             var feedbacks = _feedbackService.GetAllByCenterId(centerId);
-            if( feedbacks == null) return NotFound();
+            if (feedbacks == null) return NotFound();
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -97,7 +97,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpGet("getFeedbackByOrderdetailid")]
+        [HttpGet("order-details/{id}")]
         public IActionResult GetAllByOrderDetailId(int orderdetailid)
         {
             var feedbacks = _feedbackService.GetAllByOrderDetailId(orderdetailid);

@@ -199,7 +199,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpGet("getDeliveryPrice")]
+        [HttpGet("delivery-price")]
         public async Task<IActionResult> GetDeliveryPrice([FromQuery] GetDeliveryPriceRequestModel requestModel)
         {
             try

@@ -47,7 +47,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpGet("getPromotionByCenterId")]
+        [HttpGet("center/{id}")]
         public IActionResult GetPromotionByCenterId(int centerId)
         {
             var promotion = _promotionService.GetAllByCenterId(centerId);
@@ -60,7 +60,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPost("addPromotion")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromForm] PromotionRequestModel Input)
         {
             if (ModelState.IsValid)

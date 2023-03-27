@@ -32,7 +32,7 @@ namespace Washouse.Web.Controllers
         }
 
         #endregion
-        [HttpGet("getDistrictFromLatLong")]
+        [HttpGet("district")]
         public async Task<IActionResult> GetDistrictFromLatLong(double latitude, double longitude)
         {
             Region result = new Region();
@@ -61,7 +61,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpGet("getLocationFromMap")]
+        [HttpGet("location")]
         public async Task<IActionResult> getLocationFromMap(decimal latitude, decimal longitude)
         {
             string url = $"https://nominatim.openstreetmap.org/reverse?email=thanhdat3001@gmail.com&format=jsonv2&lat={latitude}&lon={longitude}";

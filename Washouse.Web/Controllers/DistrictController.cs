@@ -23,10 +23,12 @@ namespace Washouse.Web.Controllers
     {
         #region Initialize
         private readonly IDistrictService _districtService;
+        private readonly IWardService _wardService;
 
-        public DistrictController(IDistrictService districtService)
+        public DistrictController(IDistrictService districtService, IWardService wardService)
         {
             this._districtService = districtService;
+            this._wardService = wardService;
         }
 
         #endregion
@@ -65,7 +67,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpGet("getDistrictByLatLong")]
+        [HttpGet("search")]
         public async Task<IActionResult> GetDistrictByLatLong(double latitude, double longitude)
         {
             string url = $"https://nominatim.openstreetmap.org/reverse?email=thanhdat3001@gmail.com&format=jsonv2&lat={latitude}&lon={longitude}";
@@ -121,6 +123,51 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpGet("{id}/wards")]
+        public async Task<IActionResult> GetWardListByDistrict(int id)
+        {
+            try
+            {
+                var wardList = await _wardService.GetWardListByDistrictId(id);
+                var responseData = new List<WardResponseModel>();
+                if (wardList != null)
+                {
+                    foreach (var item in wardList)
+                    {
+                        responseData.Add(new WardResponseModel
+                        {
+                            WardId = item.Id,
+                            WardName = item.WardName
+                        });
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = responseData
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not Found",
+                        Data = null
+                    });
                 }
             }
             catch (Exception ex)

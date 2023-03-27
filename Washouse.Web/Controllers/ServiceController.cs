@@ -36,7 +36,7 @@ namespace Washouse.Web.Controllers
         #endregion
 
         //[Route("GetServicesOfACenter")]
-        [HttpGet("getServicesOfACenter/{id}")]
+        [HttpGet("center/{id}")]
         public async Task<IActionResult> GetServicesOfACenter(int id)
         {
             try
@@ -85,7 +85,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("deactivateService/{id}")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateService(int id)
         {
 

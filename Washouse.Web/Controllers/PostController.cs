@@ -81,7 +81,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPost("addPost")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] PostRequestModel Input, int id)
         {
             if (ModelState.IsValid)
@@ -132,7 +132,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("deactivatePost/{id}")]
+        [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivatePost(int id)
         {
             var post = await _postService.GetById(id);
@@ -144,7 +144,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("activatePost/{id}")]
+        [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivatePost(int id)
         {
             var post = await _postService.GetById(id);
