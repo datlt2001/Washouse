@@ -295,10 +295,6 @@ namespace Washouse.Data
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.WeekOff)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
                 entity.HasOne(d => d.CenterRequestingNavigation)
                     .WithMany(p => p.CenterRequests)
                     .HasForeignKey(d => d.CenterRequesting)

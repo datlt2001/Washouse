@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,14 @@ namespace Washouse.Data.Repositories
         public async Task<Location> GetLocationOfACenter(int centerId)
         {
             return await this.DbContext.Locations.FindAsync(centerId);
+        }
+
+        public new async Task<Location> GetById(int id)
+        {
+            var data = await this._dbContext.Locations
+                    .Include(location => location.Centers)
+                    .FirstOrDefaultAsync(location => location.Id == id);
+            return data;
         }
     }
 }

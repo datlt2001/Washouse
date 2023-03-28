@@ -16,16 +16,14 @@ namespace Washouse.Model.Models
         public int LocationId { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
-        public TimeSpan? OpenTime { get; set; }
-        public TimeSpan? CloseTime { get; set; }
         public string MonthOff { get; set; }
-        public string WeekOff { get; set; }
         public bool IsAvailable { get; set; }
         public string Status { get; set; }
         public string Image { get; set; }
         public bool? HotFlag { get; set; }
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }
+        public bool HasDelivery { get; set; }
 
         public virtual Center CenterRequestingNavigation { get; set; }
     }

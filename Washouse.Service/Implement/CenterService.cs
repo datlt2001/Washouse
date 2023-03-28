@@ -1,6 +1,8 @@
-﻿using System;
+﻿using NuGet.Protocol.Core.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
@@ -13,12 +15,14 @@ namespace Washouse.Service.Implement
     public class CenterService : ICenterService
     {
         ICenterRepository _centerRepository;
+        ICenterRequestRepository _centerRequestRepository;
         IUnitOfWork _unitOfWork;
 
-        public CenterService(ICenterRepository centerRepository, IUnitOfWork unitOfWork)
+        public CenterService(ICenterRepository centerRepository, IUnitOfWork unitOfWork, ICenterRequestRepository centerRequestRepository)
         {
             this._centerRepository = centerRepository;
             this._unitOfWork = unitOfWork;
+            _centerRequestRepository = centerRequestRepository;
         }
 
         public async Task<IEnumerable<Center>> GetAll()
@@ -62,9 +66,9 @@ namespace Washouse.Service.Implement
             throw new NotImplementedException();
         }
 
-        public Task Update(Center center)
+        public async Task Update(Center center)
         {
-            throw new NotImplementedException();
+            await _centerRepository.Update(center);
         }
 
         public Task ActivateCenter(int id)

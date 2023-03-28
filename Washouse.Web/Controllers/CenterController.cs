@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol;
@@ -38,10 +39,11 @@ namespace Washouse.Web.Controllers
         private readonly IOperatingHourService _operatingHourService;
         private readonly IServiceService _serviceService;
         private readonly IStaffService _staffService;
+        private readonly ICenterRequestService _centerRequestService;
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
-                                IStaffService staffService)
+                                IStaffService staffService, ICenterRequestService centerRequestService)
         {
             this._centerService = centerService; 
             this._locationService = locationService; 
@@ -50,6 +52,7 @@ namespace Washouse.Web.Controllers
             this._operatingHourService = operatingHourService;
             this._serviceService = serviceService;
             this._staffService = staffService;
+            this._centerRequestService = centerRequestService;
         }
 
         #endregion
@@ -558,7 +561,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 Center center = new Center();
-                Location location = new Location();
+                var location = new Model.Models.Location();
                 if (ModelState.IsValid)
                 {
                     //Add Location
@@ -568,7 +571,7 @@ namespace Washouse.Web.Controllers
                     try
                     {
                         ward = await _wardService.GetWardById(location.WardId);
-                    } catch(Exception ex)
+                    } catch
                     {
                         return NotFound(new ResponseModel
                         {
@@ -594,15 +597,15 @@ namespace Washouse.Web.Controllers
                             }
                         }
                     }
-                    if (createCenterRequestModel.Location.Latitude != null)
+                    if (createCenterRequestModel.Location.Latitude != null && createCenterRequestModel.Location.Latitude != 0)
                     {
                         location.Latitude = createCenterRequestModel.Location.Latitude;
                     }
-                    if (createCenterRequestModel.Location.Longitude != null)
+                    if (createCenterRequestModel.Location.Longitude != null && createCenterRequestModel.Location.Longitude != 0)
                     {
                         location.Longitude = createCenterRequestModel.Location.Longitude;
                     }
-                    if (location.Latitude != null && location.Longitude != null)
+                    if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
                     {
                         location.Latitude = Math.Round((decimal)location.Latitude,9);
                         location.Longitude = Math.Round((decimal)location.Longitude, 9);
@@ -615,8 +618,25 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
-                    await _locationService.Add(location);
+                    var locationAdded = await _locationService.Add(location);
 
+                    var checkLocationExistCenter = await _locationService.GetById(locationAdded.Id);
+                    if (checkLocationExistCenter.Centers.ToList() != null) 
+                    {
+                        var centerExist = checkLocationExistCenter.Centers.ToList();
+                        foreach (var item in centerExist)
+                        {
+                            if (!item.Status.Equals("Closed"))
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Existing a center is operating in this location.",
+                                    Data = null
+                                });
+                            }
+                        }
+                    }
                     //Add Center 
                     /*if (createCenterRequestModel.Center.HasDelivery == null)
                     {
@@ -625,7 +645,7 @@ namespace Washouse.Web.Controllers
                     center.Id = 0;
                     center.CenterName = createCenterRequestModel.Center.CenterName;
                     center.Alias = createCenterRequestModel.Center.Alias;
-                    center.LocationId = location.Id;
+                    center.LocationId = locationAdded.Id;
                     center.Phone = createCenterRequestModel.Center.Phone;
                     center.Description = createCenterRequestModel.Center.Description;
                     center.MonthOff = createCenterRequestModel.Center.MonthOff;
@@ -803,6 +823,177 @@ namespace Washouse.Web.Controllers
                 Message = "success",
                 Data = staff
             });
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(int id, CenterEditRequestModel center)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var centerRequesting = await _centerService.GetById(id);
+                    if (centerRequesting == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found center",
+                            Data = null
+                        });
+                    }
+
+                    if (id != centerRequesting.Id)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Error occurs",
+                            Data = null
+                        });
+                    }
+                    //"location": {
+                    //"addressString": "103 Quang Trung",
+                    //"wardId": 40,
+                    // "latitude": 0,
+                    //"longitude": 0 }
+                    //Add Location
+
+                    var location = new Model.Models.Location();
+                    var checkLocationExistCenter = new Model.Models.Location();
+                    if (center.Location != null)
+                    {
+
+                        location.AddressString = center.Location.AddressString;
+                        location.WardId = center.Location.WardId;
+                        var ward = new Ward();
+                        try
+                        {
+                            ward = await _wardService.GetWardById(location.WardId);
+                        }
+                        catch
+                        {
+                            return NotFound(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Not found ward by wardId.",
+                                Data = null
+                            });
+                        }
+                        string fullAddress = center.Location.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+                        using (HttpClient client = new HttpClient())
+                        {
+                            var response = await client.GetAsync(url);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var json = await response.Content.ReadAsStringAsync();
+                                dynamic result = JsonConvert.DeserializeObject(json);
+                                if (result.Count > 0)
+                                {
+
+                                    location.Latitude = result[0].lat;
+                                    location.Longitude = result[0].lon;
+                                }
+                            }
+                        }
+                        if (center.Location.Latitude != null && center.Location.Latitude != 0)
+                        {
+                            location.Latitude = center.Location.Latitude;
+                        }
+                        if (center.Location.Longitude != null && center.Location.Longitude != 0)
+                        {
+                            location.Longitude = center.Location.Longitude;
+                        }
+                        if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
+                        {
+                            location.Latitude = Math.Round((decimal)location.Latitude, 9);
+                            location.Longitude = Math.Round((decimal)location.Longitude, 9);
+                        }
+                        else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                                Data = null
+                            });
+                        }
+                        var locationAdded = await _locationService.Add(location);
+
+                        checkLocationExistCenter = await _locationService.GetById(locationAdded.Id);
+                        if (checkLocationExistCenter.Centers.ToList().Count > 0)
+                        {
+                            var centerExist = checkLocationExistCenter.Centers.ToList();
+                            foreach (var item in centerExist)
+                            {
+                                if (!item.Status.Equals("Closed"))
+                                {
+                                    return BadRequest(new ResponseModel
+                                    {
+                                        StatusCode = StatusCodes.Status400BadRequest,
+                                        Message = "Existing a center is operating in this location.",
+                                        Data = null
+                                    });
+                                }
+                            }
+                        } 
+                    }
+                    var centerRequestModel = new CenterRequest();
+                    if (center != null)
+                    {
+                        centerRequestModel.CenterRequesting = centerRequesting.Id;
+                        centerRequestModel.RequestStatus = true;
+                        centerRequestModel.CenterName = string.IsNullOrWhiteSpace(center.CenterName) ? centerRequesting.CenterName : center.CenterName.Trim();
+                        centerRequestModel.Alias = string.IsNullOrWhiteSpace(center.Alias) ? centerRequesting.Alias : center.Alias.Trim();
+                        centerRequestModel.LocationId = (checkLocationExistCenter.Id == 0) ? centerRequesting.LocationId : checkLocationExistCenter.Id;
+                        centerRequestModel.Phone = string.IsNullOrWhiteSpace(center.Phone) ? centerRequesting.Phone : center.Phone.Trim();
+                        centerRequestModel.Description = string.IsNullOrWhiteSpace(center.Description) ? centerRequesting.Description : center.Description.Trim();
+                        centerRequestModel.MonthOff = string.IsNullOrWhiteSpace(center.MonthOff) ? centerRequesting.MonthOff : center.MonthOff.Trim();
+                        centerRequestModel.IsAvailable = centerRequesting.IsAvailable;
+                        centerRequestModel.Status = centerRequesting.Status;
+                        centerRequestModel.Image = string.IsNullOrWhiteSpace(center.SavedFileName) ? centerRequesting.Image : center.SavedFileName.Trim();
+                        centerRequestModel.HotFlag = centerRequesting.HotFlag;
+                        centerRequestModel.Rating = centerRequesting.Rating;
+                        centerRequestModel.NumOfRating = centerRequesting.NumOfRating;
+                        centerRequestModel.CreatedDate = centerRequesting.CreatedDate;
+                        centerRequestModel.CreatedBy = centerRequesting.CreatedBy;
+                        centerRequestModel.UpdatedDate = DateTime.Now;
+                        centerRequestModel.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    }
+                    await _centerRequestService.Add(centerRequestModel);
+                    centerRequesting.Status = "UpdatePending";
+                    // Update
+                    await _centerService.Update(centerRequesting);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = centerRequestModel
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
     }
 }
