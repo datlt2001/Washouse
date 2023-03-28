@@ -71,7 +71,10 @@ namespace Washouse.Web.Controllers
             response.Fullname = customer.Fullname;
             response.Phone = customer.Phone;
             response.Email = customer.Email;
-            response.ProfilePic = user.ProfilePic;
+            if (user != null)
+            {
+                response.ProfilePic = user.ProfilePic;
+            }
             response.AccountId = userId;
             response.Id = id;
             
