@@ -410,6 +410,292 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [HttpPut("centers/{id}/approve")]
+        public async Task<IActionResult> ApproveCreateCenter(int id)
+        {
+            try
+            {
+                var center = await _centerService.GetById(id);
+                if (center != null)
+                {
+                    var response = new CenterResponseModel();
+                    var centerServices = new List<CenterServiceResponseModel>();
+                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                    var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
+                    foreach (var item in center.Services)
+                    {
+                        var servicePriceViewModels = new List<ServicePriceViewModel>();
+                        foreach (var servicePrice in item.ServicePrices)
+                        {
+                            var sp = new ServicePriceViewModel
+                            {
+                                MaxValue = servicePrice.MaxValue,
+                                Price = servicePrice.Price
+                            };
+                            servicePriceViewModels.Add(sp);
+                        }
+                        var service = new ServicesOfCenterResponseModel
+                        {
+                            ServiceId = item.Id,
+                            CategoryId = item.CategoryId,
+                            ServiceName = item.ServiceName,
+                            Description = item.Description,
+                            Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                            PriceType = item.PriceType,
+                            Price = item.Price,
+                            MinPrice = item.MinPrice,
+                            Prices = servicePriceViewModels,
+                            TimeEstimate = item.TimeEstimate,
+                            Rating = item.Rating,
+                            NumOfRating = item.NumOfRating
+                        };
+                        servicesOfCenter.Add(service);
+                    }
+                    foreach (var service in center.Services)
+                    {
+                        var centerService = new CenterServiceResponseModel
+                        {
+                            ServiceCategoryID = service.CategoryId,
+                            ServiceCategoryName = service.Category.CategoryName,
+                            Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
+                        };
+                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                    }
+                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
+                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
+                    //{
+                    foreach (var item in center.OperatingHours)
+                    {
+                        var centerOperatingHour = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item.DaysOfWeek.Id,
+                            OpenTime = item.OpenTime,
+                            CloseTime = item.CloseTime
+                        };
+                        centerOperatingHours.Add(centerOperatingHour);
+                    }
+                    //}
+                    bool MonthOff = false;
+                    if (center.MonthOff != null)
+                    {
+                        string[] offs = center.MonthOff.Split('-');
+                        for (int i = 0; i < offs.Length; i++)
+                        {
+                            if (DateTime.Now.Day == (int.Parse(offs[i])))
+                            {
+                                MonthOff = true;
+                            }
+                        }
+                    }
+
+                    foreach (var item in center.DeliveryPriceCharts)
+                    {
+                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
+                        {
+                            Id = item.Id,
+                            MaxDistance = item.MaxDistance,
+                            MaxWeight = item.MaxWeight,
+                            Price = item.Price
+                        };
+                        centerDeliveryPrices.Add(centerDeliveryPrice);
+                    }
+
+
+                    response.Id = center.Id;
+                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
+                    response.Title = center.CenterName;
+                    response.Alias = center.Alias;
+                    response.Description = center.Description;
+                    response.CenterServices = centerServices;
+                    response.Rating = center.Rating;
+                    response.NumOfRating = center.NumOfRating;
+                    response.Phone = center.Phone;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    //response.Distance = distance;
+                    response.MonthOff = MonthOff;
+                    response.HasDelivery = center.HasDelivery;
+                    response.CenterDeliveryPrices = centerDeliveryPrices;
+                    response.CenterLocation = new CenterLocationResponseModel
+                    {
+                        Latitude = center.Location.Latitude,
+                        Longitude = center.Location.Longitude
+                    };
+                    response.CenterOperatingHours = centerOperatingHours;
+                    center.Status = "Active";
+                    await _centerService.Update(center);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpPut("centers/{id}/reject")]
+        public async Task<IActionResult> RejectCreateCenter(int id)
+        {
+            try
+            {
+                var center = await _centerService.GetById(id);
+                if (center != null)
+                {
+                    var response = new CenterResponseModel();
+                    var centerServices = new List<CenterServiceResponseModel>();
+                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                    var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
+                    foreach (var item in center.Services)
+                    {
+                        var servicePriceViewModels = new List<ServicePriceViewModel>();
+                        foreach (var servicePrice in item.ServicePrices)
+                        {
+                            var sp = new ServicePriceViewModel
+                            {
+                                MaxValue = servicePrice.MaxValue,
+                                Price = servicePrice.Price
+                            };
+                            servicePriceViewModels.Add(sp);
+                        }
+                        var service = new ServicesOfCenterResponseModel
+                        {
+                            ServiceId = item.Id,
+                            CategoryId = item.CategoryId,
+                            ServiceName = item.ServiceName,
+                            Description = item.Description,
+                            Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                            PriceType = item.PriceType,
+                            Price = item.Price,
+                            MinPrice = item.MinPrice,
+                            Prices = servicePriceViewModels,
+                            TimeEstimate = item.TimeEstimate,
+                            Rating = item.Rating,
+                            NumOfRating = item.NumOfRating
+                        };
+                        servicesOfCenter.Add(service);
+                    }
+                    foreach (var service in center.Services)
+                    {
+                        var centerService = new CenterServiceResponseModel
+                        {
+                            ServiceCategoryID = service.CategoryId,
+                            ServiceCategoryName = service.Category.CategoryName,
+                            Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
+                        };
+                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                    }
+                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
+                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
+                    //{
+                    foreach (var item in center.OperatingHours)
+                    {
+                        var centerOperatingHour = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item.DaysOfWeek.Id,
+                            OpenTime = item.OpenTime,
+                            CloseTime = item.CloseTime
+                        };
+                        centerOperatingHours.Add(centerOperatingHour);
+                    }
+                    //}
+                    bool MonthOff = false;
+                    if (center.MonthOff != null)
+                    {
+                        string[] offs = center.MonthOff.Split('-');
+                        for (int i = 0; i < offs.Length; i++)
+                        {
+                            if (DateTime.Now.Day == (int.Parse(offs[i])))
+                            {
+                                MonthOff = true;
+                            }
+                        }
+                    }
+
+                    foreach (var item in center.DeliveryPriceCharts)
+                    {
+                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
+                        {
+                            Id = item.Id,
+                            MaxDistance = item.MaxDistance,
+                            MaxWeight = item.MaxWeight,
+                            Price = item.Price
+                        };
+                        centerDeliveryPrices.Add(centerDeliveryPrice);
+                    }
+
+
+                    response.Id = center.Id;
+                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
+                    response.Title = center.CenterName;
+                    response.Alias = center.Alias;
+                    response.Description = center.Description;
+                    response.CenterServices = centerServices;
+                    response.Rating = center.Rating;
+                    response.NumOfRating = center.NumOfRating;
+                    response.Phone = center.Phone;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    //response.Distance = distance;
+                    response.MonthOff = MonthOff;
+                    response.HasDelivery = center.HasDelivery;
+                    response.CenterDeliveryPrices = centerDeliveryPrices;
+                    response.CenterLocation = new CenterLocationResponseModel
+                    {
+                        Latitude = center.Location.Latitude,
+                        Longitude = center.Location.Longitude
+                    };
+                    response.CenterOperatingHours = centerOperatingHours;
+                    center.Status = "Reject";
+                    await _centerService.Update(center);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
         /*[HttpPost("updateService")]
         public async Task<IActionResult> Update([FromForm]ServiceRequestModel serviceRequestmodel, int id)
         {
