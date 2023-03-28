@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
+using Washouse.Model.ResponseModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
@@ -16,11 +17,13 @@ namespace Washouse.Web.Controllers
     {
         private readonly ICustomerService _customerService;
         public IAccountService _accountService;
+        public IWardService _wardService;
 
-        public CustomerController(ICustomerService customerService, IAccountService accountService)
+        public CustomerController(ICustomerService customerService, IAccountService accountService, IWardService wardService)
         {
             this._customerService = customerService;
             this._accountService = accountService;
+            this._wardService = wardService;
         }
 
         [HttpGet]
@@ -35,8 +38,50 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> GetCustomerById(int id)
         {
             var customer = await _customerService.GetById(id);
+            int userId = customer.AccountId ?? 0;
+            var user = await _accountService.GetById(userId);
+            var response = new CustomerDetailResponseModel();
+            if(customer.AddressNavigation != null) 
+            { 
+                var ward = await _wardService.GetWardById(customer.AddressNavigation.WardId);
+                response.AddressString = new CustomerLocatonResponseModel
+                {
+                    Latitude = customer.AddressNavigation.Latitude,
+                    Longitude = customer.AddressNavigation.Longitude,
+                    Ward = new WardResponseModel
+                    {
+                        WardId = customer.AddressNavigation.WardId,
+                        WardName = null
+                    },
+                    District = new DistrictResponseModel
+                    {
+                        DistrictId = 0,
+                        DistrictName = null
+                    }
+
+                };
+            }
+            else
+            {
+                response.AddressString = null;
+            }
+
+            
+
+            response.Fullname = customer.Fullname;
+            response.Phone = customer.Phone;
+            response.Email = customer.Email;
+            response.ProfilePic = user.ProfilePic;
+            response.AccountId = userId;
+            response.Id = id;
+            
             if (customer == null) { return NotFound(); }
-            return Ok(customer);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = response
+            });
         }
 
         [HttpPost]
@@ -55,27 +100,27 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPut("updateCustomer")]
-        public async Task<IActionResult> Update(Customer customer)
-        {
-            if (!ModelState.IsValid) { return BadRequest(); }
-            else
-            {
-                //Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
-                Customer existingCustomer = new Customer();
-                if (existingCustomer == null) { return NotFound(); }
-                else
-                {
-                    customer.Id = existingCustomer.Id;
-                    existingCustomer = customer;
+        //[HttpPut("updateCustomer")]
+        //public async Task<IActionResult> Update(Customer customer)
+        //{
+        //    if (!ModelState.IsValid) { return BadRequest(); }
+        //    else
+        //    {
+        //        //Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
+        //        Customer existingCustomer = new Customer();
+        //        if (existingCustomer == null) { return NotFound(); }
+        //        else
+        //        {
+        //            customer.Id = existingCustomer.Id;
+        //            existingCustomer = customer;
 
-                    await _customerService.Update(existingCustomer);
-                    return Ok(existingCustomer);
-                }
+        //            await _customerService.Update(existingCustomer);
+        //            return Ok(existingCustomer);
+        //        }
 
 
-            }
-        }
+        //    }
+        //}
 
         [HttpPut("updateProfileCustomer")]
         public async Task<IActionResult> UpdateProfile([FromBody] CustomerRequestModel input, int customerId)

@@ -170,6 +170,11 @@ namespace Washouse.Web
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<ICenterRequestRepository, CenterRequestRepository>();
             services.AddTransient<ICenterRequestService, CenterRequestService>();
+            services.AddOptions();
+            var vnpaysettings = Configuration.GetSection("VNPaySettings");
+            services.Configure<VNPaySettings>(vnpaysettings);
+            services.AddTransient<IPaymentRepository, PaymentRepository>();
+            services.AddTransient<IPaymentService, PaymentService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
