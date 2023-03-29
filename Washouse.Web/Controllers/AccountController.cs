@@ -61,16 +61,16 @@ namespace Washouse.Web.Controllers
             {
                 return Ok(new ResponseModel
                 {
-                    StatusCode = 10,
-                    Message = "Invalid phone or password",
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Invalid username/password",
                     Data = null
                 });
             }
             var token = await GenerateToken(user, false);
             return Ok(new ResponseModel
             {
-                StatusCode = 0,
-                Message = "success",
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Authenticate success",
                 Data = token
             });
         }
@@ -85,8 +85,8 @@ namespace Washouse.Web.Controllers
             {
                 return Ok(new ResponseModel
                 {
-                    StatusCode = 10,
-                    Message = "Invalid phone or password",
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Invalid username/password",
                     Data = null
                 });
             }
