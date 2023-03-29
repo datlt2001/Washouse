@@ -9,6 +9,8 @@ on:
 env:
   AZURE_WEBAPP_NAME: Washouse
   AZURE_WEBAPP_PACKAGE_PATH: "./publish"
+  ASPNETCORE_ENVIRONMENT: ${{ secrets.MY_SECRET_JSON }}
+
 
 jobs:
   publish:
@@ -16,9 +18,6 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Set GCS_JSON secret
-        run: echo "${{ secrets.MY_SECRET_JSON }}" >> $GITHUB_ENV
       
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
