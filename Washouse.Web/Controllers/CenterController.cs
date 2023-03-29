@@ -99,7 +99,7 @@ namespace Washouse.Web.Controllers
                 if (filterCentersRequestModel.SearchString != null)
                 {
                     centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
-                                                  || res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
+                                                  || (res.Alias != null && res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower()))
                                              ).ToList();
                 }
                 var response = new List<CenterResponseModel>();
