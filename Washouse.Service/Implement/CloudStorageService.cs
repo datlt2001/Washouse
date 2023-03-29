@@ -28,7 +28,7 @@ namespace Washouse.Service.Implement
 
             try
             {
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var environment = Environment.GetEnvironmentVariable("GCS_JSON");
                 if (environment == Environments.Production)
                 {
                     // Store the json file in Secrets.
