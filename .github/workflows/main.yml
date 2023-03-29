@@ -17,9 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Set GCS_JSON secret
-        run: echo "${{ secrets.MY_SECRET_JSON }}" >> $GITHUB_ENV
-      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
