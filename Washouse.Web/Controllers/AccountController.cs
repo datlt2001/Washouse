@@ -61,16 +61,24 @@ namespace Washouse.Web.Controllers
             {
                 return Ok(new ResponseModel
                 {
-                    StatusCode = StatusCodes.Status200OK,
-                    Message = "Invalid username/password",
+                    StatusCode = 10,
+                    Message = "Invalid phone or password",
                     Data = null
                 });
             }
             var token = await GenerateToken(user, false);
+            if (user.IsAdmin) {
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 17,
+                    Message = "Success auth admin",
+                    Data = token
+                });
+            }
             return Ok(new ResponseModel
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Authenticate success",
+                StatusCode = 0,
+                Message = "Success",
                 Data = token
             });
         }
@@ -85,26 +93,38 @@ namespace Washouse.Web.Controllers
             {
                 return Ok(new ResponseModel
                 {
-                    StatusCode = StatusCodes.Status200OK,
-                    Message = "Invalid username/password",
+                    StatusCode = 10,
+                    Message = "Invalid phone or password",
                     Data = null
                 });
             }
+
+            if (user.IsAdmin)
+            {
+                var _token = await GenerateToken(user, true);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 17,
+                    Message = "Success auth admin",
+                    Data = _token
+                });
+            }
+
             var staff = await _staffService.GetByAccountId(user.Id);
             if (staff == null)
             {
                 return NotFound(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status404NotFound,
-                    Message = "Account is not a staff or manager.",
+                    Message = "Account is not a staff or manager",
                     Data = null
                 });
             }
             var token = await GenerateToken(user, true);
             return Ok(new ResponseModel
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Authenticate success",
+                StatusCode = 0,
+                Message = "Success",
                 Data = token
             });
         }
