@@ -115,9 +115,13 @@ namespace Washouse.Web.Controllers
                         {
                             foreach (var servicePrice in service.ServicePrices)
                             {
-                                if (minPrice > service.Price || minPrice == 0)
+                                if (minPrice > service.MinPrice || minPrice == 0)
                                 {
-                                    minPrice = (decimal)service.Price;
+                                    minPrice = (decimal)service.MinPrice;
+                                }
+                                if (maxPrice < (servicePrice.Price*servicePrice.MaxValue) || maxPrice == 0)
+                                {
+                                    maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
                                 }
                             }
                         } 
@@ -140,6 +144,7 @@ namespace Washouse.Web.Controllers
                             Services = null
                         };
                         if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+
                     }
                     List<int> dayOffs = new List<int>();
                     bool MonthOff = false;
@@ -272,6 +277,17 @@ namespace Washouse.Web.Controllers
                     }
 
                 }
+                if (filterCentersRequestModel.HasDelivery)
+                {
+                    foreach (var item in response.ToList())
+                    {
+                        if (!item.HasDelivery)
+                        {
+                            response.Remove(item);
+                        }
+                    }
+                }
+
                 int totalItems = response.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
 
@@ -328,6 +344,7 @@ namespace Washouse.Web.Controllers
                     var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                     var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
                     var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
+                    decimal minPrice = 0, maxPrice = 0;
                     foreach (var item in center.Services)
                     {
                         var servicePriceViewModels = new List<ServicePriceViewModel>();
@@ -359,6 +376,32 @@ namespace Washouse.Web.Controllers
                     }
                     foreach (var service in center.Services)
                     {
+                        if (service.PriceType)
+                        {
+                            foreach (var servicePrice in service.ServicePrices)
+                            {
+                                if (minPrice > service.MinPrice || minPrice == 0)
+                                {
+                                    minPrice = (decimal)service.MinPrice;
+                                }
+                                if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
+                                {
+                                    maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (minPrice > service.Price || minPrice == 0)
+                            {
+                                minPrice = (decimal)service.Price;
+                            }
+                            if (maxPrice < service.Price || maxPrice == 0)
+                            {
+                                maxPrice = (decimal)service.Price;
+                            }
+                        }
+
                         var centerService = new CenterServiceResponseModel
                         {
                             ServiceCategoryID = service.CategoryId,
@@ -428,6 +471,8 @@ namespace Washouse.Web.Controllers
                     response.Phone = center.Phone;
                     response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
                     response.Distance = distance;
+                    response.MinPrice = minPrice;
+                    response.MaxPrice = maxPrice;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
@@ -997,5 +1042,81 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        [HttpGet("{centerId}/services/{serviceId}")]
+        public async Task<IActionResult> GetServicesOfACenter(int centerId, int serviceId)
+        {
+            try
+            {
+                var center = await _centerService.GetById(centerId);
+                if (center != null)
+                {
+                    var item = center.Services.FirstOrDefault(service => service.Id == serviceId);
+
+                    if (item != null)
+                    {
+                        var servicePriceViewModels = new List<ServicePriceViewModel>();
+                        foreach (var servicePrice in item.ServicePrices)
+                        {
+                            var sp = new ServicePriceViewModel
+                            {
+                                MaxValue = servicePrice.MaxValue,
+                                Price = servicePrice.Price
+                            };
+                            servicePriceViewModels.Add(sp);
+                        }
+                        var itemResponse = new ServicesOfCenterResponseModel
+                        {
+                            ServiceId = item.Id,
+                            CategoryId = item.CategoryId,
+                            ServiceName = item.ServiceName,
+                            Description = item.Description,
+                            Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                            PriceType = item.PriceType,
+                            Price = item.Price,
+                            MinPrice = item.MinPrice,
+                            Prices = servicePriceViewModels,
+                            TimeEstimate = item.TimeEstimate,
+                            Rating = item.Rating,
+                            NumOfRating = item.NumOfRating
+                        };
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = 0,
+                            Message = "success",
+                            Data = itemResponse
+                        });
+                    }
+                    else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found services",
+                            Data = null
+                        });
+                    }
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }

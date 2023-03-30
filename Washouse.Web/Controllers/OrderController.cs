@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using System.Linq;
 using Washouse.Common.Helpers;
 using NuGet.Protocol;
+using Washouse.Model.ResponseModels;
 
 namespace Washouse.Web.Controllers
 {
@@ -365,5 +366,278 @@ namespace Washouse.Web.Controllers
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets the list of all Centers.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/orders
+        ///     {        
+        ///       "page": 1,
+        ///       "pageSize": 5,
+        ///       "searchString": "Dr"  
+        ///     }
+        /// </remarks>
+        /// <returns>The list of Centers.</returns>
+        /// <response code="200">Success return list ceters</response>   
+        /// <response code="404">Not found any center matched</response>   
+        /// <response code="400">One or more error occurs</response>   
+        // GET: api/orders
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAll([FromQuery] FilterOrdersRequestModel filterOrdersRequestModel)
+        {
+            try
+            {
+                var orders = await _orderService.GetAll();
+                if (orders.Count() == 0)
+                {
+                    return BadRequest();
+                }
+
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role != null && role.Trim().ToLower().Equals("customer"))
+                {
+                    var userId = User.FindFirst("Id")?.Value;
+                    var userPhone = User.FindFirst("Phone")?.Value;
+                    var customer = _customerService.GetByPhone(userPhone);
+                    orders = orders.Where(orders => orders.CustomerId == int.Parse(userId));
+                }
+                if (filterOrdersRequestModel.SearchString != null)
+                {
+                    orders = orders.Where(order => (order.OrderDetails.Any(orderDetail => (orderDetail.Service.ServiceName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                                                || (orderDetail.Service.Alias != null && orderDetail.Service.Alias.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))))
+                                                       || order.Id.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                       || order.OrderDetails.FirstOrDefault().Service.Center.CenterName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
+                                          .ToList();
+
+                }
+                var response = new List<OrderResponseModel>();
+                foreach (var order in orders)
+                {
+
+                }
+                    /*foreach (var center in centerList)
+                    {
+                        var centerServices = new List<CenterServiceResponseModel>();
+                        var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+
+                        decimal minPrice = 0, maxPrice = 0;
+                        foreach (var service in center.Services)
+                        {
+                            if (service.PriceType)
+                            {
+                                foreach (var servicePrice in service.ServicePrices)
+                                {
+                                    if (minPrice > service.Price || minPrice == 0)
+                                    {
+                                        minPrice = (decimal)service.Price;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (minPrice > service.Price || minPrice == 0)
+                                {
+                                    minPrice = (decimal)service.Price;
+                                }
+                                if (maxPrice < service.Price || maxPrice == 0)
+                                {
+                                    maxPrice = (decimal)service.Price;
+                                }
+                            }
+
+                            var centerService = new CenterServiceResponseModel
+                            {
+                                ServiceCategoryID = service.CategoryId,
+                                ServiceCategoryName = service.Category.CategoryName,
+                                Services = null
+                            };
+                            if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                        }
+                        List<int> dayOffs = new List<int>();
+                        bool MonthOff = false;
+                        for (int i = 0; i < 7; i++)
+                        {
+                            dayOffs.Add(i);
+                        }
+                        foreach (var item in center.OperatingHours)
+                        {
+                            dayOffs.Remove(item.DaysOfWeek.Id);
+                            var centerOperatingHour = new CenterOperatingHoursResponseModel
+                            {
+                                Day = item.DaysOfWeek.Id,
+                                OpenTime = item.OpenTime,
+                                CloseTime = item.CloseTime
+                            };
+                            centerOperatingHours.Add(centerOperatingHour);
+                        }
+                        foreach (var item in dayOffs)
+                        {
+                            var dayOff = new CenterOperatingHoursResponseModel
+                            {
+                                Day = item,
+                                OpenTime = null,
+                                CloseTime = null
+                            };
+                            centerOperatingHours.Add(dayOff);
+                        }
+                        double distance = 0;
+                        if (center.Location.Latitude == null || center.Location.Longitude == null || filterCentersRequestModel.CurrentUserLatitude == null || filterCentersRequestModel.CurrentUserLongitude == null)
+                        {
+                            distance = 0;
+                        }
+                        else
+                        {
+                            distance = Utilities.CalculateDistance(Math.Round((decimal)filterCentersRequestModel.CurrentUserLatitude, 6), Math.Round((decimal)filterCentersRequestModel.CurrentUserLongitude, 6),
+                                                                    Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        }
+                        if (center.MonthOff != null)
+                        {
+                            string[] offs = center.MonthOff.Split('-');
+                            for (int i = 0; i < offs.Length; i++)
+                            {
+                                if (DateTime.Now.Day == (int.Parse(offs[i])))
+                                {
+                                    MonthOff = true;
+                                }
+                            }
+                        }
+                        response.Add(new CenterResponseModel
+                        {
+                            Id = center.Id,
+                            Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null,
+                            Title = center.CenterName,
+                            Alias = center.Alias,
+                            Description = center.Description,
+                            CenterServices = centerServices,
+                            Rating = center.Rating,
+                            NumOfRating = center.NumOfRating,
+                            Phone = center.Phone,
+                            CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
+                            Distance = Math.Round(distance, 1),
+                            MinPrice = minPrice,
+                            MaxPrice = maxPrice,
+                            HasDelivery = center.HasDelivery,
+                            CenterLocation = new CenterLocationResponseModel
+                            {
+                                Latitude = center.Location.Latitude,
+                                Longitude = center.Location.Longitude
+                            },
+                            CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList(),
+                            MonthOff = MonthOff
+                        });
+                    }
+                    if (filterCentersRequestModel.Sort != null)
+                    {
+                        string[] sorts = filterCentersRequestModel.Sort.Split(',');
+                        foreach (var item in sorts)
+                        {
+                            if (item.ToLower().Equals("rating"))
+                            {
+                                response = response.OrderByDescending(res => res.Rating).ThenBy(res => res.Distance).ToList();
+                            }
+                            else if (item.ToLower().Equals("location"))
+                            {
+                                response = response.OrderBy(res => res.Distance).ThenByDescending(res => res.Rating).ToList();
+                            }
+                        }
+                    }
+                    if (filterCentersRequestModel.BudgetRange != null)
+                    {
+                        string[] budgetRanges = filterCentersRequestModel.BudgetRange.Split('-');
+                        decimal minPrice = decimal.Parse(budgetRanges[0]);
+                        decimal maxPrice = decimal.Parse(budgetRanges[1]);
+                        if (minPrice > maxPrice)
+                        {
+                            decimal exchange = minPrice;
+                            minPrice = maxPrice;
+                            maxPrice = exchange;
+                        }
+                        foreach (var item in response.ToList())
+                        {
+                            if (item.MaxPrice < minPrice || item.MinPrice > maxPrice)
+                            {
+                                response.Remove(item);
+                            }
+                        }
+                    }
+                    if (filterCentersRequestModel.CategoryServices != null)
+                    {
+                        string[] categories = filterCentersRequestModel.CategoryServices.Split(',');
+                        var categoryIds = new int[categories.Length];
+                        for (int i = 0; i < categories.Length; i++)
+                        {
+                            categoryIds[i] = int.Parse(categories[i]);
+                        }
+                        foreach (var item in response.ToList())
+                        {
+                            int count = 0;
+                            foreach (var category in item.CenterServices)
+                            {
+                                for (int i = 0; i < categoryIds.Length; i++)
+                                {
+                                    if (category.ServiceCategoryID == categoryIds[i])
+                                    {
+                                        count++;
+                                    }
+                                }
+                            }
+                            if (count == 0)
+                            {
+                                response.Remove(item);
+                            }
+                        }
+
+                    }
+                    int totalItems = response.Count();
+                    int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
+
+                    response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize).Take(filterCentersRequestModel.PageSize).ToList();
+                    */
+                    if (response.Count != 0)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        /*Data = new
+                        {
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
+                            ItemsPerPage = filterCentersRequestModel.PageSize,
+                            PageNumber = filterCentersRequestModel.Page,
+                            Items = response
+                        }*/
+                        Data = orders
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
     }
 }

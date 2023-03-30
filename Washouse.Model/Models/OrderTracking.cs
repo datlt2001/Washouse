@@ -6,7 +6,7 @@ using Washouse.Model.Abstract;
 
 namespace Washouse.Model.Models
 {
-    public partial class Tracking : Auditable
+    public partial class OrderTracking : Auditable
     {
         public int Id { get; set; }
         public string OrderId { get; set; }

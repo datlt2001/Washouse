@@ -10,6 +10,7 @@ namespace Washouse.Model.Models
         public OrderDetail()
         {
             Feedbacks = new HashSet<Feedback>();
+            OrderDetailTrackings = new HashSet<OrderDetailTracking>();
         }
 
         public int Id { get; set; }
@@ -22,5 +23,6 @@ namespace Washouse.Model.Models
         public virtual Order Order { get; set; }
         public virtual Service Service { get; set; }
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+        public virtual ICollection<OrderDetailTracking> OrderDetailTrackings { get; set; }
     }
 }

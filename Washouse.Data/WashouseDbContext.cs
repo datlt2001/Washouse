@@ -48,7 +48,8 @@ namespace Washouse.Data
         public virtual DbSet<ServicePrice> ServicePrices { get; set; }
         public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
         public virtual DbSet<Staff> Staffs { get; set; }
-        public virtual DbSet<Tracking> Trackings { get; set; }
+        public virtual DbSet<OrderTracking> OrderTrackings { get; set; }
+        public virtual DbSet<OrderDetailTracking> OrderDetailTrackings { get; set; }
         public virtual DbSet<Ward> Wards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -1048,9 +1049,9 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.CenterId);
             });
 
-            modelBuilder.Entity<Tracking>(entity =>
+            modelBuilder.Entity<OrderTracking>(entity =>
             {
-                entity.HasIndex(e => e.OrderId, "IX_Trackings_OrderId");
+                entity.HasIndex(e => e.OrderId, "IX_OrderTrackings_OrderId");
 
                 entity.Property(e => e.CreatedBy)
                     .HasMaxLength(50)
@@ -1075,8 +1076,37 @@ namespace Washouse.Data
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Order)
-                    .WithMany(p => p.Trackings)
+                    .WithMany(p => p.OrderTrackings)
                     .HasForeignKey(d => d.OrderId);
+            });
+
+            modelBuilder.Entity<OrderDetailTracking>(entity =>
+            {
+                entity.HasIndex(e => e.OrderDetailId, "IX_OrderDetailTrackings_OrderId");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.OrderDetailId)
+                    .IsRequired();
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.OrderDetail)
+                    .WithMany(p => p.OrderDetailTrackings)
+                    .HasForeignKey(d => d.OrderDetailId);
             });
 
             modelBuilder.Entity<Ward>(entity =>

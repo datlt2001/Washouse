@@ -14,7 +14,7 @@ namespace Washouse.Model.Models
             Notifications = new HashSet<Notification>();
             OrderDetails = new HashSet<OrderDetail>();
             Payments = new HashSet<Payment>();
-            Trackings = new HashSet<Tracking>();
+            OrderTrackings = new HashSet<OrderTracking>();
         }
 
         public string Id { get; set; }
@@ -36,6 +36,6 @@ namespace Washouse.Model.Models
         public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
-        public virtual ICollection<Tracking> Trackings { get; set; }
+        public virtual ICollection<OrderTracking> OrderTrackings { get; set; }
     }
 }
