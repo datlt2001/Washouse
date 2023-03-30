@@ -26,7 +26,8 @@ namespace Washouse.Model.Models
         public int CustomerId { get; set; }
         public int DeliveryType { get; set; }
         public decimal? DeliveryPrice { get; set; }
-
+        public DateTime? PreferredDropoffTime { get; set; }
+        public DateTime? PreferredDeliverTime { get; set; }
         public string Status { get; set; }
 
         public virtual Location Location { get; set; }

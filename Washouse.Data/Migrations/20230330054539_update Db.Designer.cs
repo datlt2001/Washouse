@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230326042704_nullable rating")]
-    partial class nullablerating
+    [Migration("20230330054539_update Db")]
+    partial class updateDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -56,6 +56,12 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsResetPassword")
                         .HasColumnType("bit");
 
@@ -83,13 +89,6 @@ namespace Washouse.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<string>("RoleType")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("char(10)")
-                        .IsFixedLength();
-
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
@@ -102,6 +101,12 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Phone" }, "IX_Accounts")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Email" }, "IX_Accounts_Email")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "LocationId" }, "IX_Accounts_LocationId");
 
@@ -205,9 +210,6 @@ namespace Washouse.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<int?>("ParentId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
@@ -296,6 +298,19 @@ namespace Washouse.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("TaxCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("char(30)")
+                        .IsFixedLength();
+
+                    b.Property<string>("TaxRegistrationImage")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -305,6 +320,9 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "TaxCode" }, "IX_Centers")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "LocationId" }, "IX_Centers_LocationId");
 
@@ -363,9 +381,6 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("CenterRequesting")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan?>("CloseTime")
-                        .HasColumnType("time");
-
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -378,6 +393,9 @@ namespace Washouse.Data.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasDelivery")
+                        .HasColumnType("bit");
 
                     b.Property<bool?>("HotFlag")
                         .HasColumnType("bit");
@@ -401,9 +419,6 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("NumOfRating")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan?>("OpenTime")
-                        .HasColumnType("time");
-
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -423,6 +438,19 @@ namespace Washouse.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("TaxCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("char(30)")
+                        .IsFixedLength();
+
+                    b.Property<string>("TaxRegistrationImage")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -430,11 +458,6 @@ namespace Washouse.Data.Migrations
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime");
-
-                    b.Property<string>("WeekOff")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -868,6 +891,12 @@ namespace Washouse.Data.Migrations
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("PreferredDeliverTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("PreferredDropoffTime")
+                        .HasColumnType("datetime");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
@@ -900,7 +929,7 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Measurement")
-                        .HasColumnType("decimal(18,3)");
+                        .HasColumnType("decimal(8,3)");
 
                     b.Property<string>("OrderId")
                         .IsRequired()
@@ -1231,6 +1260,9 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
+                    b.Property<decimal?>("MinPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("NumOfRating")
                         .HasColumnType("int");
 
@@ -1324,17 +1356,31 @@ namespace Washouse.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<decimal>("MaxWeight")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
-                    b.Property<decimal>("MinWeight")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("MaxValue")
+                        .HasColumnType("decimal(8,3)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
 
                     b.HasKey("Id");
 
@@ -1387,6 +1433,9 @@ namespace Washouse.Data.Migrations
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
+
+                    b.Property<decimal?>("MinPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("NumOfRating")
                         .HasColumnType("int");

@@ -216,10 +216,10 @@ namespace Washouse.Web.Controllers
                     string[] sorts = filterCentersRequestModel.Sort.Split(',');
                     foreach (var item in sorts)
                     {
-                        if (item.Equals("Rating"))
+                        if (item.ToLower().Equals("rating"))
                         {
                             response = response.OrderByDescending(res => res.Rating).ThenBy(res => res.Distance).ToList();
-                        } else if (item.Equals("Location"))
+                        } else if (item.ToLower().Equals("location"))
                         {
                             response = response.OrderBy(res => res.Distance).ThenByDescending(res => res.Rating).ToList();
                         }
@@ -652,6 +652,8 @@ namespace Washouse.Web.Controllers
                     center.IsAvailable = false;
                     center.Status = "CreatePending";
                     center.Image = createCenterRequestModel.Center.SavedFileName;
+                    center.TaxCode = createCenterRequestModel.Center.TaxCode;
+                    center.TaxRegistrationImage = createCenterRequestModel.Center.TaxRegistrationImage;
                     center.HotFlag = false;
                     center.Rating = null;
                     center.NumOfRating = 0;

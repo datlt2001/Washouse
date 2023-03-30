@@ -54,6 +54,9 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("bit");
 
@@ -96,6 +99,12 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Phone" }, "IX_Accounts")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Email" }, "IX_Accounts_Email")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "LocationId" }, "IX_Accounts_LocationId");
 
@@ -287,6 +296,19 @@ namespace Washouse.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("TaxCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("char(30)")
+                        .IsFixedLength();
+
+                    b.Property<string>("TaxRegistrationImage")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -296,6 +318,9 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "TaxCode" }, "IX_Centers")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "LocationId" }, "IX_Centers_LocationId");
 
@@ -410,6 +435,19 @@ namespace Washouse.Data.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<string>("TaxCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("char(30)")
+                        .IsFixedLength();
+
+                    b.Property<string>("TaxRegistrationImage")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
@@ -850,6 +888,12 @@ namespace Washouse.Data.Migrations
 
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("PreferredDeliverTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("PreferredDropoffTime")
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Washouse.Data.Migrations
 {
-    public partial class addDb : Migration
+    public partial class updateDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,7 +17,6 @@ namespace Washouse.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    ParentId = table.Column<int>(type: "int", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     Status = table.Column<bool>(type: "bit", nullable: false),
@@ -109,9 +108,10 @@ namespace Washouse.Data.Migrations
                     Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     Password = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Gender = table.Column<int>(type: "int", nullable: true),
                     Dob = table.Column<DateTime>(type: "date", nullable: true),
                     Status = table.Column<bool>(type: "bit", nullable: false),
-                    RoleType = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
                     ProfilePic = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: true),
                     IsResetPassword = table.Column<bool>(type: "bit", nullable: false),
@@ -146,6 +146,8 @@ namespace Washouse.Data.Migrations
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
+                    TaxCode = table.Column<string>(type: "char(30)", unicode: false, fixedLength: true, maxLength: 30, nullable: false),
+                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: false),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
@@ -310,16 +312,16 @@ namespace Washouse.Data.Migrations
                     LocationId = table.Column<int>(type: "int", nullable: false),
                     Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OpenTime = table.Column<TimeSpan>(type: "time", nullable: true),
-                    CloseTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     MonthOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    WeekOff = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
+                    TaxCode = table.Column<string>(type: "char(30)", unicode: false, fixedLength: true, maxLength: 30, nullable: false),
+                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: false),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
+                    HasDelivery = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -459,6 +461,7 @@ namespace Washouse.Data.Migrations
                     PriceType = table.Column<bool>(type: "bit", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MinPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValueSql: "(N'')"),
                     Rate = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
                     TimeEstimate = table.Column<int>(type: "int", nullable: true),
@@ -466,7 +469,7 @@ namespace Washouse.Data.Migrations
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     HomeFlag = table.Column<bool>(type: "bit", nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
-                    Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: false),
+                    Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CenterId = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -538,6 +541,8 @@ namespace Washouse.Data.Migrations
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     DeliveryType = table.Column<int>(type: "int", unicode: false, maxLength: 20, nullable: false),
                     DeliveryPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    PreferredDropoffTime = table.Column<DateTime>(type: "datetime", nullable: true),
+                    PreferredDeliverTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
@@ -590,9 +595,12 @@ namespace Washouse.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ServiceId = table.Column<int>(type: "int", nullable: false),
-                    MinWeight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    MaxWeight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    MaxValue = table.Column<decimal>(type: "decimal(8,3)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -620,6 +628,7 @@ namespace Washouse.Data.Migrations
                     PriceType = table.Column<bool>(type: "bit", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MinPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValueSql: "(N'')"),
                     Rate = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
                     TimeEstimate = table.Column<int>(type: "int", nullable: false),
@@ -627,7 +636,7 @@ namespace Washouse.Data.Migrations
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     HomeFlag = table.Column<bool>(type: "bit", nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
-                    Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: false),
+                    Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
                     CenterId = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -707,7 +716,7 @@ namespace Washouse.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     ServiceId = table.Column<int>(type: "int", nullable: false),
-                    Measurement = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
+                    Measurement = table.Column<decimal>(type: "decimal(8,3)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CustomerNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StaffNote = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -838,6 +847,18 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accounts",
+                table: "Accounts",
+                column: "Phone",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_Email",
+                table: "Accounts",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Accounts_LocationId",
                 table: "Accounts",
                 column: "LocationId");
@@ -856,6 +877,12 @@ namespace Washouse.Data.Migrations
                 name: "IX_CenterRequests_CenterRequesting",
                 table: "CenterRequests",
                 column: "CenterRequesting");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Centers",
+                table: "Centers",
+                column: "TaxCode",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Centers_LocationId",

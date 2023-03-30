@@ -22,6 +22,7 @@ namespace Washouse.Model.Models
         public string Email { get; set; }
         public string Password { get; set; }
         public string FullName { get; set; }
+        public int? Gender { get; set; }
         public DateTime? Dob { get; set; }
         public bool Status { get; set; }
         public bool IsAdmin { get; set; }

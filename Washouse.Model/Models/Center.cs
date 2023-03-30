@@ -32,6 +32,8 @@ namespace Washouse.Model.Models
         public bool IsAvailable { get; set; }
         public string Status { get; set; }
         public string Image { get; set; }
+        public string TaxCode { get; set; }
+        public string TaxRegistrationImage { get; set; }
         public bool? HotFlag { get; set; }
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }

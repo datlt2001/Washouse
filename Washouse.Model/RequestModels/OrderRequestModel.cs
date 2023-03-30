@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Washouse.Model.RequestModels
 {
@@ -15,5 +16,7 @@ namespace Washouse.Model.RequestModels
         [Range(0, 3, ErrorMessage = "Please enter a value from 0 to 3")]
         public int DeliveryType { get; set; }
         public decimal? DeliveryPrice { get; set; }
+        public DateTime? PreferredDropoffTime { get; set; }
+        public DateTime? PreferredDeliverTime { get; set; }
     }
 }

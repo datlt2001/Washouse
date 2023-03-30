@@ -57,6 +57,12 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Account>(entity =>
             {
+                entity.HasIndex(e => e.Phone, "IX_Accounts")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Email, "IX_Accounts_Email")
+                    .IsUnique();
+
                 entity.HasIndex(e => e.LocationId, "IX_Accounts_LocationId");
 
                 entity.Property(e => e.CreatedBy)
@@ -178,6 +184,9 @@ namespace Washouse.Data
 
             modelBuilder.Entity<Center>(entity =>
             {
+                entity.HasIndex(e => e.TaxCode, "IX_Centers")
+                    .IsUnique();
+
                 entity.HasIndex(e => e.LocationId, "IX_Centers_LocationId");
 
                 entity.Property(e => e.Alias).HasMaxLength(50);
@@ -218,6 +227,16 @@ namespace Washouse.Data
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.TaxCode)
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .IsUnicode(false)
+                    .IsFixedLength(true);
+
+                entity.Property(e => e.TaxRegistrationImage)
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .IsUnicode(false);
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -289,6 +308,16 @@ namespace Washouse.Data
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.TaxCode)
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .IsUnicode(false)
+                    .IsFixedLength(true);
+
+                entity.Property(e => e.TaxRegistrationImage)
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .IsUnicode(false);
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -606,6 +635,10 @@ namespace Washouse.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.PreferredDeliverTime).HasColumnType("datetime");
+
+                entity.Property(e => e.PreferredDropoffTime).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)

@@ -146,6 +146,8 @@ namespace Washouse.Web.Controllers
                     {
                         order.DeliveryPrice = null;
                     }
+                    order.PreferredDropoffTime = createOrderRequestModel.Order.PreferredDropoffTime;
+                    order.PreferredDeliverTime = createOrderRequestModel.Order.PreferredDeliverTime;
                     order.Status = "Received";
                     order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
                     order.CreatedDate = DateTime.Now;
