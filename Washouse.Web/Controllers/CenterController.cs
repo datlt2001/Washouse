@@ -413,8 +413,14 @@ namespace Washouse.Web.Controllers
                     //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
                     //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
                     //{
+                    List<int> dayOffs = new List<int>();
+                    for (int i = 0; i < 7; i++)
+                    {
+                        dayOffs.Add(i);
+                    }
                     foreach (var item in center.OperatingHours)
                     {
+                        dayOffs.Remove(item.DaysOfWeek.Id);
                         var centerOperatingHour = new CenterOperatingHoursResponseModel
                         {
                             Day = item.DaysOfWeek.Id,
@@ -422,6 +428,17 @@ namespace Washouse.Web.Controllers
                             CloseTime = item.CloseTime
                         };
                         centerOperatingHours.Add(centerOperatingHour);
+                    }
+
+                    foreach (var item in dayOffs)
+                    {
+                        var dayOff = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item,
+                            OpenTime = null,
+                            CloseTime = null
+                        };
+                        centerOperatingHours.Add(dayOff);
                     }
                     double distance = 0;
                     if (center.Location.Latitude == null || center.Location.Longitude == null || CurrentUserLatitude == null || CurrentUserLongitude == null)
@@ -481,7 +498,7 @@ namespace Washouse.Web.Controllers
                         Latitude = center.Location.Latitude,
                         Longitude = center.Location.Longitude
                     };
-                    response.CenterOperatingHours = centerOperatingHours;
+                    response.CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList();
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
