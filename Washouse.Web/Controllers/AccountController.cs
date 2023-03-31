@@ -25,6 +25,7 @@ using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Service;
+using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
 
@@ -40,8 +41,9 @@ namespace Washouse.Web.Controllers
         private ISendMailService _sendMailService;
         private ICustomerService _customerService;
         public IStaffService _staffService;
+        public ICloudStorageService _cloudStorageService;
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, 
-            IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService, IStaffService staffService)
+            IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService, IStaffService staffService, ICloudStorageService cloudStorageService)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -49,6 +51,7 @@ namespace Washouse.Web.Controllers
             this._sendMailService = sendMailService;
             _customerService = customerService;
             _staffService = staffService;
+            _cloudStorageService = cloudStorageService;
         }
 
         [HttpPost("login")]
@@ -648,7 +651,8 @@ namespace Washouse.Web.Controllers
                 if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
                 {
                     token = await GenerateToken(user.Result, false);
-                } else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer")
+                }
+                else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer")
                 {
                     token = await GenerateToken(user.Result, true);
                 }
@@ -664,9 +668,9 @@ namespace Washouse.Web.Controllers
                         Phone = User.FindFirst("Phone")?.Value,
                         RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
                         Name = User.FindFirst(ClaimTypes.Name)?.Value,
-                        Avatar = user.Result.ProfilePic
+                        Avatar = user.Result.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.Result.ProfilePic) : null,
 
-                    }
+            }
                 });
             } catch (Exception ex)
             {
