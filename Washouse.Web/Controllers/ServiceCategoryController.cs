@@ -1,12 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
+using Washouse.Model.ResponseModels;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
+using static Google.Apis.Requests.BatchRequest;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Washouse.Web.Controllers
 {
@@ -15,71 +21,219 @@ namespace Washouse.Web.Controllers
     public class ServiceCategoryController : ControllerBase
     {
         private readonly IServiceCategoryService _serviceCategoryService;
+        private readonly ICloudStorageService _cloudStorageService;
 
-        public ServiceCategoryController(IServiceCategoryService serviceCategoryService)
+        public ServiceCategoryController(IServiceCategoryService serviceCategoryService, ICloudStorageService cloudStorageService)
         {
             this._serviceCategoryService = serviceCategoryService;
+            this._cloudStorageService = cloudStorageService;
         }
 
         [HttpGet]
-        public IActionResult GetCategoryList()
+        public async Task<IActionResult> GetCategoryList()
         {
-            var categories = _serviceCategoryService.GetAll();
-            if (categories == null) { return NotFound(); }
-            return Ok(categories);
+            try
+            {
+                var categories = _serviceCategoryService.GetAll();
+                if (categories == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Don't have any category.",
+                        Data = null
+                    });
+                }
+                var response = new List<CategoryResponseModel>();
+                foreach (var item in categories)
+                {
+                    response.Add(new CategoryResponseModel
+                    {
+                        CategoryId = item.Id,
+                        CategoryName = item.CategoryName,
+                        CategoryAlias = item.Alias,
+                        Description = item.Description,
+                        HomeFlag = item.HomeFlag,
+                        Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                    });
+                }
+                return Ok(
+                    new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = response
+                    });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
-            var categories = await _serviceCategoryService.GetById(id);
-            if (categories == null) { return NotFound(); }
-            return Ok(categories);
+            try {
+                var item = await _serviceCategoryService.GetById(id);
+                if (item == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found category.",
+                        Data = null
+                    });
+                }
+                var response = new CategoryResponseModel
+                {
+                    CategoryId = item.Id,
+                    CategoryName = item.CategoryName,
+                    CategoryAlias = item.Alias,
+                    Description = item.Description,
+                    HomeFlag = item.HomeFlag,
+                    Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]CreateCategoryRequestModel Input)
         {
-            if (ModelState.IsValid)
+            try
+            {
+                if (ModelState.IsValid)
             {
                 Category cate = new Category();
                 cate.CreatedDate = DateTime.Now;
-                //cate.CreatedBy = 
+                cate.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                 cate.CategoryName= Input.CategoryName;
                 cate.Status= Input.Status;
                 cate.Description= Input.Description;
                 cate.HomeFlag= Input.HomeFlag;
+                cate.Image = Input.SavedFileName;
                 
-                
-                var categories =  _serviceCategoryService.Add(cate);
-                return Ok(categories);
+                await  _serviceCategoryService.Add(cate);
+                var response = new CategoryResponseModel
+                {
+                    CategoryId = cate.Id,
+                    CategoryName = cate.CategoryName,
+                    CategoryAlias = cate.Alias,
+                    Description = cate.Description,
+                    HomeFlag = cate.HomeFlag,
+                    Image = cate.Image != null ? await _cloudStorageService.GetSignedUrlAsync(cate.Image) : null,
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = response
+                });
             }
-            else { return BadRequest(); }
-
+            else {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Model is not valid",
+                    Data = null
+                });
+            }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromForm] CategoryRequestModel category, int id) 
         {
-            if(!ModelState.IsValid) { return BadRequest(); }
+            try
+            {
+            if(!ModelState.IsValid) {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Model is not valid",
+                    Data = null
+                });
+            }
             else
             {
                 Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
                 //Category existingCategorySevice = new Category();
-                if (existingCategorySevice == null) { return NotFound(); }
+                if (existingCategorySevice == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found category.",
+                        Data = null
+                    });
+                }
                 else
                 {
                     existingCategorySevice.CategoryName = category.CategoryName;
                     existingCategorySevice.Description = category.Description;
                     existingCategorySevice.UpdatedDate = DateTime.Now;
+                    existingCategorySevice.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     existingCategorySevice.Status = category.Status;
                     existingCategorySevice.HomeFlag= category.HomeFlag;
-
+                    existingCategorySevice.Image = category.SavedFileName;
                     await _serviceCategoryService.Update(existingCategorySevice);
-                    return Ok(existingCategorySevice);
+                    var response = new CategoryResponseModel
+                    {
+                        CategoryId = existingCategorySevice.Id,
+                        CategoryName = existingCategorySevice.CategoryName,
+                        CategoryAlias = existingCategorySevice.Alias,
+                        Description = existingCategorySevice.Description,
+                        HomeFlag = existingCategorySevice.HomeFlag,
+                        Image = existingCategorySevice.Image != null ? await _cloudStorageService.GetSignedUrlAsync(existingCategorySevice.Image) : null,
+                    };
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = response
+                    });
                 }
                 
                 
+            }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 

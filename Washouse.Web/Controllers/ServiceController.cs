@@ -103,7 +103,46 @@ namespace Washouse.Web.Controllers
             }
             
         }
-
+        /// <summary>
+        /// Create a service.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST api/services
+        ///       {
+        ///       serviceName: "Giặt sấy hấp ủi",
+        ///       alias: "Giat say hap ui",
+        ///       serviceCategory: 1,
+        ///       serviceDescription: "Giặt rồi sấy rồi hấp xong đem ủi",
+        ///       serviceImage: "test.png",
+        ///       timeEstimate: 310,
+        ///       unit: "Kg",
+        ///       rate: 1,
+        ///       priceType: true,
+        ///       price: 15000,
+        ///       minPrice: 40000,
+        ///       serviceGalleries: [
+        ///       galleries1.png, "galleries2.png"
+        ///       ],
+        ///       prices: [
+        ///       {
+        ///       maxValue: 4,
+        ///       price: 15000
+        ///       },
+        ///       {
+        ///       maxValue: 6,
+        ///       price: 12000
+        ///       }
+        ///       ]
+        ///       }
+        ///   
+        /// </remarks>
+        /// 
+        /// <returns>Center created.</returns>
+        /// <response code="200">Success create a ceter</response>     
+        /// <response code="400">One or more error occurs</response>   
+        // POST: api/centers
         [HttpPost]
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestModel serviceRequestmodel)
         {
