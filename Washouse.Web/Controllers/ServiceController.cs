@@ -70,18 +70,59 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var service = await _serviceService.GetById(id);
-                if (service != null)
+                var item = await _serviceService.GetById(id);
+                if (item != null)
                 {
-                    return Ok(service);
+                    var servicePriceViewModels = new List<ServicePriceViewModel>();
+                    foreach (var servicePrice in item.ServicePrices)
+                    {
+                        var sp = new ServicePriceViewModel
+                        {
+                            MaxValue = servicePrice.MaxValue,
+                            Price = servicePrice.Price
+                        };
+                        servicePriceViewModels.Add(sp);
+                    }
+                    var itemResponse = new ServicesOfCenterResponseModel
+                    {
+                        ServiceId = item.Id,
+                        CategoryId = item.CategoryId,
+                        ServiceName = item.ServiceName,
+                        Description = item.Description,
+                        Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                        PriceType = item.PriceType,
+                        Price = item.Price,
+                        MinPrice = item.MinPrice,
+                        Prices = servicePriceViewModels.OrderByDescending(a => a.Price).ToList(),
+                        TimeEstimate = item.TimeEstimate,
+                        Rating = item.Rating,
+                        NumOfRating = item.NumOfRating
+                    };
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = itemResponse
+                    });
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found service",
+                        Data = null
+                    });
                 }
             }
-            catch {
-                return BadRequest();
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 

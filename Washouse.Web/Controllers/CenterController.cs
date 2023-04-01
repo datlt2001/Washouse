@@ -367,7 +367,7 @@ namespace Washouse.Web.Controllers
                             PriceType = item.PriceType,
                             Price = item.Price,
                             MinPrice = item.MinPrice,
-                            Prices = servicePriceViewModels,
+                            Prices = servicePriceViewModels.OrderByDescending(a => a.Price).ToList(),
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
                             NumOfRating = item.NumOfRating
@@ -1061,7 +1061,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("{centerId}/services/{serviceId}")]
-        public async Task<IActionResult> GetServicesOfACenter(int centerId, int serviceId)
+        public async Task<IActionResult> GetServiceDetail(int centerId, int serviceId)
         {
             try
             {
