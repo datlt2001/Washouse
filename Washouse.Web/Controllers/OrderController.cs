@@ -243,7 +243,7 @@ namespace Washouse.Web.Controllers
                         deliveryLocation.Latitude = deliveryLatitude;
                         deliveryLocation.Longitude = deliveryLongitude;
                         var deliveryLocationResult = await _locationService.Add(deliveryLocation);
-                        double distance = Utilities.CalculateDistance(Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
+                        var estimatedTime = await Utilities.CalculateDeliveryEstimatedTime(Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
                                                                 Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                         DateTime? deliveryDate = null;
                         // Dropoff = false, Deliver = true
@@ -265,7 +265,7 @@ namespace Washouse.Web.Controllers
                             ShipperName = null,
                             ShipperPhone = null,
                             LocationId = deliveryLocationResult.Id,
-                            EstimatedTime = Utilities.CalculateDeliveryEstimatedTime(distance),
+                            EstimatedTime = estimatedTime,
                             DeliveryType = item.DeliveryType,
                             DeliveryDate = deliveryDate,
                             Status = "Waiting",

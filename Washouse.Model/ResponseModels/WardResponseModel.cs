@@ -10,5 +10,7 @@ namespace Washouse.Model.ResponseModels
     {
         public int WardId { get; set; }
         public string WardName { get; set; }
+        public DistrictResponseModel District { get; set; }
+        
     }
 }

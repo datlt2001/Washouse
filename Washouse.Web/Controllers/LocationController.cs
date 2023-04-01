@@ -13,6 +13,7 @@ using static Google.Apis.Requests.BatchRequest;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Net.Http;
+using Washouse.Common.Helpers;
 
 namespace Washouse.Web.Controllers
 {
@@ -45,24 +46,108 @@ namespace Washouse.Web.Controllers
                     location.Latitude = locationRequest.Latitude;
                     location.Longitude = locationRequest.Longitude;
                     var result = await _locationService.Add(location);
-                    return Ok(result);
-                    //return Ok(result);
+                    if (result != null)
+                    {
+                        var response = await _locationService.GetById(result.Id);
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = 0,
+                            Message = "success",
+                            Data = new LocationResponseModel
+                            {
+                                Id = response.Id,
+                                AddressString = response.AddressString,
+                                Ward = new WardResponseModel
+                                {
+                                    WardId = response.WardId,
+                                    WardName = response.Ward.WardName,
+                                    District = new DistrictResponseModel
+                                    {
+                                        DistrictId = response.Ward.District.Id,
+                                        DistrictName = response.Ward.District.DistrictName,
+                                    }
+                                },
+                                Latitude = response.Latitude,
+                                Longitude = response.Longitude
+                            }
+                        });
+                    } else {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Add fail",
+                            Data = null
+                        });
+                    }
                 }
-                else { return BadRequest(); }
+                else {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
         [HttpGet("{locationId}")]
         public async Task<IActionResult> GetById(int locationId)
         {
-            var location = await _locationService.GetById(locationId);
-            if (location == null)
-                return BadRequest("Cannot find location");
-            return Ok(location);
+            try
+            {
+                var location = await _locationService.GetById(locationId);
+                if (location == null)
+                {
+
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "cannot find location",
+                        Data = null
+                    }); 
+                }
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new LocationResponseModel
+                    {
+                        Id = location.Id,
+                        AddressString = location.AddressString,
+                        Ward = new WardResponseModel
+                        {
+                            WardId = location.WardId,
+                            WardName = location.Ward.WardName,
+                            District = new DistrictResponseModel
+                            {
+                                DistrictId = location.Ward.District.Id,
+                                DistrictName = location.Ward.District.DistrictName,
+                            }
+                        },
+                        Latitude = location.Latitude,
+                        Longitude = location.Longitude
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
         [HttpGet("distance")]
@@ -157,7 +242,7 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success return latitude and longitude of this address</response>   
         /// <response code="404">Not found latitude and longitude of this address</response>   
         /// <response code="400">One or more error occurs</response>   
-        // GET: api/centers
+        // GET: api/locations/search
         [HttpGet("search")]
         public async Task<IActionResult> search(string AddressString, int WardId)
         {
@@ -275,6 +360,50 @@ namespace Washouse.Web.Controllers
             } catch
             {
                 return null;
+            }
+        }
+
+        // GET: api/locations/search
+        [HttpGet("time")]
+        public async Task<IActionResult> Time(int location_Id_1, int location_Id_2)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var location_1 = await _locationService.GetById(location_Id_1);
+                    var location_2 = await _locationService.GetById(location_Id_2);
+                    if (location_1 != null && location_2 != null) { 
+                    return Ok(await Utilities.CalculateDeliveryEstimatedTime(location_1.Longitude,location_1.Latitude, location_2.Longitude, location_2.Latitude));
+                    } else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found latitude and longitude of these addresses",
+                            Data = null
+                        });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
     }

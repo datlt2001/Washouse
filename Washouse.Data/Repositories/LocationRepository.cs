@@ -24,6 +24,8 @@ namespace Washouse.Data.Repositories
         {
             var data = await this._dbContext.Locations
                     .Include(location => location.Centers)
+                    .Include(location => location.Ward)
+                        .ThenInclude(ward => ward.District)
                     .FirstOrDefaultAsync(location => location.Id == id);
             return data;
         }

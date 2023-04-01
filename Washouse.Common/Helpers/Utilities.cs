@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Newtonsoft.Json;
+using System.Collections;
+using Newtonsoft.Json.Linq;
 
 namespace Washouse.Common.Helpers
 {
@@ -121,12 +123,37 @@ namespace Washouse.Common.Helpers
             return distance;
         }
 
-        public static int CalculateDeliveryEstimatedTime(double distance)
+        public static async Task<int> CalculateDeliveryEstimatedTime(decimal? Latitude_1, decimal? Longitude_1, decimal? Latitude_2, decimal? Longitude_2)
         {
+            if (Latitude_1 == null || Longitude_1 == null || Latitude_2 == null || Longitude_2 == null)
+                return 0;
+            string coordinates = $"{Longitude_1},{Latitude_1};{Longitude_2},{Latitude_2};";
+            string url = $"https://router.project-osrm.org/route/v1/motorcycle/{coordinates}?overview=false";
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        var jsonResponse = JObject.Parse(json);
+                        var duration = jsonResponse["routes"][0]["legs"].Sum(x => (double)x["duration"]);
 
-            var estimatedTime = distance*0.5;
-
-            return (int)Math.Round(estimatedTime);
+                        // duration is in seconds, convert to minutes
+                        var durationInMinutes = TimeSpan.FromSeconds(duration).TotalMinutes;
+                        return (int)durationInMinutes;
+                    }
+                    else
+                    {
+                        return (int)Math.Round(CalculateDistance(Latitude_1,Longitude_1,Latitude_2,Longitude_2)*2);
+                    }
+                }
+            }
+            catch
+            {
+                return (int)Math.Round(CalculateDistance(Latitude_1, Longitude_1, Latitude_2, Longitude_2)*2);
+            }
         }
 
         private static double ToRadians(double degrees)
