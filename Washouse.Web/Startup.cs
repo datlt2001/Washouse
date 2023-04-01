@@ -175,6 +175,7 @@ namespace Washouse.Web
             services.Configure<VNPaySettings>(vnpaysettings);
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IDeliveryRepository, DeliveryRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

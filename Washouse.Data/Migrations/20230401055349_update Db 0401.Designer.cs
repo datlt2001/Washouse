@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Washouse.Data;
 
@@ -11,9 +12,10 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    partial class WashouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230401055349_update Db 0401")]
+    partial class updateDb0401
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -569,14 +571,11 @@ namespace Washouse.Data.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<DateTime?>("DeliveryDate")
+                    b.Property<DateTime>("DeliveryDate")
                         .HasColumnType("datetime");
 
-                    b.Property<bool>("DeliveryType")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("EstimatedTime")
-                        .HasColumnType("int");
+                    b.Property<TimeSpan?>("EstimatedTime")
+                        .HasColumnType("time");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
@@ -588,10 +587,12 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("ShipperName")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ShipperPhone")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("char(10)")

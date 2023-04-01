@@ -8,7 +8,9 @@ namespace Washouse.Model.RequestModels
 {
     public class CreateOrderRequestModel
     {
+        public int CenterId { get; set; }
         public OrderRequestModel Order { get; set; }
         public ICollection<OrderDetailRequestModel> OrderDetails { get; set; }
+        public ICollection<DeliveryRequestModel> Deliveries { get; set; }
     }
 }

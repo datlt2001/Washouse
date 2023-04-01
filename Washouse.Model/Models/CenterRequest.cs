@@ -13,6 +13,7 @@ namespace Washouse.Model.Models
         public bool RequestStatus { get; set; }
         public string CenterName { get; set; }
         public string Alias { get; set; }
+        public int? WalletId { get; set; }
         public int LocationId { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }

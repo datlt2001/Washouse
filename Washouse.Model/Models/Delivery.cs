@@ -13,8 +13,9 @@ namespace Washouse.Model.Models
         public string ShipperName { get; set; }
         public string ShipperPhone { get; set; }
         public int LocationId { get; set; }
-        public TimeSpan? EstimatedTime { get; set; }
-        public DateTime DeliveryDate { get; set; }
+        public bool DeliveryType { get; set; }
+        public int? EstimatedTime { get; set; }
+        public DateTime? DeliveryDate { get; set; }
         public string Status { get; set; }
 
         public virtual Location Location { get; set; }

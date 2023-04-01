@@ -121,6 +121,14 @@ namespace Washouse.Common.Helpers
             return distance;
         }
 
+        public static int CalculateDeliveryEstimatedTime(double distance)
+        {
+
+            var estimatedTime = distance*0.5;
+
+            return (int)Math.Round(estimatedTime);
+        }
+
         private static double ToRadians(double degrees)
         {
             return degrees * Math.PI / 180;

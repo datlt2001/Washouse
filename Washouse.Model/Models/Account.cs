@@ -21,6 +21,7 @@ namespace Washouse.Model.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        public int? WalletId { get; set; }
         public string FullName { get; set; }
         public int? Gender { get; set; }
         public DateTime? Dob { get; set; }
@@ -32,6 +33,7 @@ namespace Washouse.Model.Models
         public DateTime? LastLogin { get; set; }
 
         public virtual Location Location { get; set; }
+        public virtual Wallet Wallet { get; set; }
         public virtual ICollection<Customer> Customers { get; set; }
         public virtual ICollection<NotificationAccount> NotificationAccounts { get; set; }
         public virtual ICollection<Post> Posts { get; set; }

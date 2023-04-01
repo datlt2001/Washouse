@@ -38,6 +38,8 @@ namespace Washouse.Data
         public virtual DbSet<OperatingHour> OperatingHours { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
+        public virtual DbSet<OrderDetailTracking> OrderDetailTrackings { get; set; }
+        public virtual DbSet<OrderTracking> OrderTrackings { get; set; }
         public virtual DbSet<Payment> Payments { get; set; }
         public virtual DbSet<Post> Posts { get; set; }
         public virtual DbSet<Promotion> Promotions { get; set; }
@@ -48,8 +50,9 @@ namespace Washouse.Data
         public virtual DbSet<ServicePrice> ServicePrices { get; set; }
         public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
         public virtual DbSet<Staff> Staffs { get; set; }
-        public virtual DbSet<OrderTracking> OrderTrackings { get; set; }
-        public virtual DbSet<OrderDetailTracking> OrderDetailTrackings { get; set; }
+        public virtual DbSet<Transaction> Transactions { get; set; }
+        public virtual DbSet<Wallet> Wallets { get; set; }
+        public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
         public virtual DbSet<Ward> Wards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -111,6 +114,11 @@ namespace Washouse.Data
                     .WithMany(p => p.Accounts)
                     .HasForeignKey(d => d.LocationId)
                     .HasConstraintName("FK_Accounts_Locations");
+
+                entity.HasOne(d => d.Wallet)
+                    .WithMany(p => p.Accounts)
+                    .HasForeignKey(d => d.WalletId)
+                    .HasConstraintName("FK_Accounts_Wallets");
             });
 
             modelBuilder.Entity<AdditionService>(entity =>
@@ -238,6 +246,7 @@ namespace Washouse.Data
                     .IsRequired()
                     .HasMaxLength(256)
                     .IsUnicode(false);
+
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -247,6 +256,11 @@ namespace Washouse.Data
                 entity.HasOne(d => d.Location)
                     .WithMany(p => p.Centers)
                     .HasForeignKey(d => d.LocationId);
+
+                entity.HasOne(d => d.Wallet)
+                   .WithMany(p => p.Centers)
+                   .HasForeignKey(d => d.WalletId)
+                   .HasConstraintName("FK_Centers_Wallets");
             });
 
             modelBuilder.Entity<CenterGallery>(entity =>
@@ -319,6 +333,7 @@ namespace Washouse.Data
                     .IsRequired()
                     .HasMaxLength(256)
                     .IsUnicode(false);
+
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -405,11 +420,9 @@ namespace Washouse.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.ShipperName)
-                    .IsRequired()
                     .HasMaxLength(50);
 
                 entity.Property(e => e.ShipperPhone)
-                    .IsRequired()
                     .HasMaxLength(10)
                     .IsUnicode(false)
                     .IsFixedLength(true);
@@ -437,6 +450,8 @@ namespace Washouse.Data
 
             modelBuilder.Entity<DeliveryPriceChart>(entity =>
             {
+                entity.HasIndex(e => e.CenterId, "IX_DeliveryPriceCharts_CenterId");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -601,6 +616,7 @@ namespace Washouse.Data
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasIndex(e => e.CustomerId, "IX_Orders_CustomerId");
+
                 entity.HasIndex(e => e.LocationId, "IX_Orders_LocationId");
 
                 entity.Property(e => e.Id)
@@ -1109,6 +1125,89 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.OrderDetailId);
             });
 
+            modelBuilder.Entity<Transaction>(entity =>
+            {
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Wallet)
+                    .WithMany(p => p.Transactions)
+                    .HasForeignKey(d => d.WalletId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Transactions_Wallets");
+            });
+
+            modelBuilder.Entity<Wallet>(entity =>
+            {
+                entity.Property(e => e.Balance).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<WalletTransaction>(entity =>
+            {
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UpdateTimeStamp).HasColumnType("datetime");
+
+                entity.HasOne(d => d.FromWallet)
+                    .WithMany(p => p.WalletTransactionFromWallets)
+                    .HasForeignKey(d => d.FromWalletId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_WalletTransactions_Wallets_From");
+
+                entity.HasOne(d => d.Payment)
+                    .WithMany(p => p.WalletTransactions)
+                    .HasForeignKey(d => d.PaymentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_WalletTransactions_Payments");
+
+                entity.HasOne(d => d.ToWallet)
+                    .WithMany(p => p.WalletTransactionToWallets)
+                    .HasForeignKey(d => d.ToWalletId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_WalletTransactions_Wallets_To");
+            });
+
             modelBuilder.Entity<Ward>(entity =>
             {
                 entity.HasIndex(e => e.DistrictId, "IX_Wards_DistrictId");
@@ -1146,14 +1245,14 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-                /*configuration = new ConfigurationBuilder()
+                configuration = new ConfigurationBuilder()
                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
                        .AddJsonFile("appsettings.json")
-                       .Build();*/
-                configuration = new ConfigurationBuilder()
+                       .Build();
+                /*configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
-                                   .Build();
+                                   .Build();*/
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);

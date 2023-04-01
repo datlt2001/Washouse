@@ -14,16 +14,18 @@ namespace Washouse.Service.Implement
     {
         IOrderRepository _orderRepository;
         IOrderDetailRepository _orderDetailRepository;
+        IDeliveryRepository _deliveryRepository;
         IUnitOfWork _unitOfWork;
 
-        public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository, IUnitOfWork unitOfWork)
+        public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository, IDeliveryRepository deliveryRepository, IUnitOfWork unitOfWork)
         {
             this._orderRepository = orderRepository;
             this._orderDetailRepository = orderDetailRepository;
+            this._deliveryRepository = deliveryRepository;
             this._unitOfWork = unitOfWork;
         }
 
-        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails)
+        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries)
         {
             try
             {
@@ -34,6 +36,11 @@ namespace Washouse.Service.Implement
                 {
                     orderDetail.OrderId = order.Id;
                     await _orderDetailRepository.Add(orderDetail);
+                }
+                foreach (var delivery in deliveries)
+                {
+                    delivery.OrderId = order.Id;
+                    await _deliveryRepository.Add(delivery);
                 }
                 return order;
             }

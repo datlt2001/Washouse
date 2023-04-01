@@ -25,6 +25,7 @@ namespace Washouse.Model.Models
         public int Id { get; set; }
         public string CenterName { get; set; }
         public string Alias { get; set; }
+        public int? WalletId { get; set; }
         public int LocationId { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
@@ -40,6 +41,7 @@ namespace Washouse.Model.Models
         public bool HasDelivery { get; set; }
 
         public virtual Location Location { get; set; }
+        public virtual Wallet Wallet { get; set; }
         public virtual ICollection<AdditionService> AdditionServices { get; set; }
         public virtual ICollection<CenterGallery> CenterGalleries { get; set; }
         public virtual ICollection<CenterRequest> CenterRequests { get; set; }

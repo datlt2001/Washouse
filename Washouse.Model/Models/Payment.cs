@@ -7,6 +7,11 @@ namespace Washouse.Model.Models
 {
     public partial class Payment
     {
+        public Payment()
+        {
+            WalletTransactions = new HashSet<WalletTransaction>();
+        }
+
         public int Id { get; set; }
         public string OrderId { get; set; }
         public decimal Total { get; set; }
@@ -21,5 +26,6 @@ namespace Washouse.Model.Models
 
         public virtual Order Order { get; set; }
         public virtual Promotion PromoCodeNavigation { get; set; }
+        public virtual ICollection<WalletTransaction> WalletTransactions { get; set; }
     }
 }

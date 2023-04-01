@@ -55,6 +55,7 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
+                    var center = await _centerService.GetById(createOrderRequestModel.CenterId);
                     //location
                     decimal? Latitude = null;
                     decimal? Longitude = null;
@@ -126,6 +127,7 @@ namespace Washouse.Web.Controllers
                         var lastOrder = orders.LastOrDefault();
                         lastId = int.Parse(lastOrder.Id.Substring(10));
                     }
+
                     //add Order
                     int newId = lastId + 1;
                     order.Id = $"{DateTime.Now.ToString("yyyyMMdd")}_{newId.ToString("D7")}";
@@ -147,8 +149,34 @@ namespace Washouse.Web.Controllers
                     {
                         order.DeliveryPrice = null;
                     }
-                    order.PreferredDropoffTime = createOrderRequestModel.Order.PreferredDropoffTime;
-                    order.PreferredDeliverTime = createOrderRequestModel.Order.PreferredDeliverTime;
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime))
+                    {
+                        try
+                        {
+                            DateTime dateTime = DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest();
+                            //Console.WriteLine("Failed to parse date: " + ex.Message);
+                            // handle the parse failure
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime))
+                    {
+                        try
+                        {
+                            DateTime dateTime = DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest();
+                            //Console.WriteLine("Failed to parse date: " + ex.Message);
+                            // handle the parse failure
+                        }
+                    }
+                    order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
+                    order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
                     order.Status = "Received";
                     order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
                     order.CreatedDate = DateTime.Now;
@@ -170,7 +198,83 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
-                    var orderAdded = await _orderService.Create(order, orderDetails);
+                    //create List Deliveries
+                    
+                    var deliveries = new List<Delivery>();
+                    List<DeliveryRequestModel> deliveryRequestModels = JsonConvert.DeserializeObject<List<DeliveryRequestModel>>(createOrderRequestModel.Deliveries.ToJson());
+
+                    foreach (var item in deliveryRequestModels)
+                    {
+                        //location
+                        decimal? deliveryLatitude = null;
+                        decimal? deliveryLongitude = null;
+                        var deliveryWard = await _wardService.GetWardById(item.WardId);
+                        string deliveryAddressString = item.AddressString;
+                        string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
+                        if (resultDelivery != null)
+                        {
+                            deliveryLatitude = resultDelivery.lat;
+                            deliveryLongitude = resultDelivery.lon;
+                        }
+                        else
+                        {
+                            resultDelivery = await SearchRelativeAddress(wardDeliveryAddress);
+                            if (resultDelivery != null)
+                            {
+                                deliveryLatitude = resultDelivery.lat;
+                                deliveryLongitude = resultDelivery.lon;
+                            }
+                            else
+                            {
+                                return NotFound(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status404NotFound,
+                                    Message = "Not found latitude and longitude of this address",
+                                    Data = null
+                                });
+                            }
+                        }
+                        //add Location
+                        var deliveryLocation = new Model.Models.Location();
+                        deliveryLocation.AddressString = deliveryAddressString;
+                        deliveryLocation.WardId = item.WardId;
+                        deliveryLocation.Latitude = deliveryLatitude;
+                        deliveryLocation.Longitude = deliveryLongitude;
+                        var deliveryLocationResult = await _locationService.Add(deliveryLocation);
+                        double distance = Utilities.CalculateDistance(Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
+                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        DateTime? deliveryDate = null;
+                        // Dropoff = false, Deliver = true
+                        if (!item.DeliveryType)
+                        {
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
+
+                            if (deliveryDate == null)
+                            {
+                                deliveryDate = DateTime.Now;
+                            }
+                        } else
+                        {
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
+                        }
+                        deliveries.Add(new Delivery
+                        {
+                            OrderId = order.Id,
+                            ShipperName = null,
+                            ShipperPhone = null,
+                            LocationId = deliveryLocationResult.Id,
+                            EstimatedTime = Utilities.CalculateDeliveryEstimatedTime(distance),
+                            DeliveryType = item.DeliveryType,
+                            DeliveryDate = deliveryDate,
+                            Status = "Waiting",
+                            CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail,
+                            CreatedDate = DateTime.Now
+                        });
+                    }
+
+                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries);
 
 
                     return Ok(new ResponseModel
