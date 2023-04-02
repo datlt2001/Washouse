@@ -16,7 +16,11 @@ namespace Washouse.Model.RequestModels
         [Range(0, 3, ErrorMessage = "Please enter a value from 0 to 3")]
         public int DeliveryType { get; set; }
         public decimal? DeliveryPrice { get; set; }
+        [DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}")]
         public string PreferredDropoffTime { get; set; }
+        [DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}")]
         public string PreferredDeliverTime { get; set; }
     }
 }

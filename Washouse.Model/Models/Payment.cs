@@ -18,6 +18,7 @@ namespace Washouse.Model.Models
         public decimal PlatformFee { get; set; }
         public DateTime? Date { get; set; }
         public string Status { get; set; }
+        public int PaymentMethod { get; set; }
         public int? PromoCode { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; }

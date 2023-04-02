@@ -205,5 +205,24 @@ namespace Washouse.Common.Helpers
                 return null;
             }
         }
+
+        public enum PaymentMethod
+        {
+            Cash,
+            VNPay
+        }
+
+        public static PaymentMethod GetPaymentMethodFromInt(int paymentMethodValue)
+        {
+            switch (paymentMethodValue)
+            {
+                case 0:
+                    return PaymentMethod.Cash;
+                case 1:
+                    return PaymentMethod.VNPay;
+                default:
+                    throw new ArgumentException("Invalid payment method value");
+            }
+        }
     }
 }

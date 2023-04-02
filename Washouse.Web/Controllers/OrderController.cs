@@ -16,6 +16,9 @@ using System.Linq;
 using Washouse.Common.Helpers;
 using NuGet.Protocol;
 using Washouse.Model.ResponseModels;
+using System.Globalization;
+using Washouse.Common.Utils;
+using Microsoft.Extensions.Options;
 
 namespace Washouse.Web.Controllers
 {
@@ -31,9 +34,10 @@ namespace Washouse.Web.Controllers
         private readonly IServiceService _serviceService;
         private readonly ICenterService _centerService;
         private readonly IPromotionService _promotionService;
+        private readonly VNPaySettings _vnPaySettings;
         public OrderController(IOrderService orderService, ICustomerService customerService, 
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
-            ICenterService centerService, IPromotionService promotionService)
+            ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -42,6 +46,7 @@ namespace Washouse.Web.Controllers
             this._serviceService = serviceService;
             this._centerService = centerService;
             this._promotionService = promotionService;
+            this._vnPaySettings = vnpaySettings.Value;
         }
         #endregion
 
@@ -56,6 +61,47 @@ namespace Washouse.Web.Controllers
                 if (ModelState.IsValid)
                 {
                     var center = await _centerService.GetById(createOrderRequestModel.CenterId);
+                    DateTime UserPreferredDropoffTime;
+                    DateTime UserPreferredDeliverTime;
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime))
+                    {
+                        try
+                        {
+                            UserPreferredDropoffTime = DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "PreferredDropoffTime: " + ex.Message,
+                                Data = null
+                            });
+                            //Console.WriteLine("Failed to parse date: " + ex.Message);
+                            // handle the parse failure
+                        }
+                    } else
+                    {
+                        UserPreferredDropoffTime = DateTime.Now;
+                    }
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime))
+                    {
+                        try
+                        {
+                            UserPreferredDeliverTime = DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "PreferredDeliverTime: " + ex.Message,
+                                Data = null
+                            });
+                            //Console.WriteLine("Failed to parse date: " + ex.Message);
+                            // handle the parse failure
+                        }
+                    }
                     if (center == null)
                     {
                         return BadRequest(new ResponseModel
@@ -66,16 +112,18 @@ namespace Washouse.Web.Controllers
                         });
                     } else
                     {
-                        var openTimeToday = center.OperatingHours.FirstOrDefault(day => day.DaysOfWeekId == (int)DateTime.Today.DayOfWeek);
-                        if (openTimeToday == null || openTimeToday.OpenTime > DateTime.Now.TimeOfDay || openTimeToday.CloseTime < DateTime.Now.TimeOfDay)
+                        var openTimePreferredDropoffDay = center.OperatingHours.FirstOrDefault(day => day.DaysOfWeekId == (int)UserPreferredDropoffTime.DayOfWeek);
+                        //kiểm tra ngày giờ lấy hàng không là giờ hoạt động
+                        if (openTimePreferredDropoffDay == null || openTimePreferredDropoffDay.OpenTime > UserPreferredDropoffTime.TimeOfDay || openTimePreferredDropoffDay.CloseTime < UserPreferredDropoffTime.TimeOfDay)
                         {
                             return BadRequest(new ResponseModel
                             {
                                 StatusCode = StatusCodes.Status400BadRequest,
-                                Message = "Center is closed.",
+                                Message = "Center is closed at time that you choosen.",
                                 Data = null
                             });
                         }
+
                     }
                     var promotion = new Promotion();
                     if (createOrderRequestModel.PromoCode != null)
@@ -190,34 +238,9 @@ namespace Washouse.Web.Controllers
                     {
                         order.DeliveryPrice = null;
                     }
-                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime))
-                    {
-                        try
-                        {
-                            DateTime dateTime = DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
-                        }
-                        catch (FormatException ex)
-                        {
-                            return BadRequest();
-                            //Console.WriteLine("Failed to parse date: " + ex.Message);
-                            // handle the parse failure
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime))
-                    {
-                        try
-                        {
-                            DateTime dateTime = DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
-                        }
-                        catch (FormatException ex)
-                        {
-                            return BadRequest();
-                            //Console.WriteLine("Failed to parse date: " + ex.Message);
-                            // handle the parse failure
-                        }
-                    }
-                    order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
-                    order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
+                    
+                    order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.Status = "Received";
                     order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
                     order.CreatedDate = DateTime.Now;
@@ -225,7 +248,7 @@ namespace Washouse.Web.Controllers
                     //create List OrderDetails
                     var orderDetails = new List<OrderDetail>();
                     List<OrderDetailRequestModel> orderDetailRequestModels = JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(createOrderRequestModel.OrderDetails.ToJson());
-
+                    decimal totalPayment = 0;
                     foreach (var item in orderDetailRequestModels)
                     {
                         var serviceItem = await _serviceService.GetById(item.ServiceId); 
@@ -258,6 +281,8 @@ namespace Washouse.Web.Controllers
                             CustomerNote = User.FindFirst(ClaimTypes.Role)?.Value == "Staff" ? null : item.CustomerNote,
                             StaffNote = User.FindFirst(ClaimTypes.Role)?.Value == "Staff" ? item.StaffNote : null,
                         });
+
+                        totalPayment = totalPayment + item.Price;
                     }
 
                     //create List Deliveries
@@ -311,7 +336,7 @@ namespace Washouse.Web.Controllers
                         // Dropoff = false, Deliver = true
                         if (!item.DeliveryType)
                         {
-                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDropoffTime);
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
                             if (deliveryDate == null)
                             {
@@ -319,7 +344,7 @@ namespace Washouse.Web.Controllers
                             }
                         } else
                         {
-                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.Parse(createOrderRequestModel.Order.PreferredDeliverTime);
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                         }
                         deliveries.Add(new Delivery
                         {
@@ -343,6 +368,8 @@ namespace Washouse.Web.Controllers
                     payment.Date = null;
                     payment.Status = "Pending";
                     payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
+                    payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
+                    payment.Total = payment.PromoCode != null ? totalPayment * (1-promotion.Discount) : totalPayment;
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
@@ -354,11 +381,38 @@ namespace Washouse.Web.Controllers
                         await _promotionService.Update(promotion);
                     }
 
+                    //
+                    //Return link VN PAY
+                    string url = _vnPaySettings.VNP_Url;
+                    string returnUrl = _vnPaySettings.VNP_ReturnUrl;
+                    string tmnCode = _vnPaySettings.VNP_TmnCode;
+                    string hashSecret = _vnPaySettings.VNP_HashSecret;
+
+                    PayLib pay = new PayLib();
+                    pay.AddRequestData("vnp_Version", "2.1.0"); //Phiên bản api mà merchant kết nối. Phiên bản hiện tại là 2.1.0
+                    pay.AddRequestData("vnp_Command", "pay"); //Mã API sử dụng, mã cho giao dịch thanh toán là 'pay'
+                    pay.AddRequestData("vnp_TmnCode", tmnCode); //Mã website của merchant trên hệ thống của VNPAY (khi đăng ký tài khoản sẽ có trong mail VNPAY gửi về)
+                    pay.AddRequestData("vnp_Amount", ((int)Math.Round(payment.Total, MidpointRounding.ToEven)*100).ToString()); //số tiền cần thanh toán, công thức: số tiền * 100 - ví dụ 10.000 (mười nghìn đồng) --> 1000000
+                    pay.AddRequestData("vnp_BankCode", ""); //Mã Ngân hàng thanh toán (tham khảo: https://sandbox.vnpayment.vn/apis/danh-sach-ngan-hang/), có thể để trống, người dùng có thể chọn trên cổng thanh toán VNPAY
+                    pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss")); //ngày thanh toán theo định dạng yyyyMMddHHmmss
+                    pay.AddRequestData("vnp_CurrCode", "VND"); //Đơn vị tiền tệ sử dụng thanh toán. Hiện tại chỉ hỗ trợ VND
+                    pay.AddRequestData("vnp_IpAddr", PayUtils.GetIpAddress(HttpContext)); //Địa chỉ IP của khách hàng thực hiện giao dịch
+                    pay.AddRequestData("vnp_Locale", "vn"); //Ngôn ngữ giao diện hiển thị - Tiếng Việt (vn), Tiếng Anh (en)
+                    pay.AddRequestData("vnp_OrderInfo", "Pay order"); //Thông tin mô tả nội dung thanh toán
+                    pay.AddRequestData("vnp_OrderType", "other"); //topup: Nạp tiền điện thoại - billpayment: Thanh toán hóa đơn - fashion: Thời trang - other: Thanh toán trực tuyến
+                    pay.AddRequestData("vnp_ReturnUrl", returnUrl); //URL thông báo kết quả giao dịch khi Khách hàng kết thúc thanh toán
+                    pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString()); //mã hóa đơn
+
+                    string paymentUrl = pay.CreateRequestUrl(url, hashSecret);
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
                         Message = "sucess",
-                        Data = orderAdded
+                        Data = new
+                        {
+                            OrderId = orderAdded.Id
+                        }
                     });
                 }
                 else

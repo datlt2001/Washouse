@@ -22,7 +22,7 @@ namespace Washouse.Data.Repositories
                                     .Include(pro => pro.Center)
                                 .Where(pro => pro.Code == promoCode)
                                 .ToListAsync();
-            if (promotions != null) {
+            if (promotions == null) {
                 return null;
             } else
             {
