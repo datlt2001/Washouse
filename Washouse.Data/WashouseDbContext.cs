@@ -1250,14 +1250,14 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
+//                 configuration = new ConfigurationBuilder()
+//                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+//                        .AddJsonFile("appsettings.json")
+//                        .Build();
                 configuration = new ConfigurationBuilder()
-                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-                       .AddJsonFile("appsettings.json")
-                       .Build();
-                /*configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
-                                   .Build();*/
+                                   .Build();
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
