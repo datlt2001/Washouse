@@ -75,5 +75,31 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public Account GetAccountByPhone(string phone)
+        {
+            try
+            {
+
+                return this.DbContext.Accounts.SingleOrDefault(a => a.Phone.Equals(phone));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public Account GetAccountByEmail(string email)
+        {
+            try
+            {
+
+                return this.DbContext.Accounts.SingleOrDefault(a => a.Email.Equals(email));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

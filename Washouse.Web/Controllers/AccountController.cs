@@ -376,6 +376,18 @@ namespace Washouse.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                var existphone = _accountService.GetAccountByPhone(Input.Phone);
+                var existemail = _accountService.GetAccountByEmail(Input.Email);
+                if(existphone != null || existemail != null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Email or Phone have existed please change",
+                        Data = null
+                    });
+                }
+
                 var accounts = new Account()
                 {
                     Phone = Input.Phone,
@@ -469,6 +481,38 @@ namespace Washouse.Web.Controllers
             }           
         }
 
+        [HttpPut("{email}/passwordbyemail")]
+        public async Task<IActionResult> ChangePasswordByEmail(string email, string oldPass, string newPass)
+        {
+            Account account =  _accountService.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                if (account.Password != oldPass)
+                {
+                    return Ok(new
+                    {
+                        Success = false,
+                        Message = "Wrong password"
+                    });
+                }
+                else
+                {
+
+                    await _accountService.ChangePassword(account.Id, newPass);
+                    return Ok(new
+                    {
+                        Success = true,
+                        Message = "Your password has been changed"
+                    });
+                }
+
+            }
+        }
+
 
         [HttpPut("{id}/password/reset")]
         public async Task<IActionResult> ResetPassword(int id)
@@ -506,18 +550,21 @@ namespace Washouse.Web.Controllers
             }
             else
             {
-                string newPass = Utilities.GenerateRandomString(10);
-                await _accountService.ChangePassword(id, newPass);
+                //string newPass = Utilities.GenerateRandomString(10);
+                //await _accountService.ChangePassword(id, newPass);
                 string path = "./Templates_email/ForgotPassword.txt";
                 string content = System.IO.File.ReadAllText(path);
+                Random random = new Random();
+                string otp = random.Next(1000, 9999).ToString();
                 content = content.Replace("{recipient}", account.FullName);
-                content = content.Replace("{account}", account.Phone);
-                content = content.Replace("{resetpass}", newPass);
-                await _sendMailService.SendEmailAsync("minhkilo64@gmail.com", "Forgot Password", content);
-                return Ok(new
+                content = content.Replace("{otp}", otp);
+                //content = content.Replace("{resetpass}", newPass);
+                await _sendMailService.SendEmailAsync(account.Email, "Forgot Password", content);
+                return Ok(new ResponseModel
                 {
-                    Success = true,
-                    Message = "Your password has been reset"
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Updated",
+                    Data = otp
                 });
 
             }
@@ -528,6 +575,17 @@ namespace Washouse.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                var existphone = _accountService.GetAccountByPhone(Input.Phone);
+                var existemail = _accountService.GetAccountByEmail(Input.Email);
+                if (existphone != null || existemail != null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Email or Phone have existed please change",
+                        Data = null
+                    });
+                }
                 var accounts = new Account()
                 {
                     Phone = Input.Phone,
@@ -582,6 +640,17 @@ namespace Washouse.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                var existphone = _accountService.GetAccountByPhone(Input.Phone);
+                var existemail = _accountService.GetAccountByEmail(Input.Email);
+                if (existphone != null || existemail != null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Email or Phone have existed please change",
+                        Data = null
+                    });
+                }
                 var accounts = new Account()
                 {
                     Phone = Input.Phone,

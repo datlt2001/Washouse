@@ -10,14 +10,15 @@ namespace Washouse.Model.RequestModels
 {
     public class CustomerRequestModel
     {
-        
-        public string Email { get; set; }
+              
         [Required]
         public string FullName { get; set; }
         public DateTime? Dob { get; set; }
         //public IFormFile profilePic { get; set; }
         public string? SavedFileName { get; set; }
         //public LocationRequestModel Location { get; set; }
+
+        public int? Gender { get; set; }
 
     }
 }
