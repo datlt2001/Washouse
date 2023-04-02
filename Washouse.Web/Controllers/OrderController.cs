@@ -19,6 +19,8 @@ using Washouse.Model.ResponseModels;
 using System.Globalization;
 using Washouse.Common.Utils;
 using Microsoft.Extensions.Options;
+using Washouse.Model.ViewModel;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace Washouse.Web.Controllers
 {
@@ -252,7 +254,7 @@ namespace Washouse.Web.Controllers
                     foreach (var item in orderDetailRequestModels)
                     {
                         var serviceItem = await _serviceService.GetById(item.ServiceId); 
-                        if (serviceItem == null)
+                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("UpdatePending") || !!serviceItem.Status.ToLower().Equals("Active")))
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -694,6 +696,64 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [HttpPost("estimated-time")]
+        public async Task<IActionResult> GetEstimatedTime([FromBody] List<CartItemModel> cartItem)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    int totalEstimatedTime = 0;
+                    var services = new List<Model.Models.Service>();
+                    List<CartItemModel> cartItems = JsonConvert.DeserializeObject<List<CartItemModel>>(cartItem.ToJson());
+                    foreach (var item in cartItems)
+                    {
+                        var service = await _serviceService.GetById(item.Id);
+                        if(service.CenterId != item.CenterId)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Error by service not in this center or service is unavailable.",
+                                Data = null
+                            });
+                        }
+                        if (service.TimeEstimate != null)
+                        {
+                            totalEstimatedTime = totalEstimatedTime + (int)service.TimeEstimate;
+                        }
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            TotalEstimatedTime = totalEstimatedTime
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
 
     }
 }
