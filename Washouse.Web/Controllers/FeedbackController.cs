@@ -84,7 +84,7 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpGet("centers/{id}")]
+        [HttpGet("centers/{centerId}")]
         public IActionResult GetFeedbackByCenterId(int centerId)
         {
             var feedbacks = _feedbackService.GetAllByCenterId(centerId);
@@ -97,10 +97,10 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpGet("order-details/{id}")]
-        public IActionResult GetAllByOrderDetailId(int orderdetailid)
+        [HttpGet("order-details/{orderDetailId}")]
+        public IActionResult GetAllByOrderDetailId(int orderDetailId)
         {
-            var feedbacks = _feedbackService.GetAllByOrderDetailId(orderdetailid);
+            var feedbacks = _feedbackService.GetAllByOrderDetailId(orderDetailId);
             if (feedbacks == null) return NotFound();
             return Ok(new ResponseModel
             {

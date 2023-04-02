@@ -274,6 +274,45 @@ namespace Washouse.Web.Controllers
                                 });
                             }
                         }
+
+                        decimal currentPrice = 0;
+                        decimal totalCurrentPrice = 0;
+                        if (serviceItem.PriceType)
+                        {
+                            var priceChart = serviceItem.ServicePrices.OrderBy(a => a.MaxValue).ToList();
+                            bool check = false;
+                            foreach (var itemSerivePrice in priceChart)
+                            {
+                                if (item.Measurement <= itemSerivePrice.MaxValue && !check)
+                                {
+                                    currentPrice = itemSerivePrice.Price;
+                                }
+                                if (currentPrice > 0)
+                                {
+                                    check = true;
+                                }
+                            }
+                            if (currentPrice * item.Measurement < serviceItem.MinPrice)
+                            {
+                                totalCurrentPrice = (decimal)serviceItem.MinPrice;
+                            } else
+                            {
+                                totalCurrentPrice = currentPrice * item.Measurement;
+                            }
+                        } else
+                        {
+                            totalCurrentPrice = (decimal)serviceItem.Price * item.Measurement;
+                        }
+
+                        if (totalCurrentPrice != item.Price)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Service price with measurement has been changed.",
+                                Data = null
+                            });
+                        }
                         orderDetails.Add(new OrderDetail
                         {
                             OrderId = order.Id,

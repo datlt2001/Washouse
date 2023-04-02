@@ -26,15 +26,18 @@ namespace Washouse.Web.Controllers
         private readonly IServiceService _serviceService;
         private readonly ICenterService _centerService;
         private readonly ICloudStorageService _cloudStorageService;
+        private readonly IFeedbackService _feedbackService;
 
         public RequestController(IServiceRequestService serviceRequestService, 
-            IServiceService serviceService, ICenterRequestService centerRequestService, ICenterService centerService, ICloudStorageService cloudStorageService)
+            IServiceService serviceService, ICenterRequestService centerRequestService, ICenterService centerService
+            , ICloudStorageService cloudStorageService, IFeedbackService feedbackService)
         {
             this._serviceRequestService = serviceRequestService;
             this._serviceService = serviceService;
             this._centerRequestService = centerRequestService;
             this._centerService = centerService;
             this._cloudStorageService = cloudStorageService;
+            this._feedbackService = feedbackService;
         }
         #endregion
 
@@ -294,6 +297,16 @@ namespace Washouse.Web.Controllers
                             };
                             servicePriceViewModels.Add(sp);
                         }
+                        var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
+                        int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                        foreach (var feedback in feedbackList)
+                        {
+                            if (feedback.Rating == 1) { st1++; }
+                            if (feedback.Rating == 2) { st2++; }
+                            if (feedback.Rating == 3) { st3++; }
+                            if (feedback.Rating == 4) { st4++; }
+                            if (feedback.Rating == 5) { st5++; }
+                        }
                         var service = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
@@ -309,7 +322,8 @@ namespace Washouse.Web.Controllers
                             Prices = servicePriceViewModels,
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
-                            NumOfRating = item.NumOfRating
+                            NumOfRating = item.NumOfRating,
+                            Ratings = new int[] { st1, st2, st3, st4, st5 }
                         };
                         servicesOfCenter.Add(service);
                     }
@@ -437,6 +451,16 @@ namespace Washouse.Web.Controllers
                             };
                             servicePriceViewModels.Add(sp);
                         }
+                        var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
+                        int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                        foreach (var feedback in feedbackList)
+                        {
+                            if (feedback.Rating == 1) { st1++; }
+                            if (feedback.Rating == 2) { st2++; }
+                            if (feedback.Rating == 3) { st3++; }
+                            if (feedback.Rating == 4) { st4++; }
+                            if (feedback.Rating == 5) { st5++; }
+                        }
                         var service = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
@@ -452,7 +476,8 @@ namespace Washouse.Web.Controllers
                             Prices = servicePriceViewModels,
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
-                            NumOfRating = item.NumOfRating
+                            NumOfRating = item.NumOfRating,
+                            Ratings = new int[] { st1, st2, st3, st4, st5 }
                         };
                         servicesOfCenter.Add(service);
                     }
@@ -582,6 +607,16 @@ namespace Washouse.Web.Controllers
                             };
                             servicePriceViewModels.Add(sp);
                         }
+                        var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
+                        int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                        foreach (var feedback in feedbackList)
+                        {
+                            if (feedback.Rating == 1) { st1++; }
+                            if (feedback.Rating == 2) { st2++; }
+                            if (feedback.Rating == 3) { st3++; }
+                            if (feedback.Rating == 4) { st4++; }
+                            if (feedback.Rating == 5) { st5++; }
+                        }
                         var service = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
@@ -597,7 +632,8 @@ namespace Washouse.Web.Controllers
                             Prices = servicePriceViewModels,
                             TimeEstimate = item.TimeEstimate,
                             Rating = item.Rating,
-                            NumOfRating = item.NumOfRating
+                            NumOfRating = item.NumOfRating,
+                            Ratings = new int[] { st1, st2, st3, st4, st5 }
                         };
                         servicesOfCenter.Add(service);
                     }

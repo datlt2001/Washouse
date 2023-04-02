@@ -23,6 +23,7 @@ namespace Washouse.Model.ResponseModels
         public int? TimeEstimate { get; set; }
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }
+        public int[] Ratings { get; set; }
 
     }
 }

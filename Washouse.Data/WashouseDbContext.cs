@@ -713,6 +713,8 @@ namespace Washouse.Data
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
+                entity.Property(e => e.Discount).HasColumnType("decimal(5, 4)");
+
                 entity.Property(e => e.OrderId)
                     .IsRequired()
                     .HasMaxLength(20)
@@ -1250,10 +1252,10 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-//                 configuration = new ConfigurationBuilder()
-//                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-//                        .AddJsonFile("appsettings.json")
-//                        .Build();
+                 /*configuration = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                        .AddJsonFile("appsettings.json")
+                        .Build();*/
                 configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")

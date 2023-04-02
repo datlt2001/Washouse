@@ -20,6 +20,7 @@ namespace Washouse.Model.Models
         public string Status { get; set; }
         public int PaymentMethod { get; set; }
         public int? PromoCode { get; set; }
+        public decimal? Discount { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }

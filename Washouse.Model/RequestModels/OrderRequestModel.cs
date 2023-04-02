@@ -11,7 +11,7 @@ namespace Washouse.Model.RequestModels
         public string CustomerEmail { get; set; }
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }
-        public int CustomerId { get; set; }
+        //public int CustomerId { get; set; }
         [Required]
         [Range(0, 3, ErrorMessage = "Please enter a value from 0 to 3")]
         public int DeliveryType { get; set; }

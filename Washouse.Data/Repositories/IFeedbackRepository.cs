@@ -13,5 +13,6 @@ namespace Washouse.Data.Repositories
         public IEnumerable<int> GetIDList();
         public IEnumerable<Feedback> GetAllByCenterId(int id);
         public IEnumerable<Feedback> GetAllByOrderDetailId(int orderdetailId);
+        public IEnumerable<Feedback> GetAllByServiceId(int serviceId);
     }
 }

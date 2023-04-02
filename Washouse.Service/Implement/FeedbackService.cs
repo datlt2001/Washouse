@@ -55,5 +55,10 @@ namespace Washouse.Service.Implement
         {
             return _feedbackRepository.GetAllByOrderDetailId(orderdetailId);
         }
+
+        public IEnumerable<Feedback> GetAllByServiceId(int serviceId)
+        {
+            return _feedbackRepository.GetAllByServiceId(serviceId);
+        }
     }
 }
