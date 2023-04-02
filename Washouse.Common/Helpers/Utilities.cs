@@ -16,7 +16,7 @@ namespace Washouse.Common.Helpers
 {
     public class Utilities
     {
-
+        public const decimal platformFee = 0;
         public static async Task<string> UploadFile(Microsoft.AspNetCore.Http.IFormFile file, string sDirectory, string newname = null)
         {
             try

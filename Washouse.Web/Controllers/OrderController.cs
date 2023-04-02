@@ -56,6 +56,47 @@ namespace Washouse.Web.Controllers
                 if (ModelState.IsValid)
                 {
                     var center = await _centerService.GetById(createOrderRequestModel.CenterId);
+                    if (center == null)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "CenterId is not valid",
+                            Data = null
+                        });
+                    } else
+                    {
+                        var openTimeToday = center.OperatingHours.FirstOrDefault(day => day.DaysOfWeekId == (int)DateTime.Today.DayOfWeek);
+                        if (openTimeToday == null || openTimeToday.OpenTime > DateTime.Now.TimeOfDay || openTimeToday.CloseTime < DateTime.Now.TimeOfDay)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Center is closed.",
+                                Data = null
+                            });
+                        }
+                    }
+                    var promotion = new Promotion();
+                    if (createOrderRequestModel.PromoCode != null)
+                    {
+                        var promo = await _promotionService.CheckValidPromoCode(createOrderRequestModel.CenterId, createOrderRequestModel.PromoCode);
+
+                        if (promo == null)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "PromoCode is not valid",
+                                Data = null
+                            });
+                        }
+
+                        promotion = promo;
+                    } else
+                    {
+                        promotion = null;
+                    }
                     //location
                     decimal? Latitude = null;
                     decimal? Longitude = null;
@@ -187,6 +228,27 @@ namespace Washouse.Web.Controllers
 
                     foreach (var item in orderDetailRequestModels)
                     {
+                        var serviceItem = await _serviceService.GetById(item.ServiceId); 
+                        if (serviceItem == null)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Service is not valid",
+                                Data = null
+                            });
+                        } else
+                        {
+                            if (serviceItem.CenterId != createOrderRequestModel.CenterId)
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Service is not of this center of is not valid",
+                                    Data = null
+                                });
+                            }
+                        }
                         orderDetails.Add(new OrderDetail
                         {
                             OrderId = order.Id,
@@ -274,8 +336,23 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
-                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries);
+                    //create Payment
+                    var payment = new Payment();
+                    payment.OrderId = order.Id;
+                    payment.PlatformFee = Utilities.platformFee;
+                    payment.Date = null;
+                    payment.Status = "Pending";
+                    payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
+                    payment.CreatedDate = DateTime.Now;
+                    payment.CreatedBy = "AutoInsert";
 
+                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment);
+
+                    //Update Promotion UseTimes
+                    if (promotion != null) {
+                        promotion.UseTimes = promotion.UseTimes - 1;
+                        await _promotionService.Update(promotion);
+                    }
 
                     return Ok(new ResponseModel
                     {

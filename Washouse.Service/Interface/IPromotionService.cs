@@ -18,5 +18,7 @@ namespace Washouse.Service.Interface
         public Task<Promotion> GetById(int id);
 
         public IEnumerable<Promotion> GetAllByCenterId(int centerid);
+
+        Task<Promotion> CheckValidPromoCode(int centerId, string promoCode);
     }
 }

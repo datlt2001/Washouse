@@ -718,6 +718,11 @@ namespace Washouse.Data
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.PlatformFee).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");

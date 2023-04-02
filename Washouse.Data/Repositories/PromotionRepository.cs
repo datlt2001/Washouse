@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,31 @@ namespace Washouse.Data.Repositories
     {
        public PromotionRepository(IDbFactory dbFactory) : base(dbFactory)
         {
+
+        }
+
+        public async Task<Promotion> CheckValidPromoCode(int centerId, string promoCode)
+        {
+            var promotions = await this._dbContext.Promotions
+                                    .Include(pro => pro.Center)
+                                .Where(pro => pro.Code == promoCode)
+                                .ToListAsync();
+            if (promotions != null) {
+                return null;
+            } else
+            {
+                foreach (var item in promotions)
+                {
+                    if (item.CenterId == centerId)
+                    {
+                        if (item.StartDate < DateTime.Now && item.ExpireDate > DateTime.Now && item.UseTimes > 0)
+                        {
+                            return item;
+                        }
+                    }
+                }
+                return null;
+            }
 
         }
 

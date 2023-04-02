@@ -12,5 +12,7 @@ namespace Washouse.Model.RequestModels
         public OrderRequestModel Order { get; set; }
         public ICollection<OrderDetailRequestModel> OrderDetails { get; set; }
         public ICollection<DeliveryRequestModel> Deliveries { get; set; }
+        public string PromoCode { get; set; }
+
     }
 }

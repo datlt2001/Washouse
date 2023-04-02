@@ -45,5 +45,10 @@ namespace Washouse.Service.Implement
         {
             return _promotionRepository.GetAllByCenterId(centerid);
         }
+
+        public async Task<Promotion> CheckValidPromoCode(int centerId, string promoCode)
+        {
+            return await _promotionRepository.CheckValidPromoCode(centerId, promoCode);
+        }
     }
 }

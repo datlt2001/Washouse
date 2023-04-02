@@ -283,6 +283,8 @@ namespace Washouse.Web.Controllers
                             PriceType = result.PriceType,
                             Price = result.Price,
                             MinPrice = result.MinPrice,
+                            Unit = result.Unit,
+                            Rate = result.Rate,
                             Prices = servicePriceList,
                             TimeEstimate = result.TimeEstimate,
                             Rating = result.Rating,

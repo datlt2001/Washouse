@@ -17,6 +17,8 @@ namespace Washouse.Model.ResponseModels
         public bool PriceType { get; set; }
         public decimal? Price { get; set; }
         public decimal? MinPrice { get; set; }
+        public string Unit { get; set; }
+        public decimal Rate { get; set; }
         public virtual ICollection<ServicePriceViewModel> Prices { get; set; }
         public int? TimeEstimate { get; set; }
         public decimal? Rating { get; set; }
