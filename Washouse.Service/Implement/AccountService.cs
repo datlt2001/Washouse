@@ -59,5 +59,15 @@ namespace Washouse.Service.Implement
         {
             await _AccountRepository.ChangePassword(id, newPassword);
         }
+
+        public Account GetAccountByPhone(string phone)
+        {
+            return _AccountRepository.GetAccountByPhone(phone);
+        }
+
+        public Account GetAccountByEmail(string email)
+        {
+            return _AccountRepository.GetAccountByEmail(email);
+        }
     }
 }

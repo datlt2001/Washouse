@@ -1,8 +1,11 @@
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -29,6 +34,8 @@ using Washouse.Model.RequestModels;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 
 namespace Washouse.Web
 {
@@ -87,7 +94,8 @@ namespace Washouse.Web
             var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
 
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            services.AddAuthentication(options => {
+            services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -116,6 +124,29 @@ namespace Washouse.Web
                         ValidIssuer = Configuration["JWT:ValidIssuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes)
                     };*/
+                })
+                .AddGoogle(googleOptions =>
+                {
+                    // Đọc thông tin Authentication:Google từ appsettings.json
+                    IConfigurationSection googleAuthNSection = Configuration.GetSection("Authentication:Google");
+
+                    // Thiết lập ClientID và ClientSecret để truy cập API google
+                    googleOptions.ClientId = googleAuthNSection["ClientId"];
+                    googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+                    // Cấu hình Url callback lại từ Google (không thiết lập thì mặc định là /signin-google)
+                    //googleOptions.CallbackPath = "/loginWithGoogle";
+                    googleOptions.SaveTokens = true;
+                    googleOptions.Scope.Add("https://www.googleapis.com/auth/user.phonenumbers.read");
+
+
+                })
+                .AddCookie(options =>
+                {
+                    options.Cookie.Name = "YourCookieNameHere";
+                    options.LoginPath = "/api/logins/login/google";
+                    options.LogoutPath = "/Account/Logout";
+                    options.AccessDeniedPath = "/Account/AccessDenied";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -176,6 +207,10 @@ namespace Washouse.Web
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IDeliveryRepository, DeliveryRepository>();
+            var twiliosettings = Configuration.GetSection("Twilio");
+            services.Configure<TwilioSettings>(twiliosettings);
+            services.AddTransient<ISMSService, SMSService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
