@@ -596,6 +596,7 @@ namespace Washouse.Web.Controllers
                             if (distance <= item.MaxDistance && weight <= item.MaxWeight)
                             {
                                 price = item.Price;
+                                break;
                             }
                         }
                         if (requestModel.DeliveryType == 1)
