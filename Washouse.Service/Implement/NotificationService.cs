@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
+using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
 
 namespace Washouse.Service.Implement
@@ -39,6 +40,15 @@ namespace Washouse.Service.Implement
         public async Task Update(Notification notification)
         {
             await _notificationRepository.Update(notification);
+        }
+
+        public IEnumerable<NotificationViewModel> GetNotificationUnread(int accountId)
+        {
+            return _notificationRepository.GetNotificationUnread(accountId);
+        }
+        public IEnumerable<NotificationViewModel> GetNotificationRead(int accountId)
+        {
+            return _notificationRepository.GetNotificationRead(accountId);
         }
     }
 }

@@ -2,7 +2,10 @@
     Xin chào bạn {recipient},
     <br>
     <br>
-    Mã xác thực của bạn là : {otp}
+    Cảm ơn bạn đã đặt dịch vụ của chúng tôi
+    <br>
+    <br>
+    Mã đơn hàng của bạn là : {orderId}
     <br>
     <br>
     Mời bạn quay lại hệ thống của chúng tôi để tiếp tục.

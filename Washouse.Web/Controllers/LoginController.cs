@@ -17,6 +17,9 @@ using Twilio.Rest.Verify.V2.Service;
 using Twilio;
 using Microsoft.AspNetCore.Http;
 using Washouse.Web.Models;
+using static System.Net.WebRequestMethods;
+using Washouse.Model.ResponseModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace Washouse.Web.Controllers
 {
@@ -57,28 +60,27 @@ namespace Washouse.Web.Controllers
             var externalClaims = result.Principal.Claims.ToList();
             var subjectIdClaim = externalClaims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
             var subjectNameClaim = externalClaims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
-            
+
             //string phoneNumber = subjectPhoneClaim?.Value;
 
-            //var accessToken = result.Properties.GetTokenValue("access_token"); ;
+            var accessToken = result.Properties.GetTokenValue("id_token");
             var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
-            try
-            {
+            GoogleAccountResponseModel responseModel = new GoogleAccountResponseModel();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);          
                 var response = await client.GetAsync("https://people.googleapis.com/v1/people/me?personFields=emailAddresses,names,phoneNumbers,photos");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var json = JObject.Parse(content);
                     var phoneNumber = json["phoneNumbers"]?.FirstOrDefault()?["value"]?.ToString();
+                    var imageUrl = json["photos"]?.FirstOrDefault()?["url"]?.ToString();
+                    var email = json["emailAddresses"]?.FirstOrDefault()?["value"]?.ToString();
+                    
+                    responseModel.Fullname = subjectNameClaim.Value;
+                    responseModel.Email = email;
+                    responseModel.Image= imageUrl;
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                // handle error response
-                return BadRequest(ex.Message);
-            }
-
+                
 
 
             // create claims for the new user
@@ -98,7 +100,14 @@ namespace Washouse.Web.Controllers
             //var email = result.Principal.FindFirst(ClaimTypes.Email).Value;
 
             //// Redirect the user to the original URL
-            return Ok(claims);
+            
+
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Updated",
+                Data = responseModel
+            });
         }
 
         [HttpPost("verifyByOTP")]

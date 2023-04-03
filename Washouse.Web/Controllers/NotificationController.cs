@@ -15,7 +15,25 @@ namespace Washouse.Web.Controllers
             _notificationService = notificationService;
             _accountService = accountService;
         }
+        [HttpGet("unread")]
+        public IActionResult GetUnreadNotifications(int accId)
+        {
+            string id = User.FindFirst("Id")?.Value;
+            //int accId = int.Parse(id);
+            var notis = _notificationService.GetNotificationUnread(accId);
 
+            return Ok(notis);
+        }
+
+        [HttpGet("read")]
+        public IActionResult GetReadNotifications(int accId)
+        {
+            string id = User.FindFirst("Id")?.Value;
+            //int accId = int.Parse(id);
+            var notis = _notificationService.GetNotificationRead(accId);
+
+            return Ok(notis);
+        }
 
     }
 }

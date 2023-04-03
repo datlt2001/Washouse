@@ -96,9 +96,9 @@ namespace Washouse.Web
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
                 .AddJwtBearer(options =>
                 {
@@ -210,6 +210,14 @@ namespace Washouse.Web
             var twiliosettings = Configuration.GetSection("Twilio");
             services.Configure<TwilioSettings>(twiliosettings);
             services.AddTransient<ISMSService, SMSService>();
+            services.AddTransient<IWalletRepository, WalletRepository>();
+            services.AddTransient<IWalletService, WalletService>();
+            services.AddTransient<IWalletTransactionRepository, WalletTransactionRepository>();
+            services.AddTransient<IWalletTransactionService, WalletTransactionService>();
+            services.AddTransient<ITransactionRepository, TransactionRepository>();
+            services.AddTransient<ITransactionService, TransactionService>();
+            services.AddTransient<INotificationAccountRepository, NotificationAccountRepository>();
+            services.AddTransient<INotificationAccountService, NotificationAccountService>();
 
         }
 

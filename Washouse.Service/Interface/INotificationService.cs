@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Washouse.Model.ViewModel;
 
 namespace Washouse.Service.Interface
 {
@@ -17,5 +18,8 @@ namespace Washouse.Service.Interface
 
 
         public Task<Notification> GetById(int id);
+
+        public IEnumerable<NotificationViewModel> GetNotificationUnread(int accountId);
+        public IEnumerable<NotificationViewModel> GetNotificationRead(int accountId);
     }
 }

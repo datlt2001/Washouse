@@ -137,7 +137,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("updateProfileCustomer")]
+        [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input, int customerId)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
@@ -197,7 +197,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("updateAddressInfo")]
+        [HttpPut("address")]
         public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input, int customerId)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
