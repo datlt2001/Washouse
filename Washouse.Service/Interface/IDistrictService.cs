@@ -11,5 +11,7 @@ namespace Washouse.Service.Interface
     {
         Task<IEnumerable<District>> GetAll();
         Task<District> GetDistrictByName(string name);
+
+        public Task<District> GetDistrictById(int id);
     }
 }

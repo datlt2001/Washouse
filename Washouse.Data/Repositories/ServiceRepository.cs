@@ -41,5 +41,13 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(service => service.Id == id);
             return data;
         }
+
+        public IEnumerable<Service> GetServicesByCategory(int cateID)
+        {
+            var data =  this._dbContext.Services
+                        .Where(s => s.CategoryId == cateID)
+                        .ToList();
+            return data;
+        }
     }
 }

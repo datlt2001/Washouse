@@ -30,5 +30,10 @@ namespace Washouse.Service.Implement
         {
             return await _districtRepository.GetDistrictByName(name);
         }
+
+        public async Task<District> GetDistrictById(int id)
+        {
+            return await _districtRepository.GetById(id);
+        }
     }
 }

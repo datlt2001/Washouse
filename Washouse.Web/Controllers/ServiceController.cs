@@ -312,5 +312,24 @@ namespace Washouse.Web.Controllers
                 return BadRequest();
             }
         }
+
+        [HttpGet("category/{id}")]
+        public IActionResult GetServiceByCate(int id)
+        {
+            try
+            {
+                var service =  _serviceService.GetServicesByCategory(id);
+                if (service == null)
+                {
+                    return NotFound();
+                }
+                //await _serviceService.DeactivateService(id);
+                return Ok(service);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

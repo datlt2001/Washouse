@@ -96,5 +96,10 @@ namespace Washouse.Service.Implement
                 throw;
             }
         }
+
+        public IEnumerable<Model.Models.Service> GetServicesByCategory(int cateID)
+        {
+            return _serviceRepository.GetServicesByCategory(cateID);
+        }
     }
 }

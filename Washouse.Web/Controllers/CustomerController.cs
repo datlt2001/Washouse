@@ -21,13 +21,18 @@ namespace Washouse.Web.Controllers
         public IAccountService _accountService;
         public IWardService _wardService;
         public ILocationService _locationService;
+        public ICloudStorageService _cloudStorageService;
+        public IDistrictService _districtService;
 
-        public CustomerController(ICustomerService customerService, IAccountService accountService, IWardService wardService, ILocationService locationService)
+        public CustomerController(ICustomerService customerService, IAccountService accountService, IWardService wardService,
+            ILocationService locationService, ICloudStorageService cloudStorageService, IDistrictService districtService)
         {
             this._customerService = customerService;
             this._accountService = accountService;
             this._wardService = wardService;
             _locationService = locationService;
+            _cloudStorageService = cloudStorageService;
+            _districtService = districtService;
         }
 
         [HttpGet]
@@ -45,22 +50,26 @@ namespace Washouse.Web.Controllers
             int userId = customer.AccountId ?? 0;
             var user = await _accountService.GetById(userId);
             var response = new CustomerDetailResponseModel();
-            if(customer.AddressNavigation != null) 
-            { 
-                var ward = await _wardService.GetWardById(customer.AddressNavigation.WardId);
-                response.AddressString = new CustomerLocatonResponseModel
+            if(customer.Address != null) 
+            {
+                int locationid = customer.Address ?? 0;
+                var location = await _locationService.GetById(locationid);
+                var ward = await _wardService.GetWardById(location.WardId);
+                var district = await _districtService.GetDistrictById(ward.DistrictId);
+                response.AddressString = location.AddressString +", "+ ward.WardName + ", " + district.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
+                response.Address = new CustomerLocatonResponseModel
                 {
-                    Latitude = customer.AddressNavigation.Latitude,
-                    Longitude = customer.AddressNavigation.Longitude,
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
                     Ward = new WardResponseModel
                     {
-                        WardId = customer.AddressNavigation.WardId,
-                        WardName = null
+                        WardId = location.WardId,
+                        WardName = ward.WardName,
                     },
                     District = new DistrictResponseModel
                     {
-                        DistrictId = 0,
-                        DistrictName = null
+                        DistrictId = ward.DistrictId,
+                        DistrictName = district.DistrictName
                     }
 
                 };
@@ -71,13 +80,12 @@ namespace Washouse.Web.Controllers
             }
 
             
-
             response.Fullname = customer.Fullname;
             response.Phone = customer.Phone;
             response.Email = customer.Email;
             if (user != null)
             {
-                response.ProfilePic = user.ProfilePic;
+                response.ProfilePic = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null;
             }
             response.AccountId = userId;
             response.Id = id;
@@ -107,27 +115,27 @@ namespace Washouse.Web.Controllers
 
         }
 
-        //[HttpPut("updateCustomer")]
-        //public async Task<IActionResult> Update(Customer customer)
-        //{
-        //    if (!ModelState.IsValid) { return BadRequest(); }
-        //    else
-        //    {
-        //        //Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
-        //        Customer existingCustomer = new Customer();
-        //        if (existingCustomer == null) { return NotFound(); }
-        //        else
-        //        {
-        //            customer.Id = existingCustomer.Id;
-        //            existingCustomer = customer;
+        [HttpPut("profilepic")]
+        public async Task<IActionResult> UpdateProfilePic(string? SavedFileName, int customerId )
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            else
+            {
+                Customer existingCustomer = await _customerService.GetById(customerId);
+                if (existingCustomer == null) { return NotFound(); }
+                else
+                {
+                    var userid = existingCustomer.AccountId ?? 0;
+                    Account account = await _accountService.GetById(userid);
+                    account.ProfilePic = SavedFileName;
 
-        //            await _customerService.Update(existingCustomer);
-        //            return Ok(existingCustomer);
-        //        }
+                    await _accountService.Update(account);
+                    return Ok(account);
+                }
 
 
-        //    }
-        //}
+            }
+        }
 
         [HttpPut("updateProfileCustomer")]
         public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input, int customerId)

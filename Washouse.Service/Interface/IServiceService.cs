@@ -27,5 +27,7 @@ namespace Washouse.Service.Interface
         void SaveChanges();
 
         Task DeactivateService(int id);
+
+        public IEnumerable<Model.Models.Service> GetServicesByCategory(int cateID);
     }
 }

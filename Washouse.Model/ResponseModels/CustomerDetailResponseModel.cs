@@ -16,6 +16,7 @@ namespace Washouse.Model.ResponseModels
         public string Email { get; set; }
 
         public string ProfilePic { get; set; }
-        public CustomerLocatonResponseModel AddressString { get; set; }
+        public string AddressString { get; set; }
+        public CustomerLocatonResponseModel Address { get; set; }
     }
 }
