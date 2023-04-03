@@ -485,81 +485,6 @@ namespace Washouse.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    decimal weight = requestModel.TotalWeight;
-
-                    decimal? Latitude = null;
-                    decimal? Longitude = null;
-                    var ward = await _wardService.GetWardById(requestModel.CustomerWardId);
-                    string AddressString = requestModel.CustomerAddressString;
-                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                    var result = await SearchRelativeAddress(fullAddress);
-                    if (result != null)
-                    {
-                        Latitude = result.lat;
-                        Longitude = result.lon;
-                    }
-                    else
-                    {
-                        result = await SearchRelativeAddress(wardAddress);
-                        if (result != null)
-                        {
-                            Latitude = result.lat;
-                            Longitude = result.lon;
-                        }
-                        else
-                        {
-                            return NotFound(new ResponseModel
-                            {
-                                StatusCode = StatusCodes.Status404NotFound,
-                                Message = "Not found latitude and longitude of this address",
-                                Data = null
-                            });
-                        }
-                    }
-
-
-                    decimal distance = 0;
-                    int centerId = requestModel.CenterId;
-                    var center = await _centerService.GetById(centerId);
-                    if (center.Location.Latitude == null || center.Location.Longitude == null || Latitude == null || Longitude == null)
-                    {
-                        distance = 0;
-                    }
-                    else
-                    {
-                        distance = (decimal)Utilities.CalculateDistance(Math.Round((decimal)Latitude, 6), Math.Round((decimal)Longitude, 6),
-                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
-                    }
-
-                    var deliveryPriceCharts = center.DeliveryPriceCharts.Where(c => c.Status == true).OrderByDescending(a => a.MaxDistance).ThenByDescending(a => a.MaxWeight).ToList();
-                    if (deliveryPriceCharts.Count <= 0) 
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Center has not delivery available.",
-                            Data = null
-                        });
-                    }
-                    var firstItem = deliveryPriceCharts.FirstOrDefault();
-                    if (weight > firstItem.MaxWeight || distance > firstItem.MaxDistance)
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Weight or distance out of range available delivery. Please call center.",
-                            Data = null
-                        });
-                    }
-                    decimal price = -1;
-                    foreach (var item in center.DeliveryPriceCharts)
-                    {
-                        if (distance <= item.MaxDistance && weight <= item.MaxWeight)
-                        {
-                            price = item.Price;
-                        }
-                    }
                     if (requestModel.DeliveryType == 0)
                     {
                         return NotFound(new ResponseModel
@@ -569,9 +494,143 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+                    decimal weight = requestModel.TotalWeight;
+                    int requestWardId = 0;
+                    string requestAddress = null;
+                    int loop = 0;
+                    decimal priceTotal = -1;
+                    decimal price1 = 0;
+                    decimal price2 = 0;
+                    decimal price3 = 0;
+                    if (requestModel.DeliveryType == 1)
+                    {
+                        loop = 1;
+                        requestWardId = requestModel.DropoffWardId;
+                        requestAddress = requestModel.DropoffAddress;
+                    } else if (requestModel.DeliveryType == 2)
+                    {
+                        loop = 1;
+                        requestWardId = requestModel.DeliverWardId;
+                        requestAddress = requestModel.DeliverAddress;
+                    } else if (requestModel.DeliveryType == 3)
+                    {
+                        loop = 2;
+                        requestWardId = requestModel.DropoffWardId;
+                        requestAddress = requestModel.DropoffAddress;
+                    }
+                    for (int i = 0; i< loop; i++)
+                    {
+                        if (i == 1)
+                        {
+                            requestWardId = requestModel.DeliverWardId;
+                            requestAddress = requestModel.DeliverAddress;
+                        }
+                        decimal? Latitude = null;
+                        decimal? Longitude = null;
+                        var ward = await _wardService.GetWardById(requestWardId);
+                        string AddressString = requestAddress;
+                        string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        var result = await SearchRelativeAddress(fullAddress);
+                        if (result != null)
+                        {
+                            Latitude = result.lat;
+                            Longitude = result.lon;
+                        }
+                        else
+                        {
+                            result = await SearchRelativeAddress(wardAddress);
+                            if (result != null)
+                            {
+                                Latitude = result.lat;
+                                Longitude = result.lon;
+                            }
+                            else
+                            {
+                                return NotFound(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status404NotFound,
+                                    Message = "Not found latitude and longitude of this address",
+                                    Data = null
+                                });
+                            }
+                        }
+
+
+                        decimal distance = 0;
+                        int centerId = requestModel.CenterId;
+                        var center = await _centerService.GetById(centerId);
+                        if (center.Location.Latitude == null || center.Location.Longitude == null || Latitude == null || Longitude == null)
+                        {
+                            distance = 0;
+                        }
+                        else
+                        {
+                            distance = (decimal)Utilities.CalculateDistance(Math.Round((decimal)Latitude, 6), Math.Round((decimal)Longitude, 6),
+                                                                    Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        }
+
+                        var deliveryPriceCharts = center.DeliveryPriceCharts.Where(c => c.Status == true).OrderByDescending(a => a.MaxDistance).ThenByDescending(a => a.MaxWeight).ToList();
+                        if (deliveryPriceCharts.Count <= 0)
+                        {
+                            return NotFound(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Center has not delivery available.",
+                                Data = null
+                            });
+                        }
+                        var firstItem = deliveryPriceCharts.FirstOrDefault();
+                        if (weight > firstItem.MaxWeight || distance > firstItem.MaxDistance)
+                        {
+                            return NotFound(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Weight or distance out of range available delivery. Please call center.",
+                                Data = null
+                            });
+                        }
+                        decimal price = -1;
+                        foreach (var item in center.DeliveryPriceCharts)
+                        {
+                            if (distance <= item.MaxDistance && weight <= item.MaxWeight)
+                            {
+                                price = item.Price;
+                            }
+                        }
+                        if (requestModel.DeliveryType == 1)
+                        {
+                            price1 = price;
+                        }
+                        else if (requestModel.DeliveryType == 2)
+                        {
+                            price2 = price;
+                        }
+                        else if (requestModel.DeliveryType == 3)
+                        {
+                            price3 += price;
+                        }
+                    }
+                    if (requestModel.DeliveryType == 1)
+                    {
+                        priceTotal = price1;
+                    }
+                    else if (requestModel.DeliveryType == 2)
+                    {
+                        priceTotal = price2;
+                    }
                     else if (requestModel.DeliveryType == 3)
                     {
-                        price = price * 2;
+                        priceTotal = price3;
+                    }
+                    if (priceTotal < 0)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Error occur",
+                            Data = null
+                        });
                     }
                     return Ok(new ResponseModel
                     {
@@ -579,7 +638,7 @@ namespace Washouse.Web.Controllers
                         Message = "success",
                         Data = new
                         {
-                            deliveryPrice = price
+                            deliveryPrice = priceTotal
                         }
                     });
                 }
