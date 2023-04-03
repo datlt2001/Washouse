@@ -481,8 +481,8 @@ namespace Washouse.Web.Controllers
 
                     return Ok(new ResponseModel
                     {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "sucess",
+                        StatusCode = 0,
+                        Message = "success",
                         Data = new
                         {
                             OrderId = orderAdded.Id
