@@ -48,5 +48,24 @@ namespace Washouse.Data.Repositories
                         .ToList();
             return data;
         }
+
+        public decimal GetDiscountByCode(string code)
+        {
+            var promo = this._dbContext.Promotions
+                            .Where(fb => fb.Code == code).FirstOrDefault();
+            var discount = 0.0M;
+            if (promo == null)
+            {
+                // handle case when no matching promotion is found
+                discount = 0.0M;
+            }
+            else
+            {
+                // handle case when a matching promotion is found
+                 discount = promo.Discount;
+            }
+            
+            return discount;
+        }
     }
 }

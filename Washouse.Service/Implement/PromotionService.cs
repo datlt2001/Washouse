@@ -50,5 +50,10 @@ namespace Washouse.Service.Implement
         {
             return await _promotionRepository.CheckValidPromoCode(centerId, promoCode);
         }
+
+        public decimal GetDiscountByCode(string code)
+        {
+            return _promotionRepository.GetDiscountByCode(code);
+        }
     }
 }

@@ -35,9 +35,9 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetParentCategoryList(int id)
+        public async Task<IActionResult> GetPromotionById(int id)
         {
-            var promotion = _promotionService.GetById(id);
+            var promotion = await _promotionService.GetById(id);
             if (promotion == null) { return NotFound(); }
             return Ok(new ResponseModel
             {
@@ -48,9 +48,9 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("center/{id}")]
-        public IActionResult GetPromotionByCenterId(int centerId)
+        public  IActionResult GetPromotionByCenterId(int id)
         {
-            var promotion = _promotionService.GetAllByCenterId(centerId);
+            var promotion = _promotionService.GetAllByCenterId(id);
             if (promotion == null) return NotFound();
             return Ok(new ResponseModel
             {
@@ -61,7 +61,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] PromotionRequestModel Input)
+        public async Task<IActionResult> Create([FromBody] PromotionRequestModel Input)
         {
             if (ModelState.IsValid)
             {
@@ -89,6 +89,25 @@ namespace Washouse.Web.Controllers
             }
             else { return BadRequest(); }
 
+        }
+
+        [HttpGet("code/{code}")]
+        public IActionResult GetPromotionByCode(string code)
+        {
+            var dis = _promotionService.GetDiscountByCode(code);
+            if (dis == 0.0M) 
+            return BadRequest(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Wrong Code",
+                Data = null
+            });
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = dis
+            });
         }
     }
 }
