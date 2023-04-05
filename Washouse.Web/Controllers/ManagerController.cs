@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Linq;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Model.Models;
+using Washouse.Service.Implement;
 
 namespace Washouse.Web.Controllers
 {
@@ -28,10 +29,12 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
+        private readonly IPromotionService _promotionService;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
-                                IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService)
+                                IStaffService staffService, ICenterRequestService centerRequestService, 
+                                IFeedbackService feedbackService, IPromotionService promotionService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -42,6 +45,7 @@ namespace Washouse.Web.Controllers
             this._staffService = staffService;
             this._centerRequestService = centerRequestService;
             this._feedbackService = feedbackService;
+            this._promotionService = promotionService;
         }
 
         #endregion
@@ -306,6 +310,223 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        // GET: api/manager/services
+        [HttpGet("services")]
+        public async Task<IActionResult> GetServicesOfCenterManaged()
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                if (center != null)
+                {
+                    var services = center.Services.ToList();
+                    if (services == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found service of your center.",
+                            Data = null
+                        });
+                    }
+                    if (services != null)
+                    {
+                        var servicesOfCenter = new List<ServiceCenterModel>();
+                        foreach (var item in services)
+                        {
+                            var servicePriceViewModels = new List<ServicePriceViewModel>();
+                            foreach (var servicePrice in item.ServicePrices)
+                            {
+                                var sp = new ServicePriceViewModel
+                                {
+                                    MaxValue = servicePrice.MaxValue,
+                                    Price = servicePrice.Price
+                                };
+                                servicePriceViewModels.Add(sp);
+                            }
+                            var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
+                            int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                            foreach (var feedback in feedbackList)
+                            {
+                                if (feedback.Rating == 1) { st1++; }
+                                if (feedback.Rating == 2) { st2++; }
+                                if (feedback.Rating == 3) { st3++; }
+                                if (feedback.Rating == 4) { st4++; }
+                                if (feedback.Rating == 5) { st5++; }
+                            }
+                            var itemResponse = new ServiceCenterModel
+                            {
+                                ServiceId = item.Id,
+                                ServiceName = item.ServiceName,
+                                Alias = item.Alias,
+                                CategoryId = item.CategoryId,
+                                Description = item.Description,
+                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                                PriceType = item.PriceType,
+                                Price = item.Price,
+                                MinPrice = item.MinPrice,
+                                Unit = item.Unit,
+                                Rate = item.Rate,
+                                Prices = servicePriceViewModels,
+                                TimeEstimate = item.TimeEstimate,
+                                IsAvailable = item.IsAvailable,
+                                Status = item.Status,
+                                HomeFlag = item.HomeFlag,
+                                HotFlag = item.HotFlag,
+                                Rating = item.Rating,
+                                NumOfRating = item.NumOfRating,
+                                Ratings = new int[] { st1, st2, st3, st4, st5 }
+                            };
+                            servicesOfCenter.Add(itemResponse);
+                        }
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = servicesOfCenter
+                        });
+                    }
+                    else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found services",
+                            Data = null
+                        });
+                    }
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        // GET: api/manager/promotions
+        [HttpGet("promotions")]
+        public async Task<IActionResult> GetPromotionsOfCenterManaged()
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                if (center != null)
+                {
+                    var promotion = _promotionService.GetAll();
+                    if (promotion == null) {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion of your center.",
+                            Data = null
+                        });
+                    }
+                    if (promotion != null)
+                    {
+                        var promotionResponses = new List<PromotionCenterModel>();
+                        foreach (var item in promotion)
+                        {
+                            string _startDate = null;
+                            string _expireDate = null;
+                            string _updatedDate = null;
+                            if (item.StartDate.HasValue)
+                            {
+                                _startDate = item.StartDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                            }
+                            if (item.ExpireDate.HasValue)
+                            {
+                                _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                            }
+                            if (item.UpdatedDate.HasValue)
+                            {
+                                _updatedDate = item.UpdatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                            }
+
+                            var itemResponse = new PromotionCenterModel
+                            {
+                                Code = item.Code,
+                                Description = item.Description,
+                                Discount = item.Discount,
+                                StartDate = _startDate,
+                                ExpireDate = _expireDate,
+                                CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
+                                UpdatedDate = _updatedDate,
+                                UseTimes = item.UseTimes
+                            };
+                            promotionResponses.Add(itemResponse);
+                        }
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = promotionResponses
+                        });
+                    }
+                    else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotions",
+                            Data = null
+                        });
+                    }
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
             }
             catch (Exception ex)
             {
