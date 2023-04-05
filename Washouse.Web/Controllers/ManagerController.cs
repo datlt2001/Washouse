@@ -12,6 +12,8 @@ using System.Linq;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Model.Models;
 using Washouse.Service.Implement;
+using Twilio.Http;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace Washouse.Web.Controllers
 {
@@ -30,11 +32,12 @@ namespace Washouse.Web.Controllers
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
         private readonly IPromotionService _promotionService;
+        private readonly ICustomerService _customerService;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 IStaffService staffService, ICenterRequestService centerRequestService, 
-                                IFeedbackService feedbackService, IPromotionService promotionService)
+                                IFeedbackService feedbackService, IPromotionService promotionService, ICustomerService customerService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -46,6 +49,7 @@ namespace Washouse.Web.Controllers
             this._centerRequestService = centerRequestService;
             this._feedbackService = feedbackService;
             this._promotionService = promotionService;
+            this._customerService = customerService;
         }
 
         #endregion
@@ -539,6 +543,93 @@ namespace Washouse.Web.Controllers
             }
         }
 
-
+        // GET: api/manager/my-center/customers
+        [HttpGet("my-center/customers")]
+        public async Task<IActionResult> GetCustomerOfCenterManaged()
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                if (center != null)
+                {
+                    var customersOfCenter = await _customerService.CustomersOfCenter(center.Id);
+                    if (customersOfCenter == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found any customer of your center.",
+                            Data = null
+                        });
+                    }
+                    if (customersOfCenter != null)
+                    {
+                        var customers = new List<CustomerCenterModel>();
+                        foreach (var item in customersOfCenter)
+                        {
+                            string addressStringResponse = null;
+                            if (item.Address != null)
+                            {
+                                var location = await _locationService.GetById(item.Address.Value);
+                                addressStringResponse = location.AddressString + ", " + location.Ward.WardName + ", " + location.Ward.District.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
+                            }
+                            var itemResponse = new CustomerCenterModel
+                            {
+                                Id = item.Id,
+                                AccountId = item.AccountId,
+                                Fullname = item.Fullname,
+                                Phone = item.Phone,
+                                Email = item.Email,
+                                AddressString = addressStringResponse
+                            };
+                            customers.Add(itemResponse);
+                        }
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = customers
+                        });
+                    }
+                    else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found customers",
+                            Data = null
+                        });
+                    }
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
     }
 }

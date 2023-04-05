@@ -56,5 +56,10 @@ namespace Washouse.Service.Implement
         {
             await _customerRepository.Update(customer);
         }
+
+        public async Task<IEnumerable<Customer>> CustomersOfCenter(int centerId)
+        {
+            return await _customerRepository.CustomersOfCenter(centerId);
+        }
     }
 }

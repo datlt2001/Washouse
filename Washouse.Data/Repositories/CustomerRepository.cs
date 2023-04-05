@@ -44,5 +44,23 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<IEnumerable<Customer>> CustomersOfCenter(int centerId)
+        {
+            try
+            {
+
+                var customersWithOrders = this.DbContext.Customers
+                    .Where(c => c.Orders
+                        .Any(o => o.OrderDetails
+                            .Any(od => od.Service.Center.Id == centerId)))
+                    .ToList();
+                return customersWithOrders;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
