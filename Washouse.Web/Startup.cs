@@ -96,11 +96,12 @@ namespace Washouse.Web
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-                .AddJwtBearer(options =>
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.SaveToken = true;
                     options.RequireHttpsMetadata = false;
@@ -125,7 +126,7 @@ namespace Washouse.Web
                         IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes)
                     };*/
                 })
-                .AddGoogle(googleOptions =>
+                .AddGoogle(GoogleDefaults.AuthenticationScheme, googleOptions =>
                 {
                     // Đọc thông tin Authentication:Google từ appsettings.json
                     IConfigurationSection googleAuthNSection = Configuration.GetSection("Authentication:Google");

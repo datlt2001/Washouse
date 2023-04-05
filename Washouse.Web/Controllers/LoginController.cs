@@ -35,7 +35,7 @@ namespace Washouse.Web.Controllers
         }
 
         //[Authorize(AuthenticationSchemes = GoogleDefaults.AuthenticationScheme)]
-        [HttpGet("login/google")]
+        [HttpGet("google")]
         public IActionResult LoginWithGoogle()
         {
             string returnUrl = "/api/logins/google-callback";
@@ -105,7 +105,7 @@ namespace Washouse.Web.Controllers
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
-                Message = "Updated",
+                Message = "Success",
                 Data = responseModel
             });
         }
