@@ -13,6 +13,7 @@ using Washouse.Web.Models;
 using Washouse.Common.Helpers;
 using System.Linq;
 using System.Security.Claims;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 
 namespace Washouse.Web.Controllers
 {

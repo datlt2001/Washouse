@@ -12,6 +12,7 @@ namespace Washouse.Model.ViewModel
         public int CenterId { get; set; }
         public string Name { get; set; }
         public string Thumbnail { get; set; }
+        public bool PriceType { get; set; }
         public decimal Price { get; set; }
         public decimal? Weight { get; set; }
         public decimal? Quantity { get; set; }

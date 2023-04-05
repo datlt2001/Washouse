@@ -737,7 +737,7 @@ namespace Washouse.Web.Controllers
         }
 
         /// <summary>
-        /// Gets the list of all Centers.
+        /// Gets the list of all Orders.
         /// </summary>
         /// <remarks>
         /// Sample request:
@@ -886,6 +886,83 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        [HttpPost("total-price")]
+        public async Task<IActionResult> GetTotalPrice([FromBody] List<CartItemModel> cartItem)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var services = new List<Model.Models.Service>();
+                    List<CartItemModel> cartItems = JsonConvert.DeserializeObject<List<CartItemModel>>(cartItem.ToJson());
+                    decimal response = 0;
+                    foreach (var item in cartItems)
+                    {
+                        decimal currentPrice = 0;
+                        decimal totalCurrentPrice = 0;
+                        if (item.PriceType)
+                        {
+                            var priceChart = item.PriceChart.OrderBy(a => a.MaxValue).ToList();
+                            bool check = false;
+                            foreach (var itemSerivePrice in priceChart)
+                            {
+                                if (item.Quantity <= itemSerivePrice.MaxValue && !check)
+                                {
+                                    currentPrice = itemSerivePrice.Price;
+                                }
+                                if (currentPrice > 0)
+                                {
+                                    check = true;
+                                }
+                            }
+                            if (currentPrice * item.Quantity < item.MinPrice)
+                            {
+                                totalCurrentPrice = (decimal)item.MinPrice;
+                            }
+                            else
+                            {
+                                totalCurrentPrice = currentPrice * (decimal)item.Quantity;
+                            }
+                        }
+                        else
+                        {
+                            totalCurrentPrice = item.Price * (decimal)item.Quantity;
+                        }
+                        response = response + totalCurrentPrice;
+                    }
+                    return Ok(new ResponseModel                                   
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            TotalCartPrice = response
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
 
     }
 }
