@@ -77,5 +77,17 @@ namespace Washouse.Service.Implement
             var orders = await _orderRepository.GetAll();
             return orders.Where(order => order.Id.StartsWith(date));
         }
+
+        public async Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId)
+        {
+            try
+            {
+                return await _orderRepository.GetOrdersOfCenter(centerId);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

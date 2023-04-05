@@ -23,6 +23,7 @@ using Washouse.Model.ViewModel;
 using static Google.Apis.Requests.BatchRequest;
 using Org.BouncyCastle.Bcpg;
 using Washouse.Common.Mails;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 
 namespace Washouse.Web.Controllers
 {
@@ -786,11 +787,35 @@ namespace Washouse.Web.Controllers
                                           .ToList();
 
                 }
-                var response = new List<OrderResponseModel>();
+                var response = new List<OrderCenterModel>();
                 foreach (var order in orders)
                 {
-
+                    decimal TotalOrderValue = 0;
+                    foreach (var item in order.OrderDetails)
+                    {
+                        TotalOrderValue += item.Price;
+                    }
+                    string _orderDate = null;
+                    if (order.CreatedDate.HasValue)
+                    {
+                        _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                    }
+                    response.Add(new OrderCenterModel
+                    {
+                        OrderId = order.Id,
+                        OrderDate = _orderDate,
+                        CustomerName = order.CustomerName,
+                        TotalOrderValue = TotalOrderValue,
+                        Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
+                        TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
+                        Status = order.Status
+                    });
                 }
+                int totalItems = response.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
+
+                response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
+
                 if (response.Count > 0)
                 {
                     return Ok(new ResponseModel

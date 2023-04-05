@@ -14,5 +14,6 @@ namespace Washouse.Service.Interface
         void Save();
         Task<IEnumerable<Order>> GetAll();
         Task<IEnumerable<Order>> GetAllOfDay(string date);
+        Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
     }
 }

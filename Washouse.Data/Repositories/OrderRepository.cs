@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+//using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
@@ -23,6 +24,18 @@ namespace Washouse.Data.Repositories
                             .ThenInclude(service => service.Center)
                     .ToListAsync();
             return data;
+        }
+
+
+        public async Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId)
+        {
+            var ordersAtCenter = await this._dbContext.Orders
+                                .Include(order => order.Payments)
+                                .Include(order => order.OrderDetails)
+                                    .Where(o => o.OrderDetails
+                                    .Any(od => od.Service.Center.Id == centerId))
+                                .ToListAsync();
+            return ordersAtCenter;
         }
     }
 }

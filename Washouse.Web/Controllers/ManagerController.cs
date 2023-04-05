@@ -14,6 +14,7 @@ using Washouse.Model.Models;
 using Washouse.Service.Implement;
 using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
+using Washouse.Model.RequestModels;
 
 namespace Washouse.Web.Controllers
 {
@@ -33,11 +34,13 @@ namespace Washouse.Web.Controllers
         private readonly IFeedbackService _feedbackService;
         private readonly IPromotionService _promotionService;
         private readonly ICustomerService _customerService;
+        private readonly IOrderService _orderService;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 IStaffService staffService, ICenterRequestService centerRequestService, 
-                                IFeedbackService feedbackService, IPromotionService promotionService, ICustomerService customerService)
+                                IFeedbackService feedbackService, IPromotionService promotionService,
+                                ICustomerService customerService, IOrderService orderService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -50,6 +53,7 @@ namespace Washouse.Web.Controllers
             this._feedbackService = feedbackService;
             this._promotionService = promotionService;
             this._customerService = customerService;
+            this._orderService = orderService;
         }
 
         #endregion
@@ -631,5 +635,132 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Gets the list of all Orders.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/orders
+        ///     {        
+        ///       "page": 1,
+        ///       "pageSize": 5,
+        ///       "searchString": "Dr"  
+        ///     }
+        /// </remarks>
+        /// <returns>The list of Centers.</returns>
+        /// <response code="200">Success return list orders</response>   
+        /// <response code="404">Not found any order matched</response>   
+        /// <response code="400">One or more error occurs</response>   
+        // GET: api/orders
+        [HttpGet("my-center/orders")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetOrdersOfCenter([FromQuery] FilterOrdersRequestModel filterOrdersRequestModel)
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                } else
+                {
+                    var orders = await _orderService.GetOrdersOfCenter(center.Id);
+                    if (orders.Count() == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found orders of center.",
+                            Data = null
+                        });
+                    }
+                    if (filterOrdersRequestModel.SearchString != null)
+                    {
+                        orders = orders.Where(order => (order.OrderDetails.Any(orderDetail => (orderDetail.Service.ServiceName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                                                    || (orderDetail.Service.Alias != null && orderDetail.Service.Alias.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))))
+                                                           || order.Id.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                           || order.OrderDetails.FirstOrDefault().Service.Center.CenterName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
+                                              .ToList();
+
+                    }
+                    var response = new List<OrderCenterModel>();
+                    foreach (var order in orders)
+                    {
+                        decimal TotalOrderValue = 0;
+                        foreach (var item in order.OrderDetails)
+                        {
+                            TotalOrderValue += item.Price;
+                        }
+                        string _orderDate = null;
+                        if (order.CreatedDate.HasValue)
+                        {
+                            _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                        }
+                        response.Add(new OrderCenterModel
+                        {
+                            OrderId = order.Id,
+                            OrderDate = _orderDate,
+                            CustomerName = order.CustomerName,
+                            TotalOrderValue = TotalOrderValue,
+                            Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
+                            TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
+                            Status = order.Status
+                        });
+                    }
+                    int totalItems = response.Count();
+                    int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
+
+                    response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
+                    if (response.Count > 0)
+                    {
+
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = new
+                            {
+                                TotalItems = totalItems,
+                                TotalPages = totalPages,
+                                ItemsPerPage = filterOrdersRequestModel.PageSize,
+                                PageNumber = filterOrdersRequestModel.Page,
+                                Items = response
+                            }
+                        });
+                    }
+                    else
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found",
+                            Data = null
+                        });
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }
