@@ -15,6 +15,9 @@ namespace Washouse.Model.RequestModels
         }
         public int Page { get; set; }
         public int PageSize { get; set; }
-        public string? SearchString { get; set; }
+        public string SearchString { get; set; }
+        public string FromDate { get; set; }    
+        public string ToDate { get; set; }    
+        public string Status { get; set; }    
     }
 }

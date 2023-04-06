@@ -16,6 +16,7 @@ using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
 using Washouse.Model.RequestModels;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
 
 namespace Washouse.Web.Controllers
 {
@@ -700,9 +701,28 @@ namespace Washouse.Web.Controllers
                         orders = orders.Where(order => (order.OrderDetails.Any(orderDetail => (orderDetail.Service.ServiceName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
                                                                                     || (orderDetail.Service.Alias != null && orderDetail.Service.Alias.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))))
                                                            || order.Id.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
-                                                           || order.OrderDetails.FirstOrDefault().Service.Center.CenterName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
+                                                           || order.CustomerEmail.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                           || (order.Customer != null && order.Customer.Fullname.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))
+                                                           || order.CustomerName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
                                               .ToList();
+                    }
+                    if (filterOrdersRequestModel.Status != null)
+                    {
+                        orders = orders.Where(order => order.Status.ToLower().Equals(filterOrdersRequestModel.Status.ToLower()));
+                    }
+                    if (filterOrdersRequestModel.FromDate != null)
+                    {
+                        DateTime dateValue;
+                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.FromDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
 
+                        orders = orders.Where(order => (order.CreatedDate >= dateValue));
+                    }
+                    if (filterOrdersRequestModel.ToDate != null)
+                    {
+                        DateTime dateValue;
+                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue)
+
+                        orders = orders.Where(order => (order.CreatedDate <= dateValue));
                     }
                     var response = new List<OrderCenterModel>();
                     foreach (var order in orders)
@@ -742,7 +762,7 @@ namespace Washouse.Web.Controllers
                     }
                     int totalItems = response.Count();
                     int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
-
+                    response.OrderByDescending(x => x.OrderDate);
                     response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
                     if (response.Count > 0)
                     {
