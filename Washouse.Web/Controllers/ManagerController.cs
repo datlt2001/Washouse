@@ -755,7 +755,6 @@ namespace Washouse.Web.Controllers
                         });
                     }
                 }
-                
             }
             catch (Exception ex)
             {
