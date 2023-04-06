@@ -12,6 +12,8 @@ using Washouse.Service.Interface;
 using Washouse.Web.Models;
 using System.Linq;
 using Washouse.Model.ViewModel;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace Washouse.Web.Controllers
 {
@@ -139,6 +141,7 @@ namespace Washouse.Web.Controllers
             
         }
 
+        [Authorize(Roles = "Manager,Staff")]
         // GET: api/staffs/center
         [HttpGet("center")]
         public async Task<IActionResult> GetCenterOfStaff()
@@ -152,7 +155,7 @@ namespace Washouse.Web.Controllers
                     return NotFound(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found center that you are manager",
+                        Message = "Not found center that you are working",
                         Data = null
                     });
                 }
@@ -412,6 +415,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Staff")]
         // GET: api/staffs/services
         [HttpGet("services")]
         public async Task<IActionResult> GetServicesOfCenterWoking()

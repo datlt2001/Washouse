@@ -720,6 +720,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {

@@ -15,6 +15,7 @@ using Washouse.Service.Implement;
 using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
 using Washouse.Model.RequestModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Washouse.Web.Controllers
 {
@@ -59,6 +60,7 @@ namespace Washouse.Web.Controllers
         #endregion
 
         // GET: api/manager/my-center
+        [Authorize(Roles = "Manager,Staff")]
         [HttpGet("my-center")]
         public async Task<IActionResult> GetMyCenter()
         {
@@ -329,7 +331,8 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
-
+        
+        [Authorize(Roles = "Manager")]
         // GET: api/manager/services
         [HttpGet("services")]
         public async Task<IActionResult> GetServicesOfCenterManaged()
@@ -447,6 +450,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager")]
         // GET: api/manager/promotions
         [HttpGet("promotions")]
         public async Task<IActionResult> GetPromotionsOfCenterManaged()
@@ -547,6 +551,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers
         [HttpGet("my-center/customers")]
         public async Task<IActionResult> GetCustomerOfCenterManaged()
@@ -636,6 +641,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Staff")]
         /// <summary>
         /// Gets the list of all Orders.
         /// </summary>
@@ -653,7 +659,7 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success return list orders</response>   
         /// <response code="404">Not found any order matched</response>   
         /// <response code="400">One or more error occurs</response>   
-        // GET: api/orders
+        // GET: api/manager/my-center/orders
         [HttpGet("my-center/orders")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]

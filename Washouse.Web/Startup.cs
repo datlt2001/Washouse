@@ -96,10 +96,16 @@ namespace Washouse.Web
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                /*options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
                 //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;*/
+                //fix 06/04 by DatLT, comment and add new code
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
             })
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
@@ -148,6 +154,20 @@ namespace Washouse.Web
                     options.LogoutPath = "/Account/Logout";
                     options.AccessDeniedPath = "/Account/AccessDenied";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                    //fix 06/04 by DatLT, add new code
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        OnValidatePrincipal = context =>
+                        {
+                            if (!context.Principal.Identity.IsAuthenticated &&
+                                !context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Return 401 status code for non-API requests when the user is not authenticated
+                                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
