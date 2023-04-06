@@ -720,7 +720,7 @@ namespace Washouse.Web.Controllers
                     if (filterOrdersRequestModel.ToDate != null)
                     {
                         DateTime dateValue;
-                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue)
+                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
 
                         orders = orders.Where(order => (order.CreatedDate <= dateValue));
                     }
