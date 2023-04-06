@@ -43,10 +43,10 @@ namespace Washouse.Web.Controllers
             return Ok(customer);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCustomerById(int id)
+        [HttpGet("{customerId}")]
+        public async Task<IActionResult> GetCustomerById(int customerId)
         {
-            var customer = await _customerService.GetById(id);
+            var customer = await _customerService.GetById(customerId);
             int userId = customer.AccountId ?? 0;
             var user = await _accountService.GetById(userId);
             var response = new CustomerDetailResponseModel();
@@ -61,16 +61,18 @@ namespace Washouse.Web.Controllers
                 {
                     Latitude = location.Latitude,
                     Longitude = location.Longitude,
+                    AddressString = location.AddressString,
                     Ward = new WardResponseModel
                     {
                         WardId = location.WardId,
                         WardName = ward.WardName,
+                        District = new DistrictResponseModel
+                        {
+                            DistrictId = ward.DistrictId,
+                            DistrictName = district.DistrictName
+                        }
                     },
-                    District = new DistrictResponseModel
-                    {
-                        DistrictId = ward.DistrictId,
-                        DistrictName = district.DistrictName
-                    }
+                    
 
                 };
             }
@@ -83,12 +85,16 @@ namespace Washouse.Web.Controllers
             response.Fullname = customer.Fullname;
             response.Phone = customer.Phone;
             response.Email = customer.Email;
+            response.Gender = user.Gender;
+            response.WalletId = user.WalletId;
+            string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
+            response.Dob = dob;
             if (user != null)
             {
                 response.ProfilePic = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null;
             }
             response.AccountId = userId;
-            response.Id = id;
+            response.Id = customerId;
             
             if (customer == null) { return NotFound(); }
             return Ok(new ResponseModel
@@ -311,6 +317,68 @@ namespace Washouse.Web.Controllers
             }
             await   _customerService.ActivateCustomer(id);
             return Ok();
+        }
+
+        [HttpGet("account/{accountId}")]
+        public async Task<IActionResult> GetCustomerByAccountId(int accountId)
+        {
+            var user = await _accountService.GetById(accountId);
+            var customer = await _customerService.GetById(user.Id);
+            var response = new CustomerDetailResponseModel();
+            if (customer.Address != null)
+            {
+                int locationid = customer.Address ?? 0;
+                var location = await _locationService.GetById(locationid);
+                var ward = await _wardService.GetWardById(location.WardId);
+                var district = await _districtService.GetDistrictById(ward.DistrictId);
+                response.AddressString = location.AddressString + ", " + ward.WardName + ", " + district.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
+                response.Address = new CustomerLocatonResponseModel
+                {
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                    AddressString = location.AddressString,
+                    Ward = new WardResponseModel
+                    {
+                        WardId = location.WardId,
+                        WardName = ward.WardName,
+                        District = new DistrictResponseModel
+                        {
+                            DistrictId = ward.DistrictId,
+                            DistrictName = district.DistrictName
+                        }
+                    },
+                    
+
+                };
+            }
+            else
+            {
+                response.AddressString = null;
+            }
+
+
+            response.Fullname = customer.Fullname;
+            response.Phone = customer.Phone;
+            response.Email = customer.Email;
+            response.Gender = user.Gender;
+            response.WalletId = user.WalletId;
+            string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
+            response.Dob = dob;
+            if (user != null)
+            {
+                response.ProfilePic = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null;
+            }
+            response.AccountId = accountId;
+            response.Id = accountId;
+
+            if (customer == null) { return NotFound(); }
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = response
+            });
+
         }
 
     }

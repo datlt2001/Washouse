@@ -18,5 +18,10 @@ namespace Washouse.Model.ResponseModels
         public string ProfilePic { get; set; }
         public string AddressString { get; set; }
         public CustomerLocatonResponseModel Address { get; set; }
+
+        public int? Gender { get; set; }
+        public string Dob { get; set; }
+
+        public int? WalletId { get; set; }
     }
 }

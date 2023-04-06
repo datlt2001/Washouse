@@ -8,7 +8,8 @@ namespace Washouse.Model.ResponseModels
 {
     public class CustomerLocatonResponseModel
     {
-        public DistrictResponseModel District { get; set; }
+        public string AddressString { get; set; }
+        
         public WardResponseModel Ward { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
