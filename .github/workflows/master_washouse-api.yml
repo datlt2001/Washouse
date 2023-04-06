@@ -53,5 +53,5 @@ jobs:
         with:
           app-name: 'Washouse-API'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5644A55324C942198E0B73D84E19C9A2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FCF85C3793D54B4F95A6415DED40CF3F }}
           package: .
