@@ -34,6 +34,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public string TaxRegistrationImage { get; set; }
         public bool MonthOff { get; set; }
         public bool HasDelivery { get; set; }
+        public int LocationId { get; set; }
 
         public virtual ICollection<CenterDeliveryPriceChartResponseModel> CenterDeliveryPrices { get; set; }
         public CenterLocationResponseModel CenterLocation { get; set; }

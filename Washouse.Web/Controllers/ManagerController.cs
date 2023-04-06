@@ -83,7 +83,6 @@ namespace Washouse.Web.Controllers
                     var centerGalleries = new List<CenterGalleryModel>();
                     var centerFeedbacks = new List<FeedbackCenterModel>();
                     var centerResourses = new List<ResourseCenterModel>();
-                    decimal minPrice = 0, maxPrice = 0;
                     /*foreach (var item in center.Services)
                     {
                         var servicePriceViewModels = new List<ServicePriceViewModel>();
@@ -236,6 +235,7 @@ namespace Washouse.Web.Controllers
                     response.TaxRegistrationImage = center.TaxRegistrationImage;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.LocationId = center.LocationId;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
