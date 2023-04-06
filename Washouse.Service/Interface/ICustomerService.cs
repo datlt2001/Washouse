@@ -23,5 +23,7 @@ namespace Washouse.Service.Interface
 
         public Task ActivateCustomer(int id);
         Task<IEnumerable<Customer>> CustomersOfCenter(int centerId);
+
+        public Customer GetCustomerByAccID(int accountId);
     }
 }
