@@ -32,6 +32,8 @@ namespace Washouse.Model.ResponseModels
         public decimal MaxPrice { get; set; }
         public bool MonthOff { get; set; }
         public bool HasDelivery { get; set; }
+        public bool HasOnlinePayment { get; set; }
+        public bool IsOpening { get; set; }
         public virtual ICollection<CenterDeliveryPriceChartResponseModel> CenterDeliveryPrices { get; set; }
         public CenterLocationResponseModel CenterLocation { get; set; }
         public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
