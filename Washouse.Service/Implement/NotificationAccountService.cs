@@ -40,5 +40,10 @@ namespace Washouse.Service.Implement
         {
             await _notificationAccountRepository.Update(notificationAccount);
         }
+
+        public NotificationAccount GetNotiAccbyNotiId(int notiId)
+        {
+            return _notificationAccountRepository.GetNotiAccbyNotiId(notiId);
+        }
     }
 }

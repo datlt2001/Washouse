@@ -17,6 +17,7 @@ namespace Washouse.Data.Repositories
 
         public IEnumerable<NotificationViewModel> GetNotificationUnread(int accountId)
         {
+            
             var notifications = from n in DbContext.Notifications
                                 join na in DbContext.NotificationAccounts on n.Id equals na.NotificationId
                                 where na.AccountId == accountId && na.ReadDate == null
@@ -24,9 +25,10 @@ namespace Washouse.Data.Repositories
                                 {
                                     Id = n.Id,
                                     Content = n.Content,
-                                    CreatedDate = n.CreatedDate,
+                                    CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
                                     OrderId = n.OrderId,
                                     AccountId = na.AccountId
+                                    
                                 };
 
             return notifications.ToList();
@@ -41,7 +43,7 @@ namespace Washouse.Data.Repositories
                                 {
                                     Id = n.Id,
                                     Content = n.Content,
-                                    CreatedDate = n.CreatedDate,
+                                    CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
                                     OrderId = n.OrderId,
                                     AccountId = na.AccountId
                                 };

@@ -61,5 +61,10 @@ namespace Washouse.Service.Implement
         {
             return await _customerRepository.CustomersOfCenter(centerId);
         }
+
+        public Customer GetCustomerByAccID(int accountId)
+        {
+            return _customerRepository.GetCustomerByAccID(accountId);
+        }
     }
 }

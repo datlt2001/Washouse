@@ -62,5 +62,21 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public Customer GetCustomerByAccID(int accountId)
+        {
+            try
+            {
+
+                var customer = this.DbContext.Customers.SingleOrDefault (c => c.AccountId == accountId);
+                                
+                    
+                return customer;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

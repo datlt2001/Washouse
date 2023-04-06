@@ -20,6 +20,9 @@ using Washouse.Web.Models;
 using static System.Net.WebRequestMethods;
 using Washouse.Model.ResponseModels;
 using System.ComponentModel.DataAnnotations;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.PeopleService.v1;
 
 namespace Washouse.Web.Controllers
 {
