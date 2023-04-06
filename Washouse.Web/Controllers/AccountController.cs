@@ -191,7 +191,7 @@ namespace Washouse.Web.Controllers
                 IsUsed = false,
                 IsRevoked = false,
                 IssuedAt = DateTime.UtcNow,
-                ExpiredAt = DateTime.UtcNow.AddHours(1)
+                ExpiredAt = DateTime.UtcNow.AddDays(1)
             };
 
             await _context.AddAsync(refreshTokenEntity);
