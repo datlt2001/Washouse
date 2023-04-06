@@ -155,7 +155,7 @@ namespace Washouse.Web
                     options.AccessDeniedPath = "/Account/AccessDenied";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                     //fix 06/04 by DatLT, add new code
-                    options.Events = new CookieAuthenticationEvents
+                    /*options.Events = new CookieAuthenticationEvents
                     {
                         OnValidatePrincipal = context =>
                         {
@@ -167,7 +167,7 @@ namespace Washouse.Web
                             }
                             return Task.CompletedTask;
                         }
-                    };
+                    };*/
                 });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
