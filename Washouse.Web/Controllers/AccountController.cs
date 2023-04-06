@@ -24,6 +24,7 @@ using Washouse.Data;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
+using Washouse.Model.ViewModel;
 using Washouse.Service;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
@@ -450,8 +451,8 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}/password")]
-        public async Task<IActionResult> ChangePassword(int id,string oldPass,string newPass)
+        [HttpPut("{id}/change-password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody]ChangePasswordViewModel changePasswordModel)
         {
             var account = await _accountService.GetById(id);
             if (account == null)
@@ -460,29 +461,34 @@ namespace Washouse.Web.Controllers
             }
             else
             {
-                if(account.Password != oldPass) {
-                    return Ok(new
+                if(account.Password != changePasswordModel.oldPass) {
+                    return Ok(new ResponseModel
                     {
-                        Success = false,
-                        Message = "Wrong password"
+                        StatusCode = 200,
+                        Message = "Wrong password",
+                        Data = null
                     });
                 }
                 else
                 {
 
-                    await _accountService.ChangePassword(id, newPass);
-                    return Ok(new
+                    await _accountService.ChangePassword(id, changePasswordModel.newPass);
+                    return Ok(new ResponseModel
                     {
-                        Success = true,
-                        Message = "Your password has been changed"
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new
+                        {
+                            AccountId = id
+                        }
                     });
                 }
                 
             }           
         }
 
-        [HttpPut("{email}/passwordbyemail")]
-        public async Task<IActionResult> ChangePasswordByEmail(string email, string oldPass, string newPass)
+        [HttpPut("{email}/change-password")]
+        public async Task<IActionResult> ChangePasswordByEmail(string email, [FromBody] ChangePasswordViewModel changePasswordModel)
         {
             Account account =  _accountService.GetAccountByEmail(email);
             if (account == null)
@@ -491,22 +497,27 @@ namespace Washouse.Web.Controllers
             }
             else
             {
-                if (account.Password != oldPass)
+                if (account.Password != changePasswordModel.oldPass)
                 {
-                    return Ok(new
+                    return Ok(new ResponseModel
                     {
-                        Success = false,
-                        Message = "Wrong password"
+                        StatusCode = 200,
+                        Message = "Wrong password",
+                        Data = null
                     });
                 }
                 else
                 {
 
-                    await _accountService.ChangePassword(account.Id, newPass);
-                    return Ok(new
+                    await _accountService.ChangePassword(account.Id, changePasswordModel.newPass);
+                    return Ok(new ResponseModel
                     {
-                        Success = true,
-                        Message = "Your password has been changed"
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new
+                        {
+                            AccountId = account.Id
+                        }
                     });
                 }
 

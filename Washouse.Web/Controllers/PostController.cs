@@ -12,6 +12,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Washouse.Model.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace Washouse.Web.Controllers
 {
@@ -82,15 +83,15 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PostRequestModel Input, int id)
+        public async Task<IActionResult> Create([FromBody] PostRequestModel Input)
         {
             if (ModelState.IsValid)
             {
                 //int lastID = _postService.GetIDList().Last();
                 var posts = new Post()
                 {
-                    AuthorId = id,
-                    Title= Input.Title,
+                    AuthorId = int.Parse(User.FindFirst("Phone")?.Value),
+                    Title = Input.Title,
                     Content= Input.Content,
                     //Thumbnail = await Utilities.UploadFile(Input.Thumbnail, @"images\post", Input.Thumbnail.FileName),
                     Status = "false",
