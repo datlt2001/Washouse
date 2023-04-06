@@ -347,8 +347,6 @@ namespace Washouse.Web.Controllers
                             DistrictName = district.DistrictName
                         }
                     },
-                    
-
                 };
             }
             else

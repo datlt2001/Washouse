@@ -14,6 +14,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public string ServiceName { get; set; }
         public string Alias { get; set; }
         public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
         public string Description { get; set; }
         public bool PriceType { get; set; }
         public string Image { get; set; }
