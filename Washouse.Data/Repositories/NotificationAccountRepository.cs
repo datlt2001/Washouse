@@ -13,5 +13,10 @@ namespace Washouse.Data.Repositories
         public NotificationAccountRepository(IDbFactory dbFactory) : base(dbFactory)
         {
         }
+
+        public NotificationAccount GetNotiAccbyNotiId(int notiId)
+        {
+            return this.DbContext.NotificationAccounts.SingleOrDefault(n => n.NotificationId == notiId);
+        }
     }
 }

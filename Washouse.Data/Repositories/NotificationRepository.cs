@@ -24,7 +24,7 @@ namespace Washouse.Data.Repositories
                                 {
                                     Id = n.Id,
                                     Content = n.Content,
-                                    CreatedDate = n.CreatedDate,
+                                    CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
                                     OrderId = n.OrderId,
                                     AccountId = na.AccountId
                                 };
@@ -41,7 +41,7 @@ namespace Washouse.Data.Repositories
                                 {
                                     Id = n.Id,
                                     Content = n.Content,
-                                    CreatedDate = n.CreatedDate,
+                                    CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
                                     OrderId = n.OrderId,
                                     AccountId = na.AccountId
                                 };
