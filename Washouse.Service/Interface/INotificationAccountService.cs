@@ -16,7 +16,5 @@ namespace Washouse.Service.Interface
         IEnumerable<NotificationAccount> GetAll();
 
         public Task<NotificationAccount> GetById(int id);
-
-        public NotificationAccount GetNotiAccbyNotiId(int notiId);
     }
 }

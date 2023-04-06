@@ -12,8 +12,7 @@ namespace Washouse.Model.ViewModel
         public string Content { get; set; }
         public string OrderId { get; set; }
         public int AccountId { get; set; }
-        public string CreatedDate { get; set; }
-
+        public DateTime CreatedDate { get; set; }
 
     }
 }

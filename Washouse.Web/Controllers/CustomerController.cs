@@ -323,7 +323,7 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> GetCustomerByAccountId(int accountId)
         {
             var user = await _accountService.GetById(accountId);
-            var customer =  _customerService.GetCustomerByAccID(user.Id);
+            var customer = await _customerService.GetById(user.Id);
             var response = new CustomerDetailResponseModel();
             if (customer.Address != null)
             {
