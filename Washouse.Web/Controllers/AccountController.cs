@@ -487,7 +487,7 @@ namespace Washouse.Web.Controllers
             }           
         }
 
-        [HttpPut("{email}/change-password")]
+        [HttpPut("{email}/change-password-by-email")]
         public async Task<IActionResult> ChangePasswordByEmail(string email, [FromBody] ChangePasswordViewModel changePasswordModel)
         {
             Account account =  _accountService.GetAccountByEmail(email);
