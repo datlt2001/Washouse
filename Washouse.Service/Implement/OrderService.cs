@@ -89,5 +89,17 @@ namespace Washouse.Service.Implement
                 throw;
             }
         }
+
+        public async Task<Order> GetOrderById(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderById(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

@@ -32,10 +32,28 @@ namespace Washouse.Data.Repositories
             var ordersAtCenter = await this._dbContext.Orders
                                 .Include(order => order.Payments)
                                 .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Category)
                                     .Where(o => o.OrderDetails
                                     .Any(od => od.Service.Center.Id == centerId))
                                 .ToListAsync();
             return ordersAtCenter;
+        }
+
+        public async Task<Order> GetOrderById(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Category)
+                    .Include(order => order.Payments)
+                                    .ThenInclude(od => od.PromoCodeNavigation)
+                    .Include(order => order.Deliveries)
+                    .Include(order => order.OrderTrackings)
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.OrderDetailTrackings)
+                    .FirstOrDefaultAsync(order => order.Id == id);
+            return data;
         }
     }
 }
