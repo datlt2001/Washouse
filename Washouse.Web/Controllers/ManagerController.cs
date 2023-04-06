@@ -36,12 +36,13 @@ namespace Washouse.Web.Controllers
         private readonly IPromotionService _promotionService;
         private readonly ICustomerService _customerService;
         private readonly IOrderService _orderService;
+        private readonly IAccountService _accountService;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 IStaffService staffService, ICenterRequestService centerRequestService, 
                                 IFeedbackService feedbackService, IPromotionService promotionService,
-                                ICustomerService customerService, IOrderService orderService)
+                                ICustomerService customerService, IOrderService orderService, IAccountService accountService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -55,6 +56,7 @@ namespace Washouse.Web.Controllers
             this._promotionService = promotionService;
             this._customerService = customerService;
             this._orderService = orderService;
+            this._accountService = accountService;
         }
 
         #endregion
@@ -489,15 +491,15 @@ namespace Washouse.Web.Controllers
                             string _updatedDate = null;
                             if (item.StartDate.HasValue)
                             {
-                                _startDate = item.StartDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                                _startDate = item.StartDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                             }
                             if (item.ExpireDate.HasValue)
                             {
-                                _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                                _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                             }
                             if (item.UpdatedDate.HasValue)
                             {
-                                _updatedDate = item.UpdatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                                _updatedDate = item.UpdatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                             }
 
                             var itemResponse = new PromotionCenterModel
@@ -507,7 +509,7 @@ namespace Washouse.Web.Controllers
                                 Discount = item.Discount,
                                 StartDate = _startDate,
                                 ExpireDate = _expireDate,
-                                CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH-mm-ss"),
+                                CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                 UpdatedDate = _updatedDate,
                                 UseTimes = item.UseTimes
                             };
@@ -659,11 +661,13 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success return list orders</response>   
         /// <response code="404">Not found any order matched</response>   
         /// <response code="400">One or more error occurs</response>   
+        /// <response code="401">Unauthorization</response>   
         // GET: api/manager/my-center/orders
         [HttpGet("my-center/orders")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         [Produces("application/json")]
         public async Task<IActionResult> GetOrdersOfCenter([FromQuery] FilterOrdersRequestModel filterOrdersRequestModel)
         {
@@ -704,15 +708,26 @@ namespace Washouse.Web.Controllers
                     foreach (var order in orders)
                     {
                         decimal TotalOrderValue = 0;
+                        var orderedServices = new List<OrderedServiceModel>();
                         foreach (var item in order.OrderDetails)
                         {
                             TotalOrderValue += item.Price;
+                            orderedServices.Add(new OrderedServiceModel
+                            {
+                                ServiceName = item.Service.ServiceName,
+                                Measurement = item.Measurement,
+                                Unit = item.Service.Unit,
+                                Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                                ServiceCategory = item.Service.Category.CategoryName,
+                                Price = item.Price
+                            });
                         }
                         string _orderDate = null;
                         if (order.CreatedDate.HasValue)
                         {
-                            _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                            _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                         }
+                        
                         response.Add(new OrderCenterModel
                         {
                             OrderId = order.Id,
@@ -721,7 +736,8 @@ namespace Washouse.Web.Controllers
                             TotalOrderValue = TotalOrderValue,
                             Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                             TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
-                            Status = order.Status
+                            Status = order.Status,
+                            OrderedServices = orderedServices
                         });
                     }
                     int totalItems = response.Count();
@@ -730,7 +746,6 @@ namespace Washouse.Web.Controllers
                     response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
                     if (response.Count > 0)
                     {
-
                         return Ok(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status200OK,
@@ -767,5 +782,157 @@ namespace Washouse.Web.Controllers
             }
         }
 
+
+        [Authorize(Roles = "Manager,Staff")]
+        /// <summary>
+        /// Gets the list of all Orders.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/orders
+        ///     {        
+        ///       "page": 1,
+        ///       "pageSize": 5,
+        ///       "searchString": "Dr"  
+        ///     }
+        /// </remarks>
+        /// <returns>The list of Centers.</returns>
+        /// <response code="200">Success return list orders</response>   
+        /// <response code="404">Not found any order matched</response>   
+        /// <response code="400">One or more error occurs</response>   
+        /// <response code="401">Unauthorization</response>   
+        // GET: api/manager/my-center/orders
+        [HttpGet("my-center/orders/{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetOrderDetailOfCenterOrder(string id)
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(id);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = null
+                        });
+                    }
+                    var response = new OrderInfomationModel();
+                    response.Id = id;
+                    response.CustomerName = order.CustomerName;
+                    response.LocationId = order.LocationId;
+                    response.CustomerEmail = order.CustomerEmail;
+                    response.CustomerMobile = order.CustomerMobile;
+                    response.CustomerMessage = order.CustomerMessage;
+                    response.CustomerOrdered = order.CustomerId;
+                    response.DeliveryType = order.DeliveryType;
+                    response.DeliveryPrice = order.DeliveryPrice;
+                    response.PreferredDropoffTime = order.PreferredDropoffTime;
+                    response.PreferredDeliverTime = order.PreferredDeliverTime;
+                    response.Status = order.Status;
+                    var OrderedDetails = new List<OrderDetailInfomationModel>();
+                    var OrderTrackings = new List<OrderTrackingModel>();
+                    var OrderDeliveries = new List<OrderDeliveryModel>();
+                    var OrderPayment = new OrderPaymentModel()
+                    {
+                        PaymentTotal = order.Payments.First().Total,
+                        PlatformFee = order.Payments.First().PlatformFee,
+                        DateIssue = order.Payments.First().Date.HasValue ? (order.Payments.First().Date.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                        Status = order.Payments.First().Status,
+                        PaymentMethod = order.Payments.First().PaymentMethod,
+                        PromoCode = order.Payments.First().PromoCodeNavigation != null ? order.Payments.First().PromoCodeNavigation.Code : null,
+                        Discount = order.Payments.First().Discount,
+                        CreatedDate = order.Payments.First().CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                        UpdatedDate = order.Payments.First().UpdatedDate.HasValue ? (order.Payments.First().UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                    };
+                    response.OrderPayment = OrderPayment;
+                    decimal TotalOrderValue = 0;
+                    foreach (var item in order.OrderDetails)
+                    {
+                        TotalOrderValue += item.Price;
+                        var _orderDetailTrackingModel = new List<OrderDetailTrackingModel>();
+                        foreach (var tracking in item.OrderDetailTrackings)
+                        {
+                            _orderDetailTrackingModel.Add(new OrderDetailTrackingModel
+                            {
+                                Status = tracking.Status,
+                                CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                                UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            });
+                        }
+                        OrderedDetails.Add(new OrderDetailInfomationModel
+                        {
+                            ServiceName = item.Service.ServiceName,
+                            ServiceCategory = item.Service.Category.CategoryName,
+                            Measurement = item.Measurement,
+                            Unit = item.Service.Unit,
+                            Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                            Price = item.Service.Price,
+                            OrderDetailTrackings = _orderDetailTrackingModel
+                        });
+                    }
+                    response.TotalOrderValue = TotalOrderValue;
+                    response.OrderedDetails = OrderedDetails;
+                    foreach (var tracking in order.OrderTrackings)
+                    {
+                        OrderTrackings.Add(new OrderTrackingModel
+                        {
+                            Status = tracking.Status,
+                            CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                        });
+                    }
+                    response.OrderTrackings = OrderTrackings;
+                    foreach (var delivery in order.Deliveries)
+                    {
+                        OrderDeliveries.Add(new OrderDeliveryModel
+                        {
+                            ShipperName = delivery.ShipperName,
+                            ShipperPhone = delivery.ShipperPhone,
+                            LocationId = delivery.LocationId,
+                            DeliveryType = delivery.DeliveryType,
+                            EstimatedTime = delivery.EstimatedTime,
+                            Status = delivery.Status,
+                            DeliveryDate = delivery.DeliveryDate.HasValue ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                        });
+                    }
+                    response.OrderDeliveries = OrderDeliveries;
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
     }
 }

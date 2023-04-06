@@ -44,11 +44,12 @@ namespace Washouse.Web.Controllers
         private readonly INotificationAccountService _notificationAccountService;
         private readonly IStaffService _staffService;
         private ISendMailService _sendMailService;
+        private readonly ICloudStorageService _cloudStorageService;
         public OrderController(IOrderService orderService, ICustomerService customerService, 
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService, 
-            IStaffService staffService, ISendMailService sendMailService)
+            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -62,6 +63,7 @@ namespace Washouse.Web.Controllers
             this._notificationAccountService = notificationAccountService;
             this._staffService = staffService;
             this._sendMailService = sendMailService;
+            this._cloudStorageService = cloudStorageService;
         }
         #endregion
 
@@ -791,15 +793,26 @@ namespace Washouse.Web.Controllers
                 foreach (var order in orders)
                 {
                     decimal TotalOrderValue = 0;
+                    var orderedServices = new List<OrderedServiceModel>();
                     foreach (var item in order.OrderDetails)
                     {
                         TotalOrderValue += item.Price;
+                        orderedServices.Add(new OrderedServiceModel
+                        {
+                            ServiceName = item.Service.ServiceName,
+                            Measurement = item.Measurement,
+                            Unit = item.Service.Unit,
+                            Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                            ServiceCategory = item.Service.Category.CategoryName,
+                            Price = item.Price
+                        });
                     }
                     string _orderDate = null;
                     if (order.CreatedDate.HasValue)
                     {
-                        _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                        _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                     }
+
                     response.Add(new OrderCenterModel
                     {
                         OrderId = order.Id,
@@ -808,7 +821,8 @@ namespace Washouse.Web.Controllers
                         TotalOrderValue = TotalOrderValue,
                         Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                         TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
-                        Status = order.Status
+                        Status = order.Status,
+                        OrderedServices = orderedServices
                     });
                 }
                 int totalItems = response.Count();
