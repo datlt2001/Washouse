@@ -847,9 +847,26 @@ namespace Washouse.Web.Controllers
                             OrderedServices = orderedServices
                         });
                     }
-                    int totalItems = response.Count();
-                    int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
+
                     response.OrderByDescending(x => x.OrderDate);
+                    int totalItems = response.Count();
+                    if (filterOrdersRequestModel.PageSize == -1)
+                    {
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "success",
+                            Data = new
+                            {
+                                TotalItems = totalItems,
+                                TotalPages = 0,
+                                ItemsPerPage = -1,
+                                PageNumber = 0,
+                                Items = response
+                            }
+                        });
+                    }
+                    int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
                     response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
                     if (response.Count > 0)
                     {
