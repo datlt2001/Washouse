@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,6 +101,19 @@ namespace Washouse.Data.Repositories
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public new async Task<Account> GetById(int id)
+        {
+            var data = await this._dbContext.Accounts
+                    .Include(account => account.Wallet)
+                        .ThenInclude(wallet => wallet.Transactions)
+                    .Include(account => account.Wallet)
+                        .ThenInclude(wallet => wallet.WalletTransactionFromWallets)
+                    .Include(account => account.Wallet)
+                        .ThenInclude(wallet => wallet.WalletTransactionToWallets)
+                    .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
         }
     }
 }

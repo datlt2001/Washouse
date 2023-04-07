@@ -11,6 +11,7 @@ using NuGet.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -43,16 +44,19 @@ namespace Washouse.Web.Controllers
         private ICustomerService _customerService;
         public IStaffService _staffService;
         public ICloudStorageService _cloudStorageService;
+        public IWalletService _walletService;
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, 
-            IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService, IStaffService staffService, ICloudStorageService cloudStorageService)
+            IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
+            IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
             this._accountService = accountService;
             this._sendMailService = sendMailService;
-            _customerService = customerService;
-            _staffService = staffService;
-            _cloudStorageService = cloudStorageService;
+            this._customerService = customerService;
+            this._staffService = staffService;
+            this._cloudStorageService = cloudStorageService;
+            this._walletService = walletService;
         }
 
         [HttpPost("login")]
@@ -939,5 +943,93 @@ namespace Washouse.Web.Controllers
 
             }
         }
+
+        [HttpGet("my-wallet")]
+        public async Task<IActionResult> GetMyWallet()
+        {
+            int id = int.Parse(User.FindFirst("Id")?.Value);
+            var account = await _accountService.GetById(id);
+            if (account == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Account not found",
+                    Data = null
+                });
+            } else
+            {
+                if (account.Wallet == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Account do not have wallet",
+                        Data = null
+                    });
+                } else
+                {
+                    var transactions = new List<TransactionResponseModel>();
+                    foreach (var item in account.Wallet.Transactions)
+                    {
+                        string _plusOrMinus = "minus";
+                        if (item.Type.ToLower().Equals("deposit"))
+                        {
+                            _plusOrMinus = "plus";
+                        }
+                        transactions.Add(new TransactionResponseModel
+                        {
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = _plusOrMinus,
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss")
+                        });
+                    }
+                    var walletTransactions = new List<WalletTransactionResponseModel>();
+                    foreach (var item in account.Wallet.WalletTransactionFromWallets)
+                    {
+                        walletTransactions.Add(new WalletTransactionResponseModel
+                        {
+                            PaymentId = item.PaymentId,
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = "Minus",
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                        });
+                    }
+                    foreach (var item in account.Wallet.WalletTransactionToWallets)
+                    {
+                        walletTransactions.Add(new WalletTransactionResponseModel
+                        {
+                            PaymentId = item.PaymentId,
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = "Plus",
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                        });
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new WalletResponseModel
+                        {
+                            WalletId = account.Wallet.Id,
+                            Balance = account.Wallet.Balance,
+                            Status = account.Wallet.Status,
+                            Transactions = transactions.OrderByDescending(tran => DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)).ToList(),
+                            WalletTransactions = walletTransactions.OrderByDescending(tran => DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)).ToList()
+                        }
+                    });
+                }
+            }
+
+        }
+
     }
 }
