@@ -24,6 +24,7 @@ namespace Washouse.Model.RequestModels
         public string? Additions { get; set; }
         public string? SearchString { get; set; }
         public bool HasDelivery { get; set; }
+        public bool HasOnlinePayment { get; set; }
         public decimal? CurrentUserLatitude { get; set; }
         public decimal? CurrentUserLongitude { get; set; }
     }

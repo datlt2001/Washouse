@@ -39,6 +39,7 @@ namespace Washouse.Model.Models
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }
         public bool HasDelivery { get; set; }
+        public bool HasOnlinePayment { get; set; }
 
         public virtual Location Location { get; set; }
         public virtual Wallet Wallet { get; set; }

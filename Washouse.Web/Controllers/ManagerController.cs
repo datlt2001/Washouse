@@ -16,6 +16,8 @@ using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
 using Washouse.Model.RequestModels;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Washouse.Web.Controllers
 {
@@ -337,7 +339,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager")]
         // GET: api/manager/services
         [HttpGet("services")]
-        public async Task<IActionResult> GetServicesOfCenterManaged()
+        public async Task<IActionResult> GetServicesOfCenterManaged(FilterServicesOfCenterRequestModel filter)
         {
             try
             {
@@ -366,7 +368,14 @@ namespace Washouse.Web.Controllers
                     }
                     if (services != null)
                     {
+                        if (!filter.SearchString.IsNullOrEmpty())
+                        {
+                            services = services.Where(service => (service.ServiceName.ToLower().Contains(filter.SearchString.ToLower()))
+                                                               || (service.Alias.ToLower().Contains(filter.SearchString.ToLower())))
+                                                  .ToList();
+                        }
                         var servicesOfCenter = new List<ServiceCenterModel>();
+
                         foreach (var item in services)
                         {
                             var servicePriceViewModels = new List<ServicePriceViewModel>();
@@ -395,6 +404,7 @@ namespace Washouse.Web.Controllers
                                 ServiceName = item.ServiceName,
                                 Alias = item.Alias,
                                 CategoryId = item.CategoryId,
+                                CategoryName = item.Category.CategoryName,
                                 Description = item.Description,
                                 Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                                 PriceType = item.PriceType,
@@ -414,11 +424,22 @@ namespace Washouse.Web.Controllers
                             };
                             servicesOfCenter.Add(itemResponse);
                         }
+                        int totalItems = servicesOfCenter.Count();
+                        int totalPages = (int)Math.Ceiling((double)totalItems / filter.Pagination.PageSize);
+                        servicesOfCenter = servicesOfCenter.Skip((filter.Pagination.Page - 1) * filter.Pagination.PageSize).Take(filter.Pagination.PageSize).ToList();
+
                         return Ok(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status200OK,
                             Message = "success",
-                            Data = servicesOfCenter
+                            Data = new
+                            {
+                                TotalItems = totalItems,
+                                TotalPages = totalPages,
+                                ItemsPerPage = filter.Pagination.PageSize,
+                                PageNumber = filter.Pagination.Page,
+                                Items = servicesOfCenter
+                            }
                         });
                     }
                     else
@@ -556,7 +577,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers
         [HttpGet("my-center/customers")]
-        public async Task<IActionResult> GetCustomerOfCenterManaged()
+        public async Task<IActionResult> GetCustomerOfCenterManaged([FromQuery] FilterCustomersOfCenterRequestModel filter)
         {
             try
             {
@@ -585,6 +606,12 @@ namespace Washouse.Web.Controllers
                     }
                     if (customersOfCenter != null)
                     {
+                        if (!filter.SearchString.IsNullOrEmpty())
+                        {
+                            customersOfCenter = customersOfCenter.Where(cus => (cus.Fullname.ToLower().Contains(filter.SearchString.ToLower()))
+                                                               || (cus.Phone.ToLower().Contains(filter.SearchString.ToLower())))
+                                                  .ToList();
+                        }
                         var customers = new List<CustomerCenterModel>();
                         foreach (var item in customersOfCenter)
                         {
@@ -594,6 +621,14 @@ namespace Washouse.Web.Controllers
                                 var location = await _locationService.GetById(item.Address.Value);
                                 addressStringResponse = location.AddressString + ", " + location.Ward.WardName + ", " + location.Ward.District.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
                             }
+                            string dob = null;
+                            int? gender = null;
+                            if (item.AccountId != null)
+                            {
+                                var account = await _accountService.GetById(item.AccountId.Value);
+                                dob = account.Dob.HasValue ? (account.Dob.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                                gender = account.Gender;
+                            }
                             var itemResponse = new CustomerCenterModel
                             {
                                 Id = item.Id,
@@ -601,15 +636,28 @@ namespace Washouse.Web.Controllers
                                 Fullname = item.Fullname,
                                 Phone = item.Phone,
                                 Email = item.Email,
-                                AddressString = addressStringResponse
+                                AddressString = addressStringResponse,
+                                DateOfBirth = dob,
+                                Gender = gender
                             };
                             customers.Add(itemResponse);
                         }
+                        int totalItems = customers.Count();
+                        int totalPages = (int)Math.Ceiling((double)totalItems / filter.Pagination.PageSize);
+                        customers = customers.Skip((filter.Pagination.Page - 1) * filter.Pagination.PageSize).Take(filter.Pagination.PageSize).ToList();
+
                         return Ok(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status200OK,
                             Message = "success",
-                            Data = customers
+                            Data = new
+                            {
+                                TotalItems = totalItems,
+                                TotalPages = totalPages,
+                                ItemsPerPage = filter.Pagination.PageSize,
+                                PageNumber = filter.Pagination.Page,
+                                Items = customers
+                            }
                         });
                     }
                     else
@@ -700,9 +748,28 @@ namespace Washouse.Web.Controllers
                         orders = orders.Where(order => (order.OrderDetails.Any(orderDetail => (orderDetail.Service.ServiceName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
                                                                                     || (orderDetail.Service.Alias != null && orderDetail.Service.Alias.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))))
                                                            || order.Id.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
-                                                           || order.OrderDetails.FirstOrDefault().Service.Center.CenterName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
+                                                           || order.CustomerEmail.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
+                                                           || (order.Customer != null && order.Customer.Fullname.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower()))
+                                                           || order.CustomerName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
                                               .ToList();
+                    }
+                    if (filterOrdersRequestModel.Status != null)
+                    {
+                        orders = orders.Where(order => order.Status.ToLower().Equals(filterOrdersRequestModel.Status.ToLower()));
+                    }
+                    if (filterOrdersRequestModel.FromDate != null)
+                    {
+                        DateTime dateValue;
+                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.FromDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
 
+                        orders = orders.Where(order => (order.CreatedDate >= dateValue));
+                    }
+                    if (filterOrdersRequestModel.ToDate != null)
+                    {
+                        DateTime dateValue;
+                        bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
+
+                        orders = orders.Where(order => (order.CreatedDate <= dateValue));
                     }
                     var response = new List<OrderCenterModel>();
                     foreach (var order in orders)
@@ -742,7 +809,7 @@ namespace Washouse.Web.Controllers
                     }
                     int totalItems = response.Count();
                     int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
-
+                    response.OrderByDescending(x => x.OrderDate);
                     response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize).Take(filterOrdersRequestModel.PageSize).ToList();
                     if (response.Count > 0)
                     {
@@ -802,7 +869,7 @@ namespace Washouse.Web.Controllers
         /// <response code="404">Not found any order matched</response>   
         /// <response code="400">One or more error occurs</response>   
         /// <response code="401">Unauthorization</response>   
-        // GET: api/manager/my-center/orders
+        // GET: api/manager/my-center/orders/{id}
         [HttpGet("my-center/orders/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]

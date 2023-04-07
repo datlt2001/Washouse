@@ -98,6 +98,7 @@ namespace Washouse.Web.Controllers
                     centerList = centerList.Where(center => center.Status.Trim().ToLower().Equals("active")
                                                         || center.Status.Trim().ToLower().Equals("updatepending"));
                 }
+                centerList = centerList.Where(center => center.Services.Count > 0).ToList();
                 if (filterCentersRequestModel.SearchString != null)
                 {
                     centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
@@ -153,8 +154,13 @@ namespace Washouse.Web.Controllers
                     for (int i = 0; i < 7; i++) {
                         dayOffs.Add(i);
                     }
+                    bool _isOpening = false;
                     foreach (var item in center.OperatingHours)
                     {
+                        if(item.DaysOfWeek.Id == (int)DateTime.Today.DayOfWeek && item.CloseTime > DateTime.Now.TimeOfDay && item.OpenTime < DateTime.Now.TimeOfDay)
+                        {
+                            _isOpening = true;
+                        }
                         dayOffs.Remove(item.DaysOfWeek.Id);
                         var centerOperatingHour = new CenterOperatingHoursResponseModel
                         {
@@ -209,6 +215,8 @@ namespace Washouse.Web.Controllers
                         MinPrice = minPrice,
                         MaxPrice = maxPrice,
                         HasDelivery = center.HasDelivery,
+                        HasOnlinePayment = center.HasOnlinePayment,
+                        IsOpening = _isOpening,
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
@@ -289,7 +297,17 @@ namespace Washouse.Web.Controllers
                         }
                     }
                 }
-
+                if (filterCentersRequestModel.HasOnlinePayment)
+                {
+                    foreach (var item in response.ToList())
+                    {
+                        if (!item.HasOnlinePayment)
+                        {
+                            response.Remove(item);
+                        }
+                    }
+                }
+                response.OrderByDescending(center => center.IsOpening).ToList();
                 int totalItems = response.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
 
@@ -507,6 +525,7 @@ namespace Washouse.Web.Controllers
                     response.MaxPrice = maxPrice;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.HasOnlinePayment = center.HasOnlinePayment;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
@@ -560,7 +579,7 @@ namespace Washouse.Web.Controllers
         ///         "monthOff": "16",
         ///         "savedFileName": "ThumbnailCenter01-20230322184337.png"
         ///       },
-        ///       location: {
+        ///       "location": {
         ///         "addressString": "103 Quang Trung",
         ///         "wardId": 40,
         ///         "latitude": 0,
@@ -641,6 +660,17 @@ namespace Washouse.Web.Controllers
                 var location = new Model.Models.Location();
                 if (ModelState.IsValid)
                 {
+                    int currentUserId = int.Parse(User.FindFirst("Id")?.Value);
+                    Staff manager = await _staffService.GetByAccountId(currentUserId);
+                    if (manager != null && manager.CenterId.HasValue)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "You are a manager of a center. Please check again.",
+                            Data = null
+                        });
+                    }
                     //Add Location
                     location.AddressString = createCenterRequestModel.Location.AddressString;
                     location.WardId = createCenterRequestModel.Location.WardId;
@@ -736,6 +766,7 @@ namespace Washouse.Web.Controllers
                     center.NumOfRating = 0;
                     //center.HasDelivery = (bool)createCenterRequestModel.Center.HasDelivery;
                     center.HasDelivery = false;
+                    center.HasOnlinePayment = false;
                     center.CreatedDate = DateTime.Now;
                     center.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     center.UpdatedDate = null;

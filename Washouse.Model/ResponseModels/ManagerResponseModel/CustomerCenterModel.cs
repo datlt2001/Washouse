@@ -14,5 +14,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public string Phone { get; set; }
         public string Email { get; set; }
         public string AddressString { get; set; }
+        public string DateOfBirth { get; set; }
+        public int? Gender { get; set; }
     }
 }
