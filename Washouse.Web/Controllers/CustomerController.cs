@@ -87,8 +87,15 @@ namespace Washouse.Web.Controllers
             response.Email = customer.Email;
             response.Gender = user.Gender;
             response.WalletId = user.WalletId;
-            string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
-            response.Dob = dob;
+            if (user.Dob != null)
+            {
+                string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                response.Dob = dob;
+            }
+            else
+            {
+                response.Dob = null;
+            }
             if (user != null)
             {
                 response.ProfilePic = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null;
@@ -360,14 +367,21 @@ namespace Washouse.Web.Controllers
             response.Email = customer.Email;
             response.Gender = user.Gender;
             response.WalletId = user.WalletId;
-            string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
-            response.Dob = dob;
+            if (user.Dob != null)
+            {
+                string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                response.Dob = dob;
+            }
+            else
+            {
+                response.Dob = null;
+            }
             if (user != null)
             {
                 response.ProfilePic = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null;
             }
             response.AccountId = accountId;
-            response.Id = accountId;
+            response.Id = customer.Id;
 
             if (customer == null) { return NotFound(); }
             return Ok(new ResponseModel
