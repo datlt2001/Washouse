@@ -425,6 +425,26 @@ namespace Washouse.Web.Controllers
                             servicesOfCenter.Add(itemResponse);
                         }
                         int totalItems = servicesOfCenter.Count();
+                        if (filter.Pagination != null && filter.Pagination.PageSize == -1)
+                        {
+                            return Ok(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status200OK,
+                                Message = "success",
+                                Data = new
+                                {
+                                    TotalItems = totalItems,
+                                    TotalPages = 0,
+                                    ItemsPerPage = -1,
+                                    PageNumber = 0,
+                                    Items = servicesOfCenter
+                                }
+                            });
+                        }
+                        else if (filter.Pagination == null)
+                        {
+                            filter.Pagination = new PaginationViewModel { Page = 1, PageSize = 10 };
+                        }
                         int totalPages = (int)Math.Ceiling((double)totalItems / filter.Pagination.PageSize);
                         servicesOfCenter = servicesOfCenter.Skip((filter.Pagination.Page - 1) * filter.Pagination.PageSize).Take(filter.Pagination.PageSize).ToList();
 
@@ -643,6 +663,26 @@ namespace Washouse.Web.Controllers
                             customers.Add(itemResponse);
                         }
                         int totalItems = customers.Count();
+                        if (filter.Pagination != null && filter.Pagination.PageSize == -1)
+                        {
+                            return Ok(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status200OK,
+                                Message = "success",
+                                Data = new
+                                {
+                                    TotalItems = totalItems,
+                                    TotalPages = 0,
+                                    ItemsPerPage = -1,
+                                    PageNumber = 0,
+                                    Items = customers
+                                }
+                            });
+                        }
+                        else if (filter.Pagination == null)
+                        {
+                            filter.Pagination = new PaginationViewModel { Page = 1, PageSize = 10 };
+                        }
                         int totalPages = (int)Math.Ceiling((double)totalItems / filter.Pagination.PageSize);
                         customers = customers.Skip((filter.Pagination.Page - 1) * filter.Pagination.PageSize).Take(filter.Pagination.PageSize).ToList();
 
