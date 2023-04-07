@@ -764,5 +764,76 @@ namespace Washouse.Web.Controllers
             }
             
         }
+
+        [HttpPut("{id}/profile-picture")]
+        public async Task<IActionResult> UpdateProfilePic(string? SavedFileName)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            else
+            {
+                string id = User.FindFirst("Id")?.Value;
+                Customer existingCustomer = _customerService.GetCustomerByAccID(int.Parse(id));
+                if (existingCustomer == null) { return NotFound(); }
+                else
+                {
+                    var userid = existingCustomer.AccountId ?? 0;
+                    Account account = await _accountService.GetById(userid);
+                    account.ProfilePic = SavedFileName;
+
+                    await _accountService.Update(account);
+                    return Ok(account);
+                }
+
+
+            }
+        }
+
+        [HttpPut("{id}/profile")]
+        public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input, int customerId)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            else
+            {
+                int  id = int.Parse(User.FindFirst("Id")?.Value);
+                Customer existingCustomer =  _customerService.GetCustomerByAccID(id);
+                Account user = await _accountService.GetById(id);
+
+                if (existingCustomer == null) { return NotFound(); }
+                else
+                {
+                    existingCustomer.Fullname = input.FullName;
+                    existingCustomer.UpdatedDate = DateTime.Now;
+                    existingCustomer.UpdatedBy = input.FullName;                  
+                    await _customerService.Update(existingCustomer);
+                    user.UpdatedDate = DateTime.Now;
+                    user.UpdatedBy = user.FullName;
+                    user.FullName = input.FullName;
+                    int age = DateTime.Now.Subtract((DateTime)input.Dob).Days;
+                    if (age > 18 && age < 80)
+                    {
+                        user.Dob = input.Dob;
+                    }
+                    else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "Not Updated because your age is not suitable for use this platform",
+                            Data = null
+                        });
+                    }
+
+                    await _accountService.Update(user);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Updated",
+                        Data = existingCustomer
+                    });
+                }
+
+            }
+        }
     }
 }
