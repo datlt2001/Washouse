@@ -339,7 +339,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager")]
         // GET: api/manager/services
         [HttpGet("services")]
-        public async Task<IActionResult> GetServicesOfCenterManaged(FilterServicesOfCenterRequestModel filter)
+        public async Task<IActionResult> GetServicesOfCenterManaged([FromQuery]FilterServicesOfCenterRequestModel filter)
         {
             try
             {
