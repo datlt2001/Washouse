@@ -139,15 +139,37 @@ namespace Washouse.Web.Controllers
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
             string Role = null;
+            var staff = await _staffService.GetByAccountId(user.Id);
+            //var customer = await _customerService.GetCustomerByAccID(user.Id);
+            var customer = _customerService.GetCustomerByAccID(user.Id);
             if (user.IsAdmin)
             {
                 Role = "Admin";
             } else if (!isManage)
             {
+                if (customer == null)
+                {
+                    try {
+                        var cusAdding = new Customer()
+                        {
+                            AccountId = user.Id,
+                            Status = true,
+                            Fullname = user.FullName,
+                            Phone = user.Phone,
+                            Address = user.LocationId,
+                            Email = user.Email,
+                            CreatedDate = DateTime.Now,
+                            CreatedBy = "AutoInserted"
+                        };
+                        await _customerService.Add(cusAdding);
+                    } catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                }
                 Role = "Customer";
             } else
             {
-                var staff = await _staffService.GetByAccountId(user.Id);
                 if (staff != null)
                 {
                     if (staff.IsManager)
@@ -355,21 +377,46 @@ namespace Washouse.Web.Controllers
             return dateTimeInterval;
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult GetAccountList()
         {
             var accounts = _accountService.GetAll();
-            if (accounts == null) { return NotFound(); }
-            return Ok(accounts);
+            if (accounts == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found account",
+                    Data = null
+                });
+            }
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = accounts
+            });
         }
-
+            
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccountById(int id)
         {
             var accounts = await _accountService.GetById(id);
-            if (accounts == null) { return NotFound(); }
-            return Ok(accounts);
+            if (accounts == null) {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found account",
+                    Data = null
+                });
+            }
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = accounts
+            });
         }
 
         [HttpPost("staffs")]
@@ -423,7 +470,14 @@ namespace Washouse.Web.Controllers
                 });
 
             }
-            else { return BadRequest(); }
+            else {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Model is not valid",
+                    Data = null
+                });
+            }
         }
 
 
@@ -433,10 +487,23 @@ namespace Washouse.Web.Controllers
             var account = await _accountService.GetById(id);
             if (account == null)
             {
-                return NotFound();
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found account",
+                    Data = null
+                });
             }
             await _accountService.DeactivateAccount(id);
-            return Ok();
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "sucess",
+                Data = new
+                {
+                    AccountId = id
+                }
+            });
         }
 
         [HttpPut("{id}/activate")]
@@ -445,10 +512,23 @@ namespace Washouse.Web.Controllers
             var account = await _accountService.GetById(id);
             if (account == null)
             {
-                return NotFound();
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found account",
+                    Data = null
+                });
             }
             await _accountService.ActivateAccount(id);
-            return Ok();
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "sucess",
+                Data = new
+                {
+                    AccountId = id
+                }
+            });
         }
 
         [HttpPut("{id}/change-password")]
@@ -766,14 +846,28 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/profile-picture")]
-        public async Task<IActionResult> UpdateProfilePic(string? SavedFileName)
+        public async Task<IActionResult> UpdateProfilePic(string SavedFileName)
         {
-            if (!ModelState.IsValid) { return BadRequest(); }
+            if (!ModelState.IsValid) {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Model is not valid",
+                    Data = null
+                });
+            }
             else
             {
                 string id = User.FindFirst("Id")?.Value;
                 Customer existingCustomer = _customerService.GetCustomerByAccID(int.Parse(id));
-                if (existingCustomer == null) { return NotFound(); }
+                if (existingCustomer == null) { 
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found customer",
+                        Data = null
+                    }); 
+                }
                 else
                 {
                     var userid = existingCustomer.AccountId ?? 0;
@@ -781,7 +875,12 @@ namespace Washouse.Web.Controllers
                     account.ProfilePic = SavedFileName;
 
                     await _accountService.Update(account);
-                    return Ok(account);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Updated",
+                        Data = existingCustomer
+                    }); ;
                 }
 
 
@@ -789,7 +888,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/profile")]
-        public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input, int customerId)
+        public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
             else
@@ -798,7 +897,12 @@ namespace Washouse.Web.Controllers
                 Customer existingCustomer =  _customerService.GetCustomerByAccID(id);
                 Account user = await _accountService.GetById(id);
 
-                if (existingCustomer == null) { return NotFound(); }
+                if (existingCustomer == null) { return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found customer",
+                        Data = null
+                    });  }
                 else
                 {
                     existingCustomer.Fullname = input.FullName;
