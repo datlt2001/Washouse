@@ -24,6 +24,7 @@ using static Google.Apis.Requests.BatchRequest;
 using Org.BouncyCastle.Bcpg;
 using Washouse.Common.Mails;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
+using System.IO;
 
 namespace Washouse.Web.Controllers
 {
@@ -469,7 +470,7 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    string path = "./Templates_email/CreateOrder.txt";
+                    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Template_email", "CreateOrder.txt");
                     string content = System.IO.File.ReadAllText(path);
                     content = content.Replace("{recipient}", customer.Fullname);
 
