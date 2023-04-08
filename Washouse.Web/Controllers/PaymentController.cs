@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Washouse.Common.Utils;
+using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Service.Interface;
@@ -19,12 +21,20 @@ namespace Washouse.Web.Controllers
         public IPaymentService _paymentService;
         private readonly VNPaySettings vnPaySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private IAccountService _accountService;
+        private ITransactionService _transactionService;
+        private IWalletService _walletService;
 
-        public PaymentController(IPaymentService paymentService, IOptions<VNPaySettings> _vnpaySettings, IHttpContextAccessor httpContextAccessor)
+        public PaymentController(IPaymentService paymentService, IOptions<VNPaySettings> _vnpaySettings, 
+                IHttpContextAccessor httpContextAccessor, IAccountService accountService, 
+                ITransactionService transactionService, IWalletService walletService)
         {
             _paymentService = paymentService;
             vnPaySettings = _vnpaySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _accountService = accountService;
+            _transactionService = transactionService;
+            _walletService = walletService;
         }
 
         [HttpGet]
@@ -116,19 +126,34 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("callback")]
-        public IActionResult ReturnUrl([FromQuery] VNPayTransactionResult result)
+        public async Task<IActionResult> ReturnUrl([FromQuery] VNPayTransactionResult result)
         {
+
             // Get the query parameters from the request
             var queryString = Request.Query;
+            var user = await _accountService.GetById(3);
+            var transaction = new Transaction();
 
+            transaction.TimeStamp = DateTime.Now;
+            transaction.WalletId = user.WalletId ?? 0;
+            if(result.vnp_ResponseCode == "00")
+            {
+                transaction.Status = "success";
+            }
             
+            transaction.Type = "deposit";
+            transaction.Amount = decimal.Parse(result.vnp_Amount)/100;
+
+            await _transactionService.Add(transaction);
+            
+
 
             // Return a response to VNPay
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Transaction completed successfully.",
-                Data = result
+                Data = transaction
             });
         }
 

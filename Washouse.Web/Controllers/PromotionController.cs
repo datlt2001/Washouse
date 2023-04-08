@@ -9,6 +9,7 @@ using Washouse.Model.Models;
 using Microsoft.AspNetCore.Http;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using System.Collections.Generic;
+using Washouse.Model.ResponseModels;
 
 namespace Washouse.Web.Controllers
 {
@@ -54,12 +55,12 @@ namespace Washouse.Web.Controllers
         {
             var promotion = _promotionService.GetAllByCenterId(id);
             if (promotion == null) return NotFound();
-            var promotionResponses = new List<PromotionCenterModel>();
+            var promotionResponses = new List<PromotionResponseModel>();
             foreach (var item in promotion)
             {
                 string _startDate = null;
                 string _expireDate = null;
-                string _updatedDate = null;
+                bool available = false;
                 if (item.StartDate.HasValue)
                 {
                     _startDate = item.StartDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
@@ -68,21 +69,22 @@ namespace Washouse.Web.Controllers
                 {
                     _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                 }
-                if (item.UpdatedDate.HasValue)
+                if(item.StartDate< DateTime.Now && DateTime.Now < item.ExpireDate && 
+                    (item.UseTimes == null || (item.UseTimes !=null && item.UseTimes > 0))) 
                 {
-                    _updatedDate = item.UpdatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
+                    available = true;
                 }
 
-                var itemResponse = new PromotionCenterModel
+                var itemResponse = new PromotionResponseModel
                 {
                     Code = item.Code,
                     Description = item.Description,
                     Discount = item.Discount,
                     StartDate = _startDate,
-                    ExpireDate = _expireDate,
-                    CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
-                    UpdatedDate = _updatedDate,
-                    UseTimes = item.UseTimes
+                    ExpireDate = _expireDate,                                  
+                    UseTimes = item.UseTimes,
+                    IsAvailable= available
+                    
                 };
                 promotionResponses.Add(itemResponse);
             }

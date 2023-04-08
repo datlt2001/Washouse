@@ -13,17 +13,26 @@ namespace Washouse.Service.Implement
     public class TransactionService : ITransactionService
     {
         private ITransactionRepository _transactionRepository;
+        private IWalletRepository _walletRepository;
         public IUnitOfWork unitOfWork;
 
-        public TransactionService(ITransactionRepository transactionRepository, IUnitOfWork unitOfWork)
+        public TransactionService(ITransactionRepository transactionRepository, IUnitOfWork unitOfWork, IWalletRepository walletRepository)
         {
             _transactionRepository = transactionRepository;
             this.unitOfWork = unitOfWork;
+            _walletRepository= walletRepository;
         }
 
         public async Task Add(Transaction transaction)
         {
             await _transactionRepository.Add(transaction);
+            
+            if(transaction.Type == "deposit")
+            {
+                Wallet wallet = await _walletRepository.GetById(transaction.WalletId);
+                wallet.Balance = wallet.Balance + transaction.Amount;
+                await _walletRepository.Update(wallet);
+            }          
         }
 
         public async Task Update(Transaction transaction)
