@@ -16,19 +16,22 @@ namespace Washouse.Service.Implement
         IOrderDetailRepository _orderDetailRepository;
         IDeliveryRepository _deliveryRepository;
         IPaymentRepository _paymentRepository;
+        IOrderTrackingRepository _orderTrackingRepository;
         IUnitOfWork _unitOfWork;
 
         public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository,
-            IDeliveryRepository deliveryRepository, IUnitOfWork unitOfWork, IPaymentRepository paymentRepository)
+            IDeliveryRepository deliveryRepository, IUnitOfWork unitOfWork, 
+            IPaymentRepository paymentRepository, IOrderTrackingRepository orderTrackingRepository)
         {
             this._orderRepository = orderRepository;
             this._orderDetailRepository = orderDetailRepository;
             this._deliveryRepository = deliveryRepository;
             this._unitOfWork = unitOfWork;
             this._paymentRepository = paymentRepository;
+            this._orderTrackingRepository = orderTrackingRepository;
         }
 
-        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment)
+        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, OrderTracking orderTracking)
         {
             try
             {
@@ -47,11 +50,15 @@ namespace Washouse.Service.Implement
                 }
                 payment.OrderId = order.Id;
                 await _paymentRepository.Add(payment);
+
+                orderTracking.OrderId = order.Id;
+                await _orderTrackingRepository.Add(orderTracking);
+
                 return order;
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 

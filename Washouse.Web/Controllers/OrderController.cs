@@ -432,11 +432,18 @@ namespace Washouse.Web.Controllers
                     payment.Total = payment.PromoCode != null ? totalPayment * (1-promotion.Discount) : totalPayment;
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
-                    //Check ví
+
+                    //OrderTracking
+                    var orderTracking = new OrderTracking();
+                    orderTracking.OrderId = order.Id;
+                    orderTracking.Status = "Pending";
+                    orderTracking.CreatedDate = DateTime.Now;
+                    orderTracking.CreatedBy = "AutoInsert";
+
 
 
                     //
-                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment);
+                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
 
                     //Update Promotion UseTimes
                     if (promotion != null) {
@@ -454,6 +461,7 @@ namespace Washouse.Web.Controllers
                     notification.CreatedDate = DateTime.Now;
                     notification.Content = "Order " + orderAdded.Id + " đã được tạo";
                     await _notificationService.Add(notification);
+
                     if (id != null)
                     {                                                                     
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
@@ -473,7 +481,7 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    //string path = "/Templates_email/CreateOrder.txt";
+                    //string path = "./Templates_email/CreateOrder.txt";
                     //string physicalPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", path.TrimStart('/').Replace('/', '\\'));
                     //string content = System.IO.File.ReadAllText(physicalPath);
                     //content = content.Replace("{recipient}", customer.Fullname);

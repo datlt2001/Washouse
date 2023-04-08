@@ -970,8 +970,8 @@ namespace Washouse.Web.Controllers
                     response.CustomerOrdered = order.CustomerId;
                     response.DeliveryType = order.DeliveryType;
                     response.DeliveryPrice = order.DeliveryPrice;
-                    response.PreferredDropoffTime = order.PreferredDropoffTime;
-                    response.PreferredDeliverTime = order.PreferredDeliverTime;
+                    response.PreferredDropoffTime = order.PreferredDropoffTime.HasValue ? (order.PreferredDropoffTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                    response.PreferredDeliverTime = order.PreferredDeliverTime.HasValue ? (order.PreferredDeliverTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
                     response.Status = order.Status;
                     var OrderedDetails = new List<OrderDetailInfomationModel>();
                     var OrderTrackings = new List<OrderTrackingModel>();
@@ -1009,6 +1009,8 @@ namespace Washouse.Web.Controllers
                             ServiceCategory = item.Service.Category.CategoryName,
                             Measurement = item.Measurement,
                             Unit = item.Service.Unit,
+                            CustomerNote = item.CustomerNote,
+                            StaffNote = item.StaffNote,
                             Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
                             Price = item.Service.Price,
                             OrderDetailTrackings = _orderDetailTrackingModel

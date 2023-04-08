@@ -13,6 +13,8 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public decimal? Measurement { get; set; }
         public string Unit { get; set; }
         public string Image { get; set; }
+        public string CustomerNote { get; set; }
+        public string StaffNote { get; set; }
         public decimal? Price { get; set; }
         public List<OrderDetailTrackingModel> OrderDetailTrackings { get; set; }
     }

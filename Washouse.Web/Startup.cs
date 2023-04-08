@@ -194,6 +194,8 @@ namespace Washouse.Web
             services.AddTransient<ICustomerRepository, CustomerRepository>();
             services.AddTransient<IStaffService, StaffService>();
             services.AddTransient<IStaffReposity, StaffRepository>();
+            services.AddTransient<IOrderTrackingRepository, OrderTrackingRepository>();
+            services.AddTransient<IOrderDetailTrackingRepository, OrderDetailTrackingRepository>();
             services.AddTransient<IOperatingHourRepository, OperatingHourRepository>();
             services.AddTransient<IOperatingHourService, OperatingHourService>();
 

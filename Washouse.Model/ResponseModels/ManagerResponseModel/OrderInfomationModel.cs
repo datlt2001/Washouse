@@ -18,8 +18,8 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public decimal TotalOrderValue { get; set; }
         public int DeliveryType { get; set; }
         public decimal? DeliveryPrice { get; set; }
-        public DateTime? PreferredDropoffTime { get; set; }
-        public DateTime? PreferredDeliverTime { get; set; }
+        public string PreferredDropoffTime { get; set; }
+        public string PreferredDeliverTime { get; set; }
         public string Status { get; set; }
         public List<OrderDetailInfomationModel> OrderedDetails { get; set; }
         public List<OrderTrackingModel> OrderTrackings { get; set; }
