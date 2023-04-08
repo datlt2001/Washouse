@@ -523,11 +523,14 @@ namespace Washouse.Web.Controllers
                 {
                     if (requestModel.DeliveryType == 0)
                     {
-                        return NotFound(new ResponseModel
+                        return Ok(new ResponseModel
                         {
-                            StatusCode = StatusCodes.Status404NotFound,
+                            StatusCode = StatusCodes.Status200OK,
                             Message = "Delivery type not choosen",
-                            Data = null
+                            Data = new
+                            {
+                                deliveryPrice = 0
+                            }
                         });
                     }
                     decimal weight = requestModel.TotalWeight;

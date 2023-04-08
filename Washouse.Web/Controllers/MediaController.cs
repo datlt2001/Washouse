@@ -1,8 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Security.Cryptography.Xml;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Common.Mails;
@@ -139,6 +146,77 @@ namespace Washouse.Web.Controllers
                     StatusCode = StatusCodes.Status200OK,
                     Message = "success",
                     Data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpPost("link")]
+        public async Task<IActionResult> UploadLink(string link)
+        {
+            try
+            {
+                //link = "https://lh3.googleusercontent.com/a/AGNmyxZuwoWx82ykgNQKCP-Dnj8I3GLPAFbFW19nKF8P1w=s100";
+                string SavedUrl = null;
+                string SignedUrl = null;
+                string SavedFileName = null;
+
+                SavedFileName = Path.GetFileName(link);
+
+                // Download the file from the link
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync(link);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsByteArrayAsync();
+
+                        // Save the file to a temporary location
+                        var tempFileName = Path.GetTempFileName();
+                        using (var fileStream = new FileStream(tempFileName, FileMode.Create))
+                        {
+                            await fileStream.WriteAsync(content, 0, content.Length);
+                        }
+
+                        // Create an IFormFile from the temporary file
+                        var file = new FileInfo(tempFileName);
+                        var fileContent = new FileStream(tempFileName, FileMode.Open);
+                        var formFile = new FormFile(fileContent, 0, file.Length, file.Name, file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = "application/octet-stream"
+                        };
+
+                        // Upload the file to Google Cloud Storage
+                        SavedUrl = await _cloudStorageService.UploadFileAsync(formFile, SavedFileName);
+                        SignedUrl = await _cloudStorageService.GetSignedUrlAsync(SavedFileName);
+
+                        // Delete the temporary file
+                        fileContent.Dispose();
+                        //File.Delete(tempFileName);
+                    }
+                }
+
+                
+
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new ImageResponseModel
+                    {
+                        SavedUrl = SavedUrl,
+                        SavedFileName = SavedFileName,
+                        SignedUrl = SignedUrl
+                    }
                 });
             }
             catch (Exception ex)

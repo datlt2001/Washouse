@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
+using System.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
@@ -35,12 +37,18 @@ namespace Washouse.Web.Controllers
             _districtService = districtService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult GetCustomerList()
         {
             var customer = _customerService.GetAll();
             if (customer == null) { return NotFound(); }
-            return Ok(customer);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = customer
+            });
         }
 
         [HttpGet("{customerId}")]
@@ -302,6 +310,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateCustomer(int id)
         {
@@ -314,6 +323,7 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}/activate")]
         public async Task<IActionResult> ActivateCustomer(int id)
         {
@@ -326,11 +336,13 @@ namespace Washouse.Web.Controllers
             return Ok();
         }
 
+
+
         [HttpGet("account/{accountId}")]
         public async Task<IActionResult> GetCustomerByAccountId(int accountId)
         {
             var user = await _accountService.GetById(accountId);
-            var customer = _customerService.GetCustomerByAccID(user.Id);
+            var customer = await _customerService.GetCustomerByAccID(user.Id);
             var response = new CustomerDetailResponseModel();
             if (customer.Address != null)
             {

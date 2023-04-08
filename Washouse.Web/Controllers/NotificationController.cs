@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
+using Washouse.Model.ResponseModels;
 using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
@@ -53,26 +55,40 @@ namespace Washouse.Web.Controllers
         //    });
         //}
 
+        [Authorize]
         [HttpGet("account/{accountId}")]
-        public IActionResult GetNotifications(int accountId, bool isRead)
+        public IActionResult GetNotifications(int accountId, bool? isRead)
         {
-            IEnumerable<NotificationViewModel> notis = null;
-            if (isRead == true)
+            IEnumerable<NotificationViewModel> notis = null;                   
+            if (isRead == null) 
+            {
+
+                notis = _notificationService.GetNotifications(accountId);
+            }
+            else if (isRead != null && isRead == true)
             {
                 notis = _notificationService.GetNotificationRead(accountId);
+
             }
-            else
+            else if (isRead != null && isRead == false)
             {
                 notis = _notificationService.GetNotificationUnread(accountId);
-            }
+
+            }                       
+
             return Ok(new ResponseModel
             {
                 StatusCode = 0,
                 Message = "success",
-                Data = notis
+                Data = new
+                {
+                    NumOfUnread = _notificationService.CountNotificationUnread(accountId),
+                    Notifications =notis
+                }
             });
         }
 
+        [Authorize]
         [HttpPost("read")]
         public async Task<IActionResult> UpdateNotification(int notiId)
         {

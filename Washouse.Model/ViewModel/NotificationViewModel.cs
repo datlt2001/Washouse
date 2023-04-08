@@ -13,6 +13,7 @@ namespace Washouse.Model.ViewModel
         public string OrderId { get; set; }
         public int AccountId { get; set; }
         public string CreatedDate { get; set; }
+        public bool IsRead { get; set; }
 
     }
 }

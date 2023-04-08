@@ -50,5 +50,15 @@ namespace Washouse.Service.Implement
         {
             return _notificationRepository.GetNotificationRead(accountId);
         }
+
+        public int CountNotificationUnread(int accountId)
+        {
+            return _notificationRepository.CountNotificationUnread(accountId);
+        }
+
+        public IEnumerable<NotificationViewModel> GetNotifications(int accountId)
+        {
+            return _notificationRepository.GetNotifications(accountId);
+        }
     }
 }

@@ -58,7 +58,12 @@ namespace Washouse.Web.Controllers
         {
             var staff = _staffService.GetAll();
             if (staff == null) { return NotFound(); }
-            return Ok(staff);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = staff
+            });
         }
 
         [HttpGet("{id}")]
@@ -66,7 +71,12 @@ namespace Washouse.Web.Controllers
         {
             var staff = await _staffService.GetById(id);
             if (staff == null) { return NotFound(); }
-            return Ok(staff);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = staff
+            });
         }
 
         [HttpPut("{id}/deactivate")]

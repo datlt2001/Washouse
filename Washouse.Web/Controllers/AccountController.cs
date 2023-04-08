@@ -144,8 +144,8 @@ namespace Washouse.Web.Controllers
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
             string Role = null;
             var staff = await _staffService.GetByAccountId(user.Id);
-            //var customer = await _customerService.GetCustomerByAccID(user.Id);
-            var customer = _customerService.GetCustomerByAccID(user.Id);
+            var customer = await _customerService.GetCustomerByAccID(user.Id);
+            //var customer = _customerService.GetCustomerByAccID(user.Id);
             if (user.IsAdmin)
             {
                 Role = "Admin";
@@ -863,7 +863,7 @@ namespace Washouse.Web.Controllers
             else
             {
                 string id = User.FindFirst("Id")?.Value;
-                Customer existingCustomer = _customerService.GetCustomerByAccID(int.Parse(id));
+                Customer existingCustomer = await _customerService.GetCustomerByAccID(int.Parse(id));
                 if (existingCustomer == null) { 
                     return NotFound(new ResponseModel
                     {
@@ -898,7 +898,7 @@ namespace Washouse.Web.Controllers
             else
             {
                 int  id = int.Parse(User.FindFirst("Id")?.Value);
-                Customer existingCustomer =  _customerService.GetCustomerByAccID(id);
+                Customer existingCustomer =  await _customerService.GetCustomerByAccID(id);
                 Account user = await _accountService.GetById(id);
 
                 if (existingCustomer == null) { return NotFound(new ResponseModel

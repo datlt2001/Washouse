@@ -7,6 +7,8 @@ using Washouse.Web.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.Models;
 using Microsoft.AspNetCore.Http;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
+using System.Collections.Generic;
 
 namespace Washouse.Web.Controllers
 {
@@ -52,11 +54,43 @@ namespace Washouse.Web.Controllers
         {
             var promotion = _promotionService.GetAllByCenterId(id);
             if (promotion == null) return NotFound();
+            var promotionResponses = new List<PromotionCenterModel>();
+            foreach (var item in promotion)
+            {
+                string _startDate = null;
+                string _expireDate = null;
+                string _updatedDate = null;
+                if (item.StartDate.HasValue)
+                {
+                    _startDate = item.StartDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
+                }
+                if (item.ExpireDate.HasValue)
+                {
+                    _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
+                }
+                if (item.UpdatedDate.HasValue)
+                {
+                    _updatedDate = item.UpdatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
+                }
+
+                var itemResponse = new PromotionCenterModel
+                {
+                    Code = item.Code,
+                    Description = item.Description,
+                    Discount = item.Discount,
+                    StartDate = _startDate,
+                    ExpireDate = _expireDate,
+                    CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                    UpdatedDate = _updatedDate,
+                    UseTimes = item.UseTimes
+                };
+                promotionResponses.Add(itemResponse);
+            }
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "success",
-                Data = promotion
+                Data = promotionResponses
             });
         }
 

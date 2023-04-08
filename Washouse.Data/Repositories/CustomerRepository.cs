@@ -63,12 +63,12 @@ namespace Washouse.Data.Repositories
             }
         }
 
-        public Customer GetCustomerByAccID(int accountId)
+        public async Task<Customer> GetCustomerByAccID(int accountId)
         {
             try
             {
 
-                var customer = this.DbContext.Customers.SingleOrDefault(c => c.AccountId == accountId);
+                var customer =  this.DbContext.Customers.SingleOrDefault(c => c.AccountId == accountId);
 
 
                 return customer;

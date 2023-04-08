@@ -21,5 +21,9 @@ namespace Washouse.Service.Interface
 
         public IEnumerable<NotificationViewModel> GetNotificationUnread(int accountId);
         public IEnumerable<NotificationViewModel> GetNotificationRead(int accountId);
+
+        public int CountNotificationUnread(int accountId);
+
+         IEnumerable<NotificationViewModel> GetNotifications(int accountId);
     }
 }

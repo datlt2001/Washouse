@@ -20,6 +20,9 @@ using Washouse.Web.Models;
 using static System.Net.WebRequestMethods;
 using Washouse.Model.ResponseModels;
 using System.ComponentModel.DataAnnotations;
+using Washouse.Model.Models;
+using Washouse.Service.Implement;
+using Washouse.Common.Mails;
 
 namespace Washouse.Web.Controllers
 {
@@ -28,10 +31,18 @@ namespace Washouse.Web.Controllers
     public class LoginController : ControllerBase
     {
         private readonly ISMSService _smsService;
+        private IAccountService _accountService;
+        //private ISendMailService _sendMailService;
+        private ICustomerService _customerService;
+        public IStaffService _staffService;
 
-        public LoginController(ISMSService smsService)
+        public LoginController(ISMSService smsService, IAccountService accountService, ICustomerService customerService,
+                                IStaffService staffService )
         {
             _smsService = smsService;
+            _accountService = accountService;
+            _customerService = customerService;
+            _staffService = staffService;
         }
 
         //[Authorize(AuthenticationSchemes = GoogleDefaults.AuthenticationScheme)]
@@ -129,6 +140,63 @@ namespace Washouse.Web.Controllers
                 Message = "Updated",
                 Data = otp
             });
+        }
+
+        [HttpPost("customers")]
+        public async Task<IActionResult> RegisterAsCustomer([FromBody] AccountGoogleRegisRequestModel Input)
+        {
+            if (ModelState.IsValid)
+            {
+                var existphone = _accountService.GetAccountByPhone(Input.Phone);
+                var existemail = _accountService.GetAccountByEmail(Input.Email);
+                if (existphone != null || existemail != null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Email or Phone have existed please change",
+                        Data = null
+                    });
+                }
+                var accounts = new Account()
+                {
+                    Phone = Input.Phone,
+                    Email = Input.Email,
+                    //Password = Input.Password,
+                    Status = false,
+                    FullName = Input.Fullname,                  
+                    ProfilePic = Input.SavedFileName,
+                    CreatedDate = DateTime.Now,
+                    CreatedBy = Input.Email,
+
+                };             
+                await _accountService.Add(accounts);
+                var customer = new Customer()
+                {
+                    AccountId = accounts.Id,
+                    Fullname = accounts.FullName,
+                    Phone = accounts.Phone,
+                    Email = accounts.Email,
+                    Status = false,
+                    CreatedBy = accounts.CreatedBy,
+                    CreatedDate = DateTime.Now,
+                };
+                await _customerService.Add(customer);
+                //string path = "./Templates_email/VerifyAccount.txt";
+                //string content = System.IO.File.ReadAllText(path);
+                //content = content.Replace("{recipient}", customer.Fullname);
+                //string url = "https://localhost:44360/api/accounts/veriyAccount/"+ customer.AccountId;
+                //content = content.Replace("{link}", url);
+                //await _sendMailService.SendEmailAsync("minhkilo64@gmail.com", "Verify Account", content);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = accounts
+                });
+            }
+            else { return BadRequest(); }
+
         }
     }
 }

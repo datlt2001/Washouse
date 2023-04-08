@@ -15,6 +15,6 @@ namespace Washouse.Data.Repositories
         public Task ActivateCustomer(int id);
         Task<IEnumerable<Customer>> CustomersOfCenter(int centerId);
 
-        public Customer GetCustomerByAccID(int accountId);
+        public Task<Customer> GetCustomerByAccID(int accountId);
     }
 }
