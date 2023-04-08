@@ -26,6 +26,8 @@ using Washouse.Common.Mails;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace Washouse.Web.Controllers
 {
@@ -47,11 +49,11 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private ISendMailService _sendMailService;
         private readonly ICloudStorageService _cloudStorageService;
-        
-        public OrderController(IOrderService orderService, ICustomerService customerService, 
+
+        public OrderController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
-            INotificationService notificationService, INotificationAccountService notificationAccountService, 
+            INotificationService notificationService, INotificationAccountService notificationAccountService,
             IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService)
         {
             this._orderService = orderService;
@@ -219,8 +221,8 @@ namespace Washouse.Web.Controllers
                         customer.CreatedDate = DateTime.Now;
                         customer.CreatedBy = "AutoInsert";
                         await _customerService.Add(customer);
-                    } 
-                    else if(User.FindFirst(ClaimTypes.Role)?.Value == null && customerByPhone != null)
+                    }
+                    else if (User.FindFirst(ClaimTypes.Role)?.Value == null && customerByPhone != null)
                     {
                         customer = customerByPhone;
                     }
@@ -228,9 +230,9 @@ namespace Washouse.Web.Controllers
                     {
                         customer.Id = int.Parse(User.FindFirst("Id")?.Value);
                     }
-                    
+
                     var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
-                    
+
                     int lastId = 0;
                     if (orders.ToList().Count > 0)
                     {
@@ -259,7 +261,7 @@ namespace Washouse.Web.Controllers
                     {
                         order.DeliveryPrice = null;
                     }
-                    
+
                     order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.Status = "Pending";
@@ -272,7 +274,7 @@ namespace Washouse.Web.Controllers
                     decimal totalPayment = 0;
                     foreach (var item in orderDetailRequestModels)
                     {
-                        var serviceItem = await _serviceService.GetById(item.ServiceId); 
+                        var serviceItem = await _serviceService.GetById(item.ServiceId);
                         if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("UpdatePending") || !!serviceItem.Status.ToLower().Equals("Active")))
                         {
                             return BadRequest(new ResponseModel
@@ -346,7 +348,7 @@ namespace Washouse.Web.Controllers
                     }
 
                     //create List Deliveries
-                    
+
                     var deliveries = new List<Delivery>();
                     List<DeliveryRequestModel> deliveryRequestModels = JsonConvert.DeserializeObject<List<DeliveryRequestModel>>(createOrderRequestModel.Deliveries.ToJson());
 
@@ -420,7 +422,7 @@ namespace Washouse.Web.Controllers
                             CreatedDate = DateTime.Now
                         });
                     }
-                    
+
                     //create Payment
                     var payment = new Payment();
                     payment.OrderId = order.Id;
@@ -429,7 +431,7 @@ namespace Washouse.Web.Controllers
                     payment.Status = "Pending";
                     payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
                     payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
-                    payment.Total = payment.PromoCode != null ? totalPayment * (1-promotion.Discount) : totalPayment;
+                    payment.Total = payment.PromoCode != null ? totalPayment * (1 - promotion.Discount) : totalPayment;
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
@@ -463,17 +465,17 @@ namespace Washouse.Web.Controllers
                     await _notificationService.Add(notification);
 
                     if (id != null)
-                    {                                                                     
+                    {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
                         //var accId = cusinfo.Result.AccountId ?? 0;
                         notificationAccount.AccountId = int.Parse(id);
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
                     }
-                    var staff =  _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
-                    if(staff != null)
+                    var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
+                    if (staff != null)
                     {
-                        foreach(var staffItem in staff)
+                        foreach (var staffItem in staff)
                         {
                             notificationAccount.AccountId = staffItem.AccountId;
                             notificationAccount.NotificationId = notification.Id;
@@ -488,7 +490,7 @@ namespace Washouse.Web.Controllers
 
                     //content = content.Replace("{orderId}", orderAdded.Id);
                     //await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
-                    
+
 
 
 
@@ -570,7 +572,7 @@ namespace Washouse.Web.Controllers
                         requestWardId = requestModel.DropoffWardId;
                         requestAddress = requestModel.DropoffAddress;
                     }
-                    for (int i = 0; i< loop; i++)
+                    for (int i = 0; i < loop; i++)
                     {
                         if (i == 1)
                         {
@@ -896,7 +898,7 @@ namespace Washouse.Web.Controllers
                     foreach (var item in cartItems)
                     {
                         var service = await _serviceService.GetById(item.Id);
-                        if(service.CenterId != item.CenterId)
+                        if (service.CenterId != item.CenterId)
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -986,7 +988,7 @@ namespace Washouse.Web.Controllers
                         }
                         response = response + totalCurrentPrice;
                     }
-                    return Ok(new ResponseModel                                   
+                    return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
@@ -1018,6 +1020,153 @@ namespace Washouse.Web.Controllers
             }
         }
 
+
+        // GET: api/orders/{id}
+        [HttpGet("search")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetOrderDetailOAnOrder(string OrderId, string Phone)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(OrderId) || (OrderId.Length != 16))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "OrderId format wrong",
+                        Data = null
+                    });
+
+                }
+                if (string.IsNullOrEmpty(Phone) || !DataValidation.CheckPhoneNumber(Phone))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Phone number format wrong",
+                        Data = null
+                    });
+                }
+                var order = await _orderService.GetOrderById(OrderId);
+                if (order == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found order",
+                        Data = null
+                    });
+                }
+
+                if (order != null && ((order.CustomerMobile != Phone) || order.Customer.Phone != Phone))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "OrderId and Phone not matched",
+                        Data = null
+                    });
+                }
+                var response = new OrderInfomationModel();
+                response.Id = OrderId;
+                response.CustomerName = order.CustomerName;
+                response.LocationId = order.LocationId;
+                response.CustomerEmail = order.CustomerEmail;
+                response.CustomerMobile = order.CustomerMobile;
+                response.CustomerMessage = order.CustomerMessage;
+                response.CustomerOrdered = order.CustomerId;
+                response.DeliveryType = order.DeliveryType;
+                response.DeliveryPrice = order.DeliveryPrice;
+                response.PreferredDropoffTime = order.PreferredDropoffTime.HasValue ? (order.PreferredDropoffTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                response.PreferredDeliverTime = order.PreferredDeliverTime.HasValue ? (order.PreferredDeliverTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                response.Status = order.Status;
+                var OrderedDetails = new List<OrderDetailInfomationModel>();
+                var OrderTrackings = new List<OrderTrackingModel>();
+                var OrderDeliveries = new List<OrderDeliveryModel>();
+                var OrderPayment = new OrderPaymentModel()
+                {
+                    PaymentTotal = order.Payments.First().Total,
+                    PlatformFee = order.Payments.First().PlatformFee,
+                    DateIssue = order.Payments.First().Date.HasValue ? (order.Payments.First().Date.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                    Status = order.Payments.First().Status,
+                    PaymentMethod = order.Payments.First().PaymentMethod,
+                    PromoCode = order.Payments.First().PromoCodeNavigation != null ? order.Payments.First().PromoCodeNavigation.Code : null,
+                    Discount = order.Payments.First().Discount,
+                    CreatedDate = order.Payments.First().CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                    UpdatedDate = order.Payments.First().UpdatedDate.HasValue ? (order.Payments.First().UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                };
+                response.OrderPayment = OrderPayment;
+                decimal TotalOrderValue = 0;
+                foreach (var item in order.OrderDetails)
+                {
+                    TotalOrderValue += item.Price;
+                    var _orderDetailTrackingModel = new List<OrderDetailTrackingModel>();
+                    foreach (var tracking in item.OrderDetailTrackings)
+                    {
+                        _orderDetailTrackingModel.Add(new OrderDetailTrackingModel
+                        {
+                            Status = tracking.Status,
+                            CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                        });
+                    }
+                    OrderedDetails.Add(new OrderDetailInfomationModel
+                    {
+                        ServiceName = item.Service.ServiceName,
+                        ServiceCategory = item.Service.Category.CategoryName,
+                        Measurement = item.Measurement,
+                        Unit = item.Service.Unit,
+                        CustomerNote = item.CustomerNote,
+                        StaffNote = item.StaffNote,
+                        Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                        Price = item.Service.Price,
+                        OrderDetailTrackings = _orderDetailTrackingModel
+                    });
+                }
+                response.TotalOrderValue = TotalOrderValue;
+                response.OrderedDetails = OrderedDetails;
+                foreach (var tracking in order.OrderTrackings)
+                {
+                    OrderTrackings.Add(new OrderTrackingModel
+                    {
+                        Status = tracking.Status,
+                        CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                        UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                    });
+                }
+                response.OrderTrackings = OrderTrackings;
+                foreach (var delivery in order.Deliveries)
+                {
+                    OrderDeliveries.Add(new OrderDeliveryModel
+                    {
+                        ShipperName = delivery.ShipperName,
+                        ShipperPhone = delivery.ShipperPhone,
+                        LocationId = delivery.LocationId,
+                        DeliveryType = delivery.DeliveryType,
+                        EstimatedTime = delivery.EstimatedTime,
+                        Status = delivery.Status,
+                        DeliveryDate = delivery.DeliveryDate.HasValue ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                    });
+                }
+                response.OrderDeliveries = OrderDeliveries;
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = response
+                });
+               
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
 
     }
 }

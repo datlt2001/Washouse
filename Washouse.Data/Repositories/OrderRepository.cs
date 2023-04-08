@@ -52,6 +52,7 @@ namespace Washouse.Data.Repositories
                     .Include(order => order.OrderTrackings)
                     .Include(order => order.OrderDetails)
                                     .ThenInclude(od => od.OrderDetailTrackings)
+                    .Include(order => order.Customer)
                     .FirstOrDefaultAsync(order => order.Id == id);
             return data;
         }
