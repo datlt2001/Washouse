@@ -1005,12 +1005,14 @@ namespace Washouse.Web.Controllers
                         }
                         OrderedDetails.Add(new OrderDetailInfomationModel
                         {
+                            OrderDetailId = item.Id,
                             ServiceName = item.Service.ServiceName,
                             ServiceCategory = item.Service.Category.CategoryName,
                             Measurement = item.Measurement,
                             Unit = item.Service.Unit,
                             CustomerNote = item.CustomerNote,
                             StaffNote = item.StaffNote,
+                            Status = item.Status,
                             Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
                             Price = item.Service.Price,
                             OrderDetailTrackings = _orderDetailTrackingModel

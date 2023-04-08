@@ -884,7 +884,7 @@ namespace Washouse.Web.Controllers
                         StatusCode = StatusCodes.Status200OK,
                         Message = "Updated",
                         Data = existingCustomer
-                    }); ;
+                    });
                 }
 
 

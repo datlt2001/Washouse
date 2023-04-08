@@ -683,6 +683,10 @@ namespace Washouse.Data
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Status)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.Measurement).HasColumnType("decimal(8, 3)");

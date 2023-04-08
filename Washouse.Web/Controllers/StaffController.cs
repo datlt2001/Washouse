@@ -542,7 +542,5 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
-
-
     }
 }

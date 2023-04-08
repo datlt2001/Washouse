@@ -62,11 +62,17 @@ namespace Washouse.Service.Implement
             }
         }
 
-        public async void UpdateStatus(int orderId)
+        public async Task Update(Order entity)
         {
-            var order = await _orderRepository.GetById(orderId);
-            order.Status = "Pending";
-            await _orderRepository.Update(order);
+            var orderTracking = new OrderTracking
+            {
+                OrderId = entity.Id,
+                Status = entity.Status,
+                CreatedBy = entity.UpdatedBy,
+                CreatedDate = DateTime.Now,
+            };
+            await _orderTrackingRepository.Add(orderTracking);
+            await _orderRepository.Update(entity);
         }
 
         public void Save()
