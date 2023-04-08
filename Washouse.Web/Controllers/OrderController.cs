@@ -25,6 +25,7 @@ using Org.BouncyCastle.Bcpg;
 using Washouse.Common.Mails;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace Washouse.Web.Controllers
 {
@@ -46,13 +47,12 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private ISendMailService _sendMailService;
         private readonly ICloudStorageService _cloudStorageService;
-        public string myemail;
+        
         public OrderController(IOrderService orderService, ICustomerService customerService, 
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService, 
-            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService,
-            IHostingEnvironment env)
+            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -67,8 +67,6 @@ namespace Washouse.Web.Controllers
             this._staffService = staffService;
             this._sendMailService = sendMailService;
             this._cloudStorageService = cloudStorageService;
-            var path = env.ContentRootPath;
-            myemail = path + "/Templates_email/CreateOrder.txt";
 
         }
         #endregion
@@ -475,8 +473,9 @@ namespace Washouse.Web.Controllers
                         }
                     }
                      
-                    //string path = "./Templates_email/CreateOrder.txt";
-                    string content = System.IO.File.ReadAllText(myemail);
+                    string path = "/Templates_email/CreateOrder.txt";
+                    string physicalPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", path.TrimStart('/').Replace('/', '\\'));
+                    string content = System.IO.File.ReadAllText(physicalPath);
                     content = content.Replace("{recipient}", customer.Fullname);
 
                     content = content.Replace("{orderId}", orderAdded.Id);
