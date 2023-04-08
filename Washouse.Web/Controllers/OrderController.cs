@@ -472,15 +472,15 @@ namespace Washouse.Web.Controllers
                             await _notificationAccountService.Add(notificationAccount);
                         }
                     }
-                     
-                    string path = "/Templates_email/CreateOrder.txt";
-                    string physicalPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", path.TrimStart('/').Replace('/', '\\'));
-                    string content = System.IO.File.ReadAllText(physicalPath);
-                    content = content.Replace("{recipient}", customer.Fullname);
 
-                    content = content.Replace("{orderId}", orderAdded.Id);
-                    await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
+                    //string path = "/Templates_email/CreateOrder.txt";
+                    //string physicalPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", path.TrimStart('/').Replace('/', '\\'));
+                    //string content = System.IO.File.ReadAllText(physicalPath);
+                    //content = content.Replace("{recipient}", customer.Fullname);
 
+                    //content = content.Replace("{orderId}", orderAdded.Id);
+                    //await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
+                    
 
 
 

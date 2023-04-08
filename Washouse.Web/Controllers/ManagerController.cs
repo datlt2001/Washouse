@@ -809,7 +809,7 @@ namespace Washouse.Web.Controllers
                         DateTime dateValue;
                         bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
 
-                        orders = orders.Where(order => (order.CreatedDate <= dateValue));
+                        orders = orders.Where(order => (order.CreatedDate <= dateValue.AddDays(1)));
                     }
                     var response = new List<OrderCenterModel>();
                     foreach (var order in orders)
