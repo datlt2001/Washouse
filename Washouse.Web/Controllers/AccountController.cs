@@ -121,11 +121,12 @@ namespace Washouse.Web.Controllers
             var staff = await _staffService.GetByAccountId(user.Id);
             if (staff == null)
             {
-                return NotFound(new ResponseModel
+                var tokenUser = await GenerateToken(user, true);
+                return Ok(new ResponseModel
                 {
-                    StatusCode = StatusCodes.Status404NotFound,
-                    Message = "Account is not a staff or manager",
-                    Data = null
+                    StatusCode = 77,
+                    Message = "Missing user information",
+                    Data = tokenUser
                 });
             }
             var token = await GenerateToken(user, true);
@@ -176,14 +177,17 @@ namespace Washouse.Web.Controllers
             {
                 if (staff != null)
                 {
-                    if (staff.IsManager)
+                    if (staff.IsManager != null && staff.IsManager == true)
                     {
                         Role = "Manager";
                     }
-                    else
+                    else if (staff.IsManager != null && staff.IsManager == false)
                     {
                         Role = "Staff";
                     }
+                } else if (staff == null)
+                {
+                    Role = "User";
                 }
             }
 

@@ -11,7 +11,7 @@ namespace Washouse.Model.Models
         public int Id { get; set; }
         public int AccountId { get; set; }
         public bool Status { get; set; }
-        public bool IsManager { get; set; }
+        public bool? IsManager { get; set; }
         public int? CenterId { get; set; }
         public string IdNumber { get; set; }
         public string IdFrontImg { get; set; }
