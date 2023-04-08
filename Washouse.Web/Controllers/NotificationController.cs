@@ -56,9 +56,10 @@ namespace Washouse.Web.Controllers
         //}
 
         [Authorize]
-        [HttpGet("account/{accountId}")]
-        public IActionResult GetNotifications(int accountId, bool? isRead)
+        [HttpGet("me-noti")]
+        public IActionResult GetNotifications(bool? isRead)
         {
+            int accountId = int.Parse(User.FindFirst("Id").Value);
             IEnumerable<NotificationViewModel> notis = null;                   
             if (isRead == null) 
             {
