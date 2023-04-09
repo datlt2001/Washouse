@@ -10,10 +10,10 @@ namespace Washouse.Data.Repositories
 {
     public interface IPromotionRepository : IRepository<Promotion>
     {
-        public IEnumerable<Promotion> GetAllByCenterId(int centerid);
+         IEnumerable<Promotion> GetAllByCenterId(int centerid);
         Task<Promotion> CheckValidPromoCode(int centerId, string promoCode);
 
-        public decimal GetDiscountByCode(string code);
+        decimal GetDiscountByCode(string code, int centerId);
 
     }
 }

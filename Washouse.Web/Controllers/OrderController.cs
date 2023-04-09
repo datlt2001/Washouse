@@ -483,13 +483,12 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    //string path = "./Templates_email/CreateOrder.txt";
-                    //string physicalPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", path.TrimStart('/').Replace('/', '\\'));
-                    //string content = System.IO.File.ReadAllText(physicalPath);
-                    //content = content.Replace("{recipient}", customer.Fullname);
+                    string path = "./Templates_email/CreateOrder.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", customer.Fullname);
 
-                    //content = content.Replace("{orderId}", orderAdded.Id);
-                    //await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
+                    content = content.Replace("{orderId}", orderAdded.Id);
+                    await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
 
 
 

@@ -49,10 +49,10 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
-        public decimal GetDiscountByCode(string code)
+        public decimal GetDiscountByCode(string code, int centerId)
         {
             var promo = this._dbContext.Promotions
-                            .Where(fb => fb.Code == code).FirstOrDefault();
+                            .Where(p => p.Code == code && p.CenterId == centerId).FirstOrDefault();
             var discount = 0.0M;
             if (promo == null)
             {

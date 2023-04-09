@@ -127,10 +127,10 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpGet("code/{code}")]
-        public IActionResult GetPromotionByCode(string code)
+        [HttpGet("code")]
+        public IActionResult GetPromotionByCode(string code, int centerId)
         {
-            var dis = _promotionService.GetDiscountByCode(code);
+            var dis = _promotionService.GetDiscountByCode(code, centerId);
             if (dis == 0.0M) 
             return BadRequest(new ResponseModel
             {
