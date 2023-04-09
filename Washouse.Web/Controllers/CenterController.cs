@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
@@ -562,6 +563,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles =("Manager,User"))]
         /// <summary>
         /// Create a center.
         /// </summary>
@@ -773,6 +775,9 @@ namespace Washouse.Web.Controllers
                     center.UpdatedBy = null;
 
                     await _centerService.Add(center);
+                    manager.CenterId = center.Id;
+                    await _staffService.Update(manager);
+
 
                     //Add Operating time
                     List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel.CenterOperatingHours.ToJson());
