@@ -793,6 +793,7 @@ namespace Washouse.Web.Controllers
         /// <response code="404">Not found any center matched</response>   
         /// <response code="400">One or more error occurs</response>   
         // GET: api/orders
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
