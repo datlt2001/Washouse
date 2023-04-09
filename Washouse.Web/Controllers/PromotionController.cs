@@ -136,7 +136,7 @@ namespace Washouse.Web.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Wrong Code",
-                Data = null
+                Data = 0.0M
             });
             return Ok(new ResponseModel
             {

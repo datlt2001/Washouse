@@ -121,26 +121,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPost("verifyByOTP")]
-        public IActionResult VerifyByOTP(string phoneNumber)
-        {
-            Random random = new Random();
-            string otp = random.Next(1000, 9999).ToString();
-
-            
-            string formattedPhoneNumber = "+84" + phoneNumber.Substring(1);
-            var result = _smsService.Send(formattedPhoneNumber, otp);
-
-            if (!string.IsNullOrEmpty(result.ErrorMessage))
-                return BadRequest(result.ErrorMessage);
-
-            return Ok(new ResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Updated",
-                Data = otp
-            });
-        }
+        
 
         [HttpPost("customers")]
         public async Task<IActionResult> RegisterAsCustomer([FromBody] AccountGoogleRegisRequestModel Input)

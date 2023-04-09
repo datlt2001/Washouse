@@ -242,7 +242,7 @@ namespace Washouse.Web
             services.AddTransient<ITransactionService, TransactionService>();
             services.AddTransient<INotificationAccountRepository, NotificationAccountRepository>();
             services.AddTransient<INotificationAccountService, NotificationAccountService>();
-
+            services.AddStackExchangeRedisCache(options => { options.Configuration = Configuration["RedisCacheUrl"]; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
