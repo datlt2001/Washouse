@@ -94,7 +94,7 @@ namespace Washouse.Web.Controllers
                         var orderDetailTracking = new OrderDetailTracking
                         {
                             OrderDetailId = item.Id,
-                            Status = "pending",
+                            Status = "Pending",
                             CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
                             CreatedDate = DateTime.Now
                         };

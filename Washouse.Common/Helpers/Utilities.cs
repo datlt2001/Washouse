@@ -229,7 +229,7 @@ namespace Washouse.Common.Helpers
         {
             if (status.ToLower().Trim().Equals("pending"))
             {
-                return "Confirm";
+                return "Confirmed";
             }else if (status.ToLower().Trim().Equals("confirmed"))
             {
                 return "Processing";
