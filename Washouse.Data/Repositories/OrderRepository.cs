@@ -20,8 +20,15 @@ namespace Washouse.Data.Repositories
         {
             var data = await this._dbContext.Orders
                     .Include(order => order.OrderDetails)
-                        .ThenInclude(orderDetail => orderDetail.Service)
-                            .ThenInclude(service => service.Center)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Category)
+                    .Include(order => order.Payments)
+                                    .ThenInclude(od => od.PromoCodeNavigation)
+                    .Include(order => order.Deliveries)
+                    .Include(order => order.OrderTrackings)
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.OrderDetailTrackings)
+                    .Include(order => order.Customer)
                     .ToListAsync();
             return data;
         }

@@ -226,12 +226,31 @@ namespace Washouse.Web.Controllers
                     {
                         customer = customerByPhone;
                     }
-                    else if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
+                    else if (User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer" && User.FindFirst("Phone")?.Value.Trim() == createOrderRequestModel.Order.CustomerMobile.Trim())
                     {
                         customer.Id = int.Parse(User.FindFirst("Id")?.Value);
                     }
+                    else if (User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer" && customerByPhone != null)
+                    {
+                        customer.Id = int.Parse(User.FindFirst("Id")?.Value);
+                    }
+                    else if (User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer" && User.FindFirst("Phone")?.Value.Trim() != createOrderRequestModel.Order.CustomerMobile.Trim())
+                    {
+                        //add Customer
+                        Customer cus = new Customer();
+                        cus.Fullname = createOrderRequestModel.Order.CustomerName;
+                        cus.Phone = createOrderRequestModel.Order.CustomerMobile;
+                        cus.Address = locationResult.Id;
+                        cus.Email = createOrderRequestModel.Order.CustomerEmail;
+                        cus.Status = true;
+                        cus.AccountId = null;
+                        cus.CreatedDate = DateTime.Now;
+                        cus.CreatedBy = "AutoInsert";
+                        await _customerService.Add(cus);
+                        customer.Id = int.Parse(User.FindFirst("Id")?.Value);
+                    }
 
-                    var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
+                        var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
 
                     int lastId = 0;
                     if (orders.ToList().Count > 0)
@@ -761,7 +780,7 @@ namespace Washouse.Web.Controllers
         /// </summary>
         /// <remarks>
         /// Sample request:
-        /// 
+        ///     OrderType = "orderbyme"/"orderbyanother"/null or any letter.
         ///     GET api/orders
         ///     {        
         ///       "page": 1,
@@ -779,7 +798,7 @@ namespace Washouse.Web.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAll([FromQuery] FilterOrdersRequestModel filterOrdersRequestModel)
+        public async Task<IActionResult> GetOrders([FromQuery] FilterMyOrdersRequestModel filterOrdersRequestModel)
         {
             try
             {
@@ -795,7 +814,18 @@ namespace Washouse.Web.Controllers
                     var userId = User.FindFirst("Id")?.Value;
                     var userPhone = User.FindFirst("Phone")?.Value;
                     var customer = _customerService.GetByPhone(userPhone);
-                    orders = orders.Where(orders => orders.CustomerId == int.Parse(userId));
+                    
+                    if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyme"))
+                    {
+                        orders = orders.Where(order => order.CustomerId == int.Parse(userId));
+                    }
+                    else if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyanother"))
+                    {
+                        orders = orders.Where(order => order.CustomerMobile.Trim().Equals(userPhone));
+                    } else
+                    {
+                        orders = orders.Where(order => (order.CustomerId == int.Parse(userId) || order.CustomerMobile.Trim().Equals(userPhone)));
+                    }
                 }
                 if (filterOrdersRequestModel.SearchString != null)
                 {
@@ -855,8 +885,8 @@ namespace Washouse.Web.Controllers
                         Message = "success",
                         Data = new
                         {
-                            /*TotalItems = totalItems,
-                            TotalPages = totalPages,*/
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
                             ItemsPerPage = filterOrdersRequestModel.PageSize,
                             PageNumber = filterOrdersRequestModel.Page,
                             Items = response
@@ -1018,7 +1048,6 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
-
 
         // GET: api/orders/{id}
         [HttpGet("search")]
