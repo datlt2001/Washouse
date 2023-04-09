@@ -224,5 +224,32 @@ namespace Washouse.Common.Helpers
                     throw new ArgumentException("Invalid payment method value");
             }
         }
+
+        public static string OrderNextStatus(string status)
+        {
+            if (status.ToLower().Trim().Equals("pending"))
+            {
+                return "Confirm";
+            }else if (status.ToLower().Trim().Equals("confirmed"))
+            {
+                return "Processing";
+            }else if (status.ToLower().Trim().Equals("ready"))
+            {
+                return "Completed";
+            } else return "Status not valid";
+        }
+
+        public static string OrderDetailNextStatus(string status)
+        {
+            if (status.ToLower().Trim().Equals("pending"))
+            {
+                return "Processing";
+            }
+            else if (status.ToLower().Trim().Equals("processing"))
+            {
+                return "Completed";
+            }
+            else return "Status not valid";
+        }
     }
 }

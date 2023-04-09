@@ -61,17 +61,9 @@ namespace Washouse.Web.Controllers
 
         [HttpPut]
         [Route("orders/{orderId}/tracking")]
-        public async Task<IActionResult> UpdateOrderStatus(string orderId, [FromBody] UpdateOrderModel updateOrderModel)
+        public async Task<IActionResult> UpdateOrderStatus(string orderId)
         {
-            if (DataValidation.CheckValidUpdateOrderStatus(updateOrderModel.Status) == false)
-            {
-                return BadRequest(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "status is not valid",
-                    Data = null
-                });
-            }
+            
             var order = await _orderService.GetOrderById(orderId);
             if (order == null)
             {
@@ -83,25 +75,19 @@ namespace Washouse.Web.Controllers
                 });
             } else
             {
-                if (order.Status.ToLower().Trim().Equals(updateOrderModel.Status.ToLower().Trim()))
-                {
-                    return BadRequest(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "status no change",
-                        Data = null
-                    });
-                }
                 if (order.Status.ToLower().Trim().Equals("cancelled"))
                 {
                     return BadRequest(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "order has been cancelled",
+                        Message = "order had been cancelled",
                         Data = null
                     });
                 }
-                if (updateOrderModel.Status.ToLower().Trim().Equals("processing"))
+
+                string Status = Utilities.OrderNextStatus(order.Status);
+                
+                if (Status.ToLower().Trim().Equals("processing"))
                 {
                     foreach (var item in order.OrderDetails)
                     {
@@ -115,7 +101,58 @@ namespace Washouse.Web.Controllers
                         await _orderDetailTrackingService.Add(orderDetailTracking);
                     }
                 }
-                order.Status = updateOrderModel.Status.Trim().ToLower();
+                order.Status = Status.Trim().ToLower();
+                order.UpdatedDate = DateTime.Now;
+                order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                await _orderService.Update(order);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new
+                    {
+                        orderId = order.Id
+                    }
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("orders/{orderId}/cancelled")]
+        public async Task<IActionResult> CancelOrder(string orderId)
+        {
+
+            var order = await _orderService.GetOrderById(orderId);
+            if (order == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found order",
+                    Data = null
+                });
+            }
+            else
+            {
+                if (order.Status.ToLower().Trim().Equals("cancelled"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "order had been cancelled",
+                        Data = null
+                    });
+                }
+                if (!order.Status.ToLower().Trim().Equals("pending"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "order have status that can not cancel",
+                        Data = null
+                    });
+                }
+                order.Status = "Cancelled";
                 order.UpdatedDate = DateTime.Now;
                 order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                 await _orderService.Update(order);
@@ -133,17 +170,8 @@ namespace Washouse.Web.Controllers
 
         [HttpPut]
         [Route("orders/{orderId}/order-details/{orderDetailId}/tracking")]
-        public async Task<IActionResult> UpdateOrderStatus(string orderId, int orderDetailId, [FromBody] UpdateOrderModel updateOrderModel)
+        public async Task<IActionResult> UpdateOrderDetailStatus(string orderId, int orderDetailId)
         {
-            if (DataValidation.CheckValidUpdateOrderDetailStatus(updateOrderModel.Status) == false)
-            {
-                return BadRequest(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "status is not valid",
-                    Data = null
-                });
-            }
             var order = await _orderService.GetOrderById(orderId);
             if (order == null)
             {
@@ -165,8 +193,23 @@ namespace Washouse.Web.Controllers
             }
             else
             {
+
+
+
                 var orderDetail = order.OrderDetails.FirstOrDefault(order => order.Id == orderDetailId);
-                if (orderDetail.OrderDetailTrackings.Last().Status.ToLower().Trim().Equals(updateOrderModel.Status.ToLower().Trim()))
+                string Status = Utilities.OrderDetailNextStatus(orderDetail.Status);
+
+                if (DataValidation.CheckValidUpdateOrderDetailStatus(Status) == false)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "status is not valid",
+                        Data = null
+                    });
+                }
+
+                if (orderDetail.OrderDetailTrackings.Last().Status.ToLower().Trim().Equals(Status.ToLower().Trim()))
                 {
                     return BadRequest(new ResponseModel
                     {
@@ -175,7 +218,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                if (updateOrderModel.Status.ToLower().Trim().Equals("completed"))
+                if (Status.ToLower().Trim().Equals("completed"))
                 {
                     int count = order.OrderDetails.Where(od => od.Status.ToLower().Trim().Equals("completed") == false).Count();
                     if (count == 1) {
@@ -189,7 +232,7 @@ namespace Washouse.Web.Controllers
                 var orderDetailTracking = new OrderDetailTracking
                 {
                     OrderDetailId = orderDetailId,
-                    Status = updateOrderModel.Status,
+                    Status = Status,
                     CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
                     CreatedDate = DateTime.Now
                 };
