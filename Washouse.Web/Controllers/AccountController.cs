@@ -146,6 +146,7 @@ namespace Washouse.Web.Controllers
             string Role = null;
             var staff = await _staffService.GetByAccountId(user.Id);
             var customer = await _customerService.GetCustomerByAccID(user.Id);
+            int centerManaged = 0;
             //var customer = _customerService.GetCustomerByAccID(user.Id);
             if (user.IsAdmin)
             {
@@ -180,6 +181,7 @@ namespace Washouse.Web.Controllers
                     if (staff.IsManager != null && staff.IsManager == true)
                     {
                         Role = "Manager";
+                        centerManaged = (staff.CenterId != null ? (int)staff.CenterId : 0);
                     }
                     else if (staff.IsManager != null && staff.IsManager == false)
                     {
@@ -203,7 +205,7 @@ namespace Washouse.Web.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     //roles
                     new Claim(ClaimTypes.Role, Role),
-                    //new Claim("CenterManaged", centerManaged.ToString()),
+                    new Claim("CenterManaged", centerManaged.ToString()),
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(10),

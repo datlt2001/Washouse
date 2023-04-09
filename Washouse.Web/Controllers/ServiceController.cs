@@ -211,7 +211,7 @@ namespace Washouse.Web.Controllers
                 List<ServiceGallery> galleries = new List<ServiceGallery>();
                 if (ModelState.IsValid)
                 {
-                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value))
+                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) || int.Parse(User.FindFirst("CenterManaged")?.Value)==0)
                     {
                         return BadRequest();
                     }
@@ -230,7 +230,7 @@ namespace Washouse.Web.Controllers
                     serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
                     serviceRequest.Unit = serviceRequestmodel.Unit;
                     serviceRequest.Rate = serviceRequestmodel.Rate;
-                    serviceRequest.Status = "Pending";
+                    serviceRequest.Status = "Active";
                     serviceRequest.HomeFlag = false;
                     serviceRequest.HotFlag = false;
                     serviceRequest.Rating = null;
