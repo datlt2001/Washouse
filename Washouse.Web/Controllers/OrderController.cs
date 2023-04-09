@@ -838,6 +838,7 @@ namespace Washouse.Web.Controllers
 
                 }
                 var response = new List<OrderCenterModel>();
+                orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
                 foreach (var order in orders)
                 {
                     decimal TotalOrderValue = 0;
