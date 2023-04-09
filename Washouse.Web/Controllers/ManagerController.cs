@@ -812,6 +812,8 @@ namespace Washouse.Web.Controllers
                         orders = orders.Where(order => (order.CreatedDate <= dateValue.AddDays(1)));
                     }
                     var response = new List<OrderCenterModel>();
+
+                    orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
                     foreach (var order in orders)
                     {
                         decimal TotalOrderValue = 0;
@@ -848,7 +850,6 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
-                    response.OrderByDescending(x => x.OrderDate);
                     int totalItems = response.Count();
                     if (filterOrdersRequestModel.PageSize == -1)
                     {

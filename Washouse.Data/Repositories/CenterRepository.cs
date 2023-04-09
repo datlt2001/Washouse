@@ -44,6 +44,8 @@ namespace Washouse.Data.Repositories
                     .Include(center => center.Services)
                         .ThenInclude(service => service.ServicePrices)
                     .Include(center => center.DeliveryPriceCharts)
+                    .Include(center => center.staff)
+                        .ThenInclude(staff => staff.Account)
                     .ToListAsync();
             return data;
         }
