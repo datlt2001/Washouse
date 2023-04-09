@@ -25,5 +25,6 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public List<OrderTrackingModel> OrderTrackings { get; set; }
         public List<OrderDeliveryModel> OrderDeliveries { get; set; }
         public OrderPaymentModel OrderPayment { get; set; }
+        public CenterOfOrderModel Center { get; set; }
     }
 }

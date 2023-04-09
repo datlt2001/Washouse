@@ -15,5 +15,6 @@ namespace Washouse.Model.ResponseModels
         public string RoleType { get; set; }
         public string Name { get; set; }
         public string Avatar { get; set; }
+        public int? LocationId { get; set; }
     }
 }

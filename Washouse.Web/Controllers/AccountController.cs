@@ -815,15 +815,15 @@ namespace Washouse.Web.Controllers
             try
             {
                 string id = User.FindFirst("Id")?.Value;
-                var user = _accountService.GetById(int.Parse(id));
+                var user = await _accountService.GetById(int.Parse(id));
                 var token = new TokenModel();
                 if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
                 {
-                    token = await GenerateToken(user.Result, false);
+                    token = await GenerateToken(user, false);
                 }
                 else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer")
                 {
-                    token = await GenerateToken(user.Result, true);
+                    token = await GenerateToken(user, true);
                 }
                 return Ok(new ResponseModel
                 {
@@ -836,8 +836,9 @@ namespace Washouse.Web.Controllers
                         Email = User.FindFirst(ClaimTypes.Email)?.Value,
                         Phone = User.FindFirst("Phone")?.Value,
                         RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
+                        LocationId = user.LocationId,
                         Name = User.FindFirst(ClaimTypes.Name)?.Value,
-                        Avatar = user.Result.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.Result.ProfilePic) : null,
+                        Avatar = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null,
 
             }
                 });

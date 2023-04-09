@@ -842,8 +842,17 @@ namespace Washouse.Web.Controllers
                 {
                     decimal TotalOrderValue = 0;
                     var orderedServices = new List<OrderedServiceModel>();
+                    bool checkFirst = true;
+                    string CenterName = null; int? CenterId = null;
                     foreach (var item in order.OrderDetails)
                     {
+                        if (checkFirst)
+                        {
+                            var center = await _centerService.GetById(item.Service.CenterId);
+                            CenterId = center.Id;
+                            CenterName = center.CenterName;
+                            checkFirst = false;
+                        }
                         TotalOrderValue += item.Price;
                         orderedServices.Add(new OrderedServiceModel
                         {
@@ -870,6 +879,8 @@ namespace Washouse.Web.Controllers
                         Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                         TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
                         Status = order.Status,
+                        CenterId = CenterId,
+                        CenterName = CenterName,
                         OrderedServices = orderedServices
                     });
                 }
@@ -1125,9 +1136,24 @@ namespace Washouse.Web.Controllers
                     UpdatedDate = order.Payments.First().UpdatedDate.HasValue ? (order.Payments.First().UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
                 };
                 response.OrderPayment = OrderPayment;
+                
                 decimal TotalOrderValue = 0;
+                bool checkFirst = true;
                 foreach (var item in order.OrderDetails)
                 {
+                    if (checkFirst)
+                    {
+                        var center = await _centerService.GetById(item.Service.CenterId);
+                        var Center = new CenterOfOrderModel()
+                        {
+                            CenterId = center.Id,
+                            CenterName = center.CenterName,
+                            CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
+                            CenterPhone = center.Phone,
+                        };
+                        response.Center = Center;
+                        checkFirst = false;
+                    }
                     TotalOrderValue += item.Price;
                     var _orderDetailTrackingModel = new List<OrderDetailTrackingModel>();
                     foreach (var tracking in item.OrderDetailTrackings)

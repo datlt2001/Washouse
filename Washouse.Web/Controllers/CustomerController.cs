@@ -133,15 +133,15 @@ namespace Washouse.Web.Controllers
                 return Ok(customers);
             }
             else { return BadRequest(); }
-
         }
 
         [HttpPut("profilepic")]
-        public async Task<IActionResult> UpdateProfilePic(string? SavedFileName, int customerId )
+        public async Task<IActionResult> UpdateProfilePic(string? SavedFileName)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
+                int customerId = int.Parse(User.FindFirst("Id")?.Value);
                 Customer existingCustomer = await _customerService.GetById(customerId);
                 if (existingCustomer == null) { return NotFound(); }
                 else
@@ -158,12 +158,14 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input, int customerId)
+        public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
+                int customerId = int.Parse(User.FindFirst("Id")?.Value);
                 Customer existingCustomer = await _customerService.GetById(customerId);
                 var accountId = existingCustomer.AccountId;
                 int userId = accountId ?? 0;
@@ -218,12 +220,14 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("address")]
-        public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input, int customerId)
+        public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
+                int customerId = int.Parse(User.FindFirst("Id")?.Value);
                 Customer existingCustomer = await _customerService.GetById(customerId);
                 var accountId = existingCustomer.AccountId;
                 int userId = accountId ?? 0;
