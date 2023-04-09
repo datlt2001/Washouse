@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using NuGet.Protocol;
@@ -198,6 +199,8 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success create a ceter</response>     
         /// <response code="400">One or more error occurs</response>   
         // POST: api/centers
+
+        [Authorize(Roles ="Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestModel serviceRequestmodel)
         {
@@ -227,7 +230,7 @@ namespace Washouse.Web.Controllers
                     serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
                     serviceRequest.Unit = serviceRequestmodel.Unit;
                     serviceRequest.Rate = serviceRequestmodel.Rate;
-                    serviceRequest.Status = "CreatePending";
+                    serviceRequest.Status = "Pending";
                     serviceRequest.HomeFlag = false;
                     serviceRequest.HotFlag = false;
                     serviceRequest.Rating = null;

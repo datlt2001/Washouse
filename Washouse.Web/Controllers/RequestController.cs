@@ -14,6 +14,7 @@ using Washouse.Common.Helpers;
 using System.Linq;
 using System.Security.Claims;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Washouse.Web.Controllers
 {
@@ -22,18 +23,18 @@ namespace Washouse.Web.Controllers
     public class RequestController : ControllerBase
     {
         #region Initialize
-        private readonly IServiceRequestService _serviceRequestService;
+        
         private readonly ICenterRequestService _centerRequestService;
         private readonly IServiceService _serviceService;
         private readonly ICenterService _centerService;
         private readonly ICloudStorageService _cloudStorageService;
         private readonly IFeedbackService _feedbackService;
 
-        public RequestController(IServiceRequestService serviceRequestService, 
+        public RequestController( 
             IServiceService serviceService, ICenterRequestService centerRequestService, ICenterService centerService
             , ICloudStorageService cloudStorageService, IFeedbackService feedbackService)
         {
-            this._serviceRequestService = serviceRequestService;
+            
             this._serviceService = serviceService;
             this._centerRequestService = centerRequestService;
             this._centerService = centerService;
@@ -42,6 +43,7 @@ namespace Washouse.Web.Controllers
         }
         #endregion
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("centers")]
         public async Task<IActionResult> GetAll([FromQuery] FilterCentersRequestModel filterCentersRequestModel)
         {
@@ -272,7 +274,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("centers/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -427,6 +429,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("centers/{id}/approve")]
         public async Task<IActionResult> ApproveCreateCenter(int id)
         {
@@ -583,6 +586,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles ="Admin")]
         [HttpPut("centers/{id}/reject")]
         public async Task<IActionResult> RejectCreateCenter(int id)
         {

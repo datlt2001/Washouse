@@ -97,7 +97,7 @@ namespace Washouse.Web.Controllers
                 if (role == null || role.Trim().ToLower().Equals("customer"))
                 {
                     centerList = centerList.Where(center => center.Status.Trim().ToLower().Equals("active")
-                                                        || center.Status.Trim().ToLower().Equals("updatepending"));
+                                                        || center.Status.Trim().ToLower().Equals("updating"));
                 }
                 centerList = centerList.Where(center => center.Services.Count > 0).ToList();
                 if (filterCentersRequestModel.SearchString != null)
@@ -358,6 +358,20 @@ namespace Washouse.Web.Controllers
             try
             {
                 var center = await _centerService.GetById(id);
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role == null || role.Trim().ToLower().Equals("customer"))
+                {
+                    if (!(center.Status.Trim().ToLower().Equals("active")
+                                                        || center.Status.Trim().ToLower().Equals("updating")))
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Center not available",
+                            Data = null
+                        });
+                    }
+                }
                 if (center != null)
                 {
                     var response = new CenterResponseModel();

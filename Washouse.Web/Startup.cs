@@ -182,8 +182,6 @@ namespace Washouse.Web
             services.AddTransient<IServiceRepository, ServiceRepository>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IAccountRepository, AccountRepository>();
-            services.AddTransient<IServiceRequestService, ServiceRequestService>();
-            services.AddTransient<IServiceRequestRepository, ServiceRequestRepository>();
             services.AddTransient<IDistrictService, DistrictService>();
             services.AddTransient<IDistrictRepository, DistrictRepository>();
             services.AddTransient<IWardRepository, WardRepository>();

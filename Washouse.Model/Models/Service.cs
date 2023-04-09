@@ -13,7 +13,7 @@ namespace Washouse.Model.Models
             OrderDetails = new HashSet<OrderDetail>();
             ServiceGalleries = new HashSet<ServiceGallery>();
             ServicePrices = new HashSet<ServicePrice>();
-            ServiceRequests = new HashSet<ServiceRequest>();
+            //ServiceRequests = new HashSet<ServiceRequest>();
         }
 
         public int Id { get; set; }
@@ -41,6 +41,6 @@ namespace Washouse.Model.Models
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<ServiceGallery> ServiceGalleries { get; set; }
         public virtual ICollection<ServicePrice> ServicePrices { get; set; }
-        public virtual ICollection<ServiceRequest> ServiceRequests { get; set; }
+        //public virtual ICollection<ServiceRequest> ServiceRequests { get; set; }
     }
 }

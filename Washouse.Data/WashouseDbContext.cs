@@ -48,7 +48,7 @@ namespace Washouse.Data
         public virtual DbSet<Service> Services { get; set; }
         public virtual DbSet<ServiceGallery> ServiceGalleries { get; set; }
         public virtual DbSet<ServicePrice> ServicePrices { get; set; }
-        public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
+        //public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
         public virtual DbSet<Staff> Staffs { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<Wallet> Wallets { get; set; }
@@ -983,7 +983,7 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.ServiceId);
             });
 
-            modelBuilder.Entity<ServiceRequest>(entity =>
+            /*modelBuilder.Entity<ServiceRequest>(entity =>
             {
                 entity.HasIndex(e => e.ServiceRequesting, "IX_ServiceRequests_ServiceRequesting");
 
@@ -1035,7 +1035,7 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.ServiceRequesting)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
-
+*/
             modelBuilder.Entity<Staff>(entity =>
             {
                 entity.HasIndex(e => e.AccountId, "IX_Staffs_AccountId");
