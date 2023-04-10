@@ -50,7 +50,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var centerList = await _centerService.GetAll();
-                centerList = centerList.Where(center => center.Status == "UpdatePending" || center.Status == "CreatePending");
+                centerList = centerList.Where(center => center.Status == "Updating" || center.Status == "Pending");
                 if (filterCentersRequestModel.SearchString != null)
                 {
                     centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())

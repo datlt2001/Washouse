@@ -87,6 +87,15 @@ namespace Washouse.Web.Controllers
 
                 string Status = Utilities.OrderNextStatus(order.Status);
                 
+                if (Status.ToLower().Trim().Equals("status not valid"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "request next status not accept",
+                        Data = null
+                    });
+                }
                 if (Status.ToLower().Trim().Equals("processing"))
                 {
                     foreach (var item in order.OrderDetails)
@@ -198,7 +207,15 @@ namespace Washouse.Web.Controllers
 
                 var orderDetail = order.OrderDetails.FirstOrDefault(order => order.Id == orderDetailId);
                 string Status = Utilities.OrderDetailNextStatus(orderDetail.Status);
-
+                if (Status.ToLower().Trim().Equals("status not valid"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "request next status not accept",
+                        Data = null
+                    });
+                }
                 if (DataValidation.CheckValidUpdateOrderDetailStatus(Status) == false)
                 {
                     return BadRequest(new ResponseModel
