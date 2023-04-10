@@ -773,7 +773,7 @@ namespace Washouse.Web.Controllers
                     center.Description = createCenterRequestModel.Center.Description;
                     center.MonthOff = createCenterRequestModel.Center.MonthOff;
                     center.IsAvailable = false;
-                    center.Status = "CreatePending";
+                    center.Status = "Pending";
                     center.Image = createCenterRequestModel.Center.SavedFileName;
                     center.TaxCode = createCenterRequestModel.Center.TaxCode;
                     center.TaxRegistrationImage = createCenterRequestModel.Center.TaxRegistrationImage;
