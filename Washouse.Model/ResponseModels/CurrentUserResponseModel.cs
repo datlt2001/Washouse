@@ -16,5 +16,7 @@ namespace Washouse.Model.ResponseModels
         public string Name { get; set; }
         public string Avatar { get; set; }
         public int? LocationId { get; set; }
+        public int? Gender { get; set; }
+        public string Dob { get; set; }
     }
 }

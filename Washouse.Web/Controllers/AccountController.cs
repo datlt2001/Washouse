@@ -841,8 +841,9 @@ namespace Washouse.Web.Controllers
                         LocationId = user.LocationId,
                         Name = User.FindFirst(ClaimTypes.Name)?.Value,
                         Avatar = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null,
-
-            }
+                        Gender = user.Gender,
+                        Dob = user.Dob.HasValue ? (user.Dob.Value).ToString("dd-MM-yyyy") : null
+                    }
                 });
             } catch (Exception ex)
             {
