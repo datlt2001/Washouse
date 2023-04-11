@@ -19,8 +19,5 @@ namespace Washouse.Model.RequestModels
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}")]
         public string PreferredDropoffTime { get; set; }
-        [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}")]
-        public string PreferredDeliverTime { get; set; }
     }
 }

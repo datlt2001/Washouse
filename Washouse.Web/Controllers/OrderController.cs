@@ -85,8 +85,7 @@ namespace Washouse.Web.Controllers
                 {
                     var center = await _centerService.GetById(createOrderRequestModel.CenterId);
                     DateTime UserPreferredDropoffTime;
-                    DateTime UserPreferredDeliverTime;
-                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime))
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) && DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out UserPreferredDropoffTime))
                     {
                         try
                         {
@@ -107,24 +106,7 @@ namespace Washouse.Web.Controllers
                     {
                         UserPreferredDropoffTime = DateTime.Now;
                     }
-                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime))
-                    {
-                        try
-                        {
-                            UserPreferredDeliverTime = DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-                        }
-                        catch (FormatException ex)
-                        {
-                            return BadRequest(new ResponseModel
-                            {
-                                StatusCode = StatusCodes.Status400BadRequest,
-                                Message = "PreferredDeliverTime: " + ex.Message,
-                                Data = null
-                            });
-                            //Console.WriteLine("Failed to parse date: " + ex.Message);
-                            // handle the parse failure
-                        }
-                    }
+                    
                     if (center == null)
                     {
                         return BadRequest(new ResponseModel
@@ -282,7 +264,7 @@ namespace Washouse.Web.Controllers
                     }
 
                     order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-                    order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    //order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.Status = "Pending";
                     order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
                     order.CreatedDate = DateTime.Now;
@@ -423,10 +405,7 @@ namespace Washouse.Web.Controllers
                             {
                                 deliveryDate = DateTime.Now;
                             }
-                        } else
-                        {
-                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-                        }
+                        } 
                         deliveries.Add(new Delivery
                         {
                             OrderId = order.Id,
@@ -442,6 +421,11 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
+                    decimal paymentDelivery = 0;
+                    if (order.DeliveryPrice != null && order.DeliveryPrice != 0)
+                    {
+                        paymentDelivery = (decimal) order.DeliveryPrice;
+                    }
                     //create Payment
                     var payment = new Payment();
                     payment.OrderId = order.Id;
@@ -450,7 +434,7 @@ namespace Washouse.Web.Controllers
                     payment.Status = "Pending";
                     payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
                     payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
-                    payment.Total = payment.PromoCode != null ? totalPayment * (1 - promotion.Discount) : totalPayment;
+                    payment.Total = payment.PromoCode != null ? (totalPayment * (1 - promotion.Discount) + paymentDelivery) : (totalPayment + paymentDelivery);
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
