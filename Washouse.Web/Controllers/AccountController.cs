@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using System;
@@ -14,6 +15,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -45,9 +47,11 @@ namespace Washouse.Web.Controllers
         public IStaffService _staffService;
         public ICloudStorageService _cloudStorageService;
         public IWalletService _walletService;
+        public IWardService _wardService;
+        public ILocationService _locationService;
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, 
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
-            IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService)
+            IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService, IWardService wardService, ILocationService locationService)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -57,6 +61,8 @@ namespace Washouse.Web.Controllers
             this._staffService = staffService;
             this._cloudStorageService = cloudStorageService;
             this._walletService = walletService;
+            _wardService = wardService;
+            _locationService = locationService;
         }
 
         [HttpPost("login")]
@@ -971,6 +977,100 @@ namespace Washouse.Web.Controllers
                         Data = existingCustomer
                     });
                 }
+
+            }
+        }
+
+        [Authorize]
+        [HttpPut("address")]
+        public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            else
+            {
+                int customerId = int.Parse(User.FindFirst("Id")?.Value);
+                Customer existingCustomer = await _customerService.GetById(customerId);
+                var accountId = existingCustomer.AccountId;
+                int userId = accountId ?? 0;
+                Account user = await _accountService.GetById(userId);
+
+                var location = new Model.Models.Location();
+                location.AddressString = Input.AddressString;
+                location.WardId = Input.WardId;
+                var ward = new Ward();
+                try
+                {
+                    ward = await _wardService.GetWardById(location.WardId);
+                }
+                catch
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found ward by wardId.",
+                        Data = null
+                    });
+                }
+                string fullAddress = Input.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(json);
+                        if (result.Count > 0)
+                        {
+
+                            location.Latitude = result[0].lat;
+                            location.Longitude = result[0].lon;
+                        }
+                    }
+                }
+                if (Input.Latitude != null && Input.Latitude != 0)
+                {
+                    location.Latitude = Input.Latitude;
+                }
+                if (Input.Longitude != null && Input.Longitude != 0)
+                {
+                    location.Longitude = Input.Longitude;
+                }
+                if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
+                {
+                    location.Latitude = Math.Round((decimal)location.Latitude, 9);
+                    location.Longitude = Math.Round((decimal)location.Longitude, 9);
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                        Data = null
+                    });
+                }
+                var locationAdded = await _locationService.Add(location);
+
+                if (existingCustomer == null) { return NotFound(); }
+                else
+                {
+                    existingCustomer.Address = locationAdded.Id;
+                    await _customerService.Update(existingCustomer);
+
+
+                    user.LocationId = existingCustomer.Address;
+                    await _accountService.Update(user);
+
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Updated",
+                        Data = existingCustomer
+                    });
+                }
+
 
             }
         }

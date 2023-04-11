@@ -11,6 +11,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public string Id { get; set; }
         public string CustomerName { get; set; }
         public int LocationId { get; set; }
+        public string CustomerAddress { get; set; }
         public string CustomerEmail { get; set; }
         public string CustomerMobile { get; set; }
         public string CustomerMessage { get; set; }

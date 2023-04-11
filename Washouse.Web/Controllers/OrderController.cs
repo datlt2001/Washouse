@@ -1097,6 +1097,7 @@ namespace Washouse.Web.Controllers
                 response.Id = OrderId;
                 response.CustomerName = order.CustomerName;
                 response.LocationId = order.LocationId;
+                response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName + ", " + order.Location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
                 response.CustomerEmail = order.CustomerEmail;
                 response.CustomerMobile = order.CustomerMobile;
                 response.CustomerMessage = order.CustomerMessage;

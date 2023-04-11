@@ -60,6 +60,9 @@ namespace Washouse.Data.Repositories
                     .Include(order => order.OrderDetails)
                                     .ThenInclude(od => od.OrderDetailTrackings)
                     .Include(order => order.Customer)
+                    .Include(order => order.Location)
+                        .ThenInclude(location => location.Ward)
+                            .ThenInclude(ward => ward.District)
                     .FirstOrDefaultAsync(order => order.Id == id);
             return data;
         }
