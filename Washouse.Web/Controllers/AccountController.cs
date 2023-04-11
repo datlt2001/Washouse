@@ -857,7 +857,8 @@ namespace Washouse.Web.Controllers
             
         }
 
-        [HttpPut("{id}/profile-picture")]
+        [Authorize]
+        [HttpPut("profile-picture")]
         public async Task<IActionResult> UpdateProfilePic(string SavedFileName)
         {
             if (!ModelState.IsValid) {
@@ -899,17 +900,29 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [HttpPut("{id}/profile")]
+        [Authorize]
+        [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input)
         {
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
-                int  id = int.Parse(User.FindFirst("Id")?.Value);
+                DateTime dateTime;
+                bool a = DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
+                if (input.Dob != null && !DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime)) {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Datetime not exact format ",
+                        Data = null
+                    });
+                }
+                    int  id = int.Parse(User.FindFirst("Id")?.Value);
                 Customer existingCustomer =  await _customerService.GetCustomerByAccID(id);
                 Account user = await _accountService.GetById(id);
 
-                if (existingCustomer == null) { return NotFound(new ResponseModel
+                if (existingCustomer == null) { 
+                    return NotFound(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status404NotFound,
                         Message = "Not found customer",
@@ -917,26 +930,36 @@ namespace Washouse.Web.Controllers
                     });  }
                 else
                 {
-                    existingCustomer.Fullname = input.FullName;
+                    existingCustomer.Fullname = input.FullName != null ? input.FullName : existingCustomer.Fullname;
                     existingCustomer.UpdatedDate = DateTime.Now;
-                    existingCustomer.UpdatedBy = input.FullName;                  
+                    existingCustomer.UpdatedBy = existingCustomer.Email;                  
                     await _customerService.Update(existingCustomer);
                     user.UpdatedDate = DateTime.Now;
                     user.UpdatedBy = user.FullName;
-                    user.FullName = input.FullName;
-                    int age = DateTime.Now.Subtract((DateTime)input.Dob).Days;
-                    if (age > 18 && age < 80)
+                    user.FullName = input.FullName != null ? input.FullName : user.FullName;
+                    user.Gender = input.Gender != null ? input.Gender : user.Gender;
+                    string format = "dd-MM-yyyy";
+                    if (input.Dob != null)
                     {
-                        user.Dob = input.Dob;
-                    }
-                    else
-                    {
-                        return BadRequest(new ResponseModel
+                        DateTime dobInput = DateTime.ParseExact(input.Dob, format, CultureInfo.InvariantCulture);
+                        int age = DateTime.Now.Year - dobInput.Year;
+                        if (DateTime.Now < dobInput.AddYears(age))
                         {
-                            StatusCode = StatusCodes.Status200OK,
-                            Message = "Not Updated because your age is not suitable for use this platform",
-                            Data = null
-                        });
+                            age--;
+                        }
+                        if (age > 15 && age < 80)
+                        {
+                            user.Dob = DateTime.ParseExact(input.Dob, format, CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Not Updated because your age is not suitable for use this platform",
+                                Data = null
+                            });
+                        }
                     }
 
                     await _accountService.Update(user);

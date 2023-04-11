@@ -158,7 +158,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [Authorize]
+        /*[Authorize]
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input)
         {
@@ -219,7 +219,7 @@ namespace Washouse.Web.Controllers
 
             }
         }
-
+*/
         [Authorize]
         [HttpPut("address")]
         public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input)
