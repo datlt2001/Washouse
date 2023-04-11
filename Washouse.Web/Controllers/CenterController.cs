@@ -1105,7 +1105,7 @@ namespace Washouse.Web.Controllers
                         centerRequestModel.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     }
                     await _centerRequestService.Add(centerRequestModel);
-                    centerRequesting.Status = "UpdatePending";
+                    centerRequesting.Status = "Updating";
                     // Update
                     await _centerService.Update(centerRequesting);
 

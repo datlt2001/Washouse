@@ -988,11 +988,11 @@ namespace Washouse.Web.Controllers
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
-                int customerId = int.Parse(User.FindFirst("Id")?.Value);
-                Customer existingCustomer = await _customerService.GetById(customerId);
-                var accountId = existingCustomer.AccountId;
-                int userId = accountId ?? 0;
-                Account user = await _accountService.GetById(userId);
+                int accId = int.Parse(User.FindFirst("Id")?.Value);
+                Customer existingCustomer = await _customerService.GetCustomerByAccID(accId);
+                //var accountId = existingCustomer.AccountId;
+                //int userId = accountId ?? 0;
+                Account user = await _accountService.GetById(accId);
 
                 var location = new Model.Models.Location();
                 location.AddressString = Input.AddressString;

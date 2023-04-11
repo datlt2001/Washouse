@@ -276,7 +276,7 @@ namespace Washouse.Web.Controllers
                     foreach (var item in orderDetailRequestModels)
                     {
                         var serviceItem = await _serviceService.GetById(item.ServiceId);
-                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("UpdatePending") || !!serviceItem.Status.ToLower().Equals("Active")))
+                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("Updating") || !!serviceItem.Status.ToLower().Equals("Active")))
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -820,7 +820,11 @@ namespace Washouse.Web.Controllers
                                                        || order.Id.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())
                                                        || order.OrderDetails.FirstOrDefault().Service.Center.CenterName.ToLower().Contains(filterOrdersRequestModel.SearchString.ToLower())))
                                           .ToList();
-
+                }
+                if (filterOrdersRequestModel.Status != null)
+                {
+                    orders = orders.Where(order => (order.Status.ToLower().Trim().Equals(filterOrdersRequestModel.Status.ToLower().Trim())))
+                                          .ToList();
                 }
                 var response = new List<OrderCenterModel>();
                 orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
