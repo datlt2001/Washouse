@@ -9,6 +9,7 @@ namespace Washouse.Model.ViewModel
     public class NotificationViewModel
     {
         public int Id { get; set; }
+        public string Title { get; set; }
         public string Content { get; set; }
         public string OrderId { get; set; }
         public int AccountId { get; set; }

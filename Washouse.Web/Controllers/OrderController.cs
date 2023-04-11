@@ -434,6 +434,7 @@ namespace Washouse.Web.Controllers
                     payment.Status = "Pending";
                     payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
                     payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
+                    payment.Discount = promotion != null ? promotion.Discount : 0;
                     payment.Total = payment.PromoCode != null ? (totalPayment * (1 - promotion.Discount) + paymentDelivery) : (totalPayment + paymentDelivery);
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";

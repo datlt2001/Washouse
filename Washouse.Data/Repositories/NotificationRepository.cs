@@ -24,6 +24,7 @@ namespace Washouse.Data.Repositories
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,
+                                    Title = n.Title,
                                     Content = n.Content,
                                     CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                     OrderId = n.OrderId,
@@ -42,6 +43,7 @@ namespace Washouse.Data.Repositories
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,
+                                    Title = n.Title,
                                     Content = n.Content,
                                     CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                     OrderId = n.OrderId,
@@ -71,6 +73,7 @@ namespace Washouse.Data.Repositories
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,
+                                    Title = n.Title,
                                     Content = n.Content,
                                     CreatedDate = n.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                     OrderId = n.OrderId,

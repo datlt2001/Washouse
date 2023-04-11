@@ -542,6 +542,10 @@ namespace Washouse.Data
             {
                 entity.HasIndex(e => e.OrderId, "IX_Notifications_OrderId");
 
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.Content)
                     .IsRequired()
                     .HasMaxLength(500);
@@ -1256,14 +1260,14 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-                 /*configuration = new ConfigurationBuilder()
-                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-                        .AddJsonFile("appsettings.json")
-                        .Build();*/
                 configuration = new ConfigurationBuilder()
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                       .AddJsonFile("appsettings.json")
+                       .Build();
+                /*configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")
-                                   .Build();
+                                   .Build();*/
                 var connectionString = configuration.GetConnectionString("WashouseDB");
                 //var connectionString = "Server=washouse.database.windows.net;Uid=washouseAdmin;Pwd=Washouse123!;Database= WashouseDb ";
                 optionsBuilder.UseSqlServer(connectionString);
