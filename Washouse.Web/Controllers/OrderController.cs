@@ -465,7 +465,8 @@ namespace Washouse.Web.Controllers
                     NotificationAccount notificationAccount = new NotificationAccount();
                     notification.OrderId = orderAdded.Id;
                     notification.CreatedDate = DateTime.Now;
-                    notification.Content = "Order " + orderAdded.Id + " đã được tạo";
+                    notification.Title = "Thông báo về đơn hàng:  " + orderAdded.Id;
+                    notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
                     await _notificationService.Add(notification);
 
                     if (id != null)
