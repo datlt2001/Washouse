@@ -29,18 +29,22 @@ namespace Washouse.Web.Controllers
         private readonly IServiceService _serviceService;
         private readonly ICenterService _centerService;
         private readonly IPromotionService _promotionService;
-        private readonly VNPaySettings _vnPaySettings;
+        private readonly IPaymentService _paymentService;
         private readonly INotificationService _notificationService;
         private readonly INotificationAccountService _notificationAccountService;
         private readonly IStaffService _staffService;
         private readonly ICloudStorageService _cloudStorageService;
         private readonly IOrderDetailTrackingService _orderDetailTrackingService;
+        private readonly IWalletService _walletService;
+        private readonly IWalletTransactionService _walletTransactionService;
 
         public TrackingController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService,
-            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, IOrderDetailTrackingService orderDetailTrackingService)
+            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
+            IOrderDetailTrackingService orderDetailTrackingService, IWalletService walletService, 
+            IWalletTransactionService walletTransactionService, IPaymentService paymentService)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -49,12 +53,14 @@ namespace Washouse.Web.Controllers
             this._serviceService = serviceService;
             this._centerService = centerService;
             this._promotionService = promotionService;
-            this._vnPaySettings = vnpaySettings.Value;
+            this._paymentService = paymentService;
             this._notificationService = notificationService;
             this._notificationAccountService = notificationAccountService;
             this._staffService = staffService;
             this._orderDetailTrackingService = orderDetailTrackingService;
             this._cloudStorageService = cloudStorageService;
+            this._walletService = walletService;
+            this._walletTransactionService = walletTransactionService;
 
         }
         #endregion
@@ -152,7 +158,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                if (!order.Status.ToLower().Trim().Equals("pending"))
+                if (!order.Status.ToLower().Trim().Equals("pending") || !order.Status.ToLower().Trim().Equals("confirmed"))
                 {
                     return BadRequest(new ResponseModel
                     {
@@ -165,6 +171,84 @@ namespace Washouse.Web.Controllers
                 order.UpdatedDate = DateTime.Now;
                 order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                 await _orderService.Update(order);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new
+                    {
+                        orderId = order.Id
+                    }
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("orders/{orderId}/completed")]
+        public async Task<IActionResult> CompletedOrder(string orderId)
+        {
+            var order = await _orderService.GetOrderById(orderId);
+            if (order == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found order",
+                    Data = null
+                });
+            }
+            else
+            {
+                if (!order.Status.ToLower().Trim().Equals("ready"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Current status not ready",
+                        Data = null
+                    });
+                }
+                if (order.Payments.FirstOrDefault().PaymentMethod != 0 && !order.Payments.FirstOrDefault().Status.ToLower().Trim().Equals("paid"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Payment not paid",
+                        Data = null
+                    });
+                }
+                if (order.DeliveryType == 2 || order.DeliveryType == 3)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Order choose deliver to customer, so that do not accept completed manual",
+                        Data = null
+                    });
+                }
+
+                if (order.Payments.FirstOrDefault().PaymentMethod != 0 && order.Payments.FirstOrDefault().Status.ToLower().Trim().Equals("paid"))
+                {
+                    var walletTransaction = order.Payments.FirstOrDefault().WalletTransactions.FirstOrDefault(wt => wt.Type.Trim().ToLower().Equals("payorder"));
+                    if (walletTransaction != null)
+                    {
+                        walletTransaction.Status = "Received";
+                        walletTransaction.UpdateTimeStamp = DateTime.Now;
+                        await _walletTransactionService.Update(walletTransaction);
+
+                        var walletTo = await _walletService.GetById(walletTransaction.ToWalletId);
+                        walletTo.Balance = walletTo.Balance + walletTransaction.Amount - order.Payments.FirstOrDefault().PlatformFee;
+                    }
+                }
+                var paymentUpdate = order.Payments.FirstOrDefault();
+                paymentUpdate.Status = "Received";
+                await _paymentService.Update(paymentUpdate);
+
+                order.Status = "Completed";
+                order.UpdatedDate = DateTime.Now;
+                order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                await _orderService.Update(order);
+
                 return Ok(new ResponseModel
                 {
                     StatusCode = 0,

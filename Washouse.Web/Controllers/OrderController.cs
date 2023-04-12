@@ -805,18 +805,19 @@ namespace Washouse.Web.Controllers
                 {
                     var userId = User.FindFirst("Id")?.Value;
                     var userPhone = User.FindFirst("Phone")?.Value;
-                    var customer = _customerService.GetByPhone(userPhone);
+                    var customerCreateOrder = await _customerService.GetCustomerByAccID(int.Parse(userId));
+                    var customerByPhone = await _customerService.GetByPhone(userPhone);
                     
                     if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyme"))
                     {
-                        orders = orders.Where(order => order.CustomerId == int.Parse(userId));
+                        orders = orders.Where(order => order.CustomerId == customerCreateOrder.Id);
                     }
                     else if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyanother"))
                     {
-                        orders = orders.Where(order => order.CustomerMobile.Trim().Equals(userPhone));
+                        orders = orders.Where(order => (order.CustomerMobile.Trim().Equals(userPhone) && order.CustomerId != customerCreateOrder.Id));
                     } else
                     {
-                        orders = orders.Where(order => (order.CustomerId == int.Parse(userId) || order.CustomerMobile.Trim().Equals(userPhone)));
+                        orders = orders.Where(order => (order.CustomerId == customerCreateOrder.Id || order.CustomerMobile.Trim().Equals(userPhone)));
                     }
                 }
                 if (filterOrdersRequestModel.SearchString != null)
@@ -831,6 +832,20 @@ namespace Washouse.Web.Controllers
                 {
                     orders = orders.Where(order => (order.Status.ToLower().Trim().Equals(filterOrdersRequestModel.Status.ToLower().Trim())))
                                           .ToList();
+                }
+                if (filterOrdersRequestModel.FromDate != null)
+                {
+                    DateTime dateValue;
+                    bool success = DateTime.TryParseExact(filterOrdersRequestModel.FromDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
+
+                    orders = orders.Where(order => (order.CreatedDate >= dateValue));
+                }
+                if (filterOrdersRequestModel.ToDate != null)
+                {
+                    DateTime dateValue;
+                    bool success = DateTime.TryParseExact(filterOrdersRequestModel.ToDate, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue);
+
+                    orders = orders.Where(order => (order.CreatedDate <= dateValue.AddDays(1)));
                 }
                 var response = new List<OrderCenterModel>();
                 orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
@@ -1313,7 +1328,7 @@ namespace Washouse.Web.Controllers
                 var walletTransaction = new WalletTransaction();
                 walletTransaction.PaymentId = payment.Id;
                 walletTransaction.Type = "PayOrder";
-                walletTransaction.Status = "DonePaid";
+                walletTransaction.Status = "Paid";
                 walletTransaction.FromWalletId = (int)customer.Account.WalletId;
                 walletTransaction.ToWalletId = (int)order.OrderDetails.FirstOrDefault().Service.Center.WalletId;
                 walletTransaction.Amount = order.Payments.FirstOrDefault().Total;
