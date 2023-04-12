@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,8 +69,11 @@ namespace Washouse.Data.Repositories
             try
             {
 
-                var customer =  this.DbContext.Customers.SingleOrDefault(c => c.AccountId == accountId);
-
+                var customer =  this.DbContext.Customers
+                     .Include(cus => cus.Account)
+                                    .ThenInclude(acc => acc.Wallet)
+                    .SingleOrDefault(c => c.AccountId == accountId);
+                                        
 
                 return customer;
             }

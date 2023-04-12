@@ -21,6 +21,7 @@ namespace Washouse.Data.Repositories
             var notifications = from n in DbContext.Notifications
                                 join na in DbContext.NotificationAccounts on n.Id equals na.NotificationId
                                 where na.AccountId == accountId && na.ReadDate == null
+                                orderby n.CreatedDate descending
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,
@@ -40,6 +41,7 @@ namespace Washouse.Data.Repositories
             var notifications = from n in DbContext.Notifications
                                 join na in DbContext.NotificationAccounts on n.Id equals na.NotificationId
                                 where na.AccountId == accountId && na.ReadDate != null
+                                orderby n.CreatedDate descending
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,
@@ -69,7 +71,8 @@ namespace Washouse.Data.Repositories
         {
             var notifications = from n in DbContext.Notifications
                                 join na in DbContext.NotificationAccounts on n.Id equals na.NotificationId
-                                where na.AccountId == accountId 
+                                where na.AccountId == accountId
+                                orderby n.CreatedDate descending
                                 select new NotificationViewModel
                                 {
                                     Id = n.Id,

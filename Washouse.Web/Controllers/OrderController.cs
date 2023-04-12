@@ -49,12 +49,16 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private ISendMailService _sendMailService;
         private readonly ICloudStorageService _cloudStorageService;
+        private readonly IPaymentService _paymentService;
+        private readonly IWalletTransactionService _walletTransactionService;
+        private readonly IWalletService _walletService;
 
         public OrderController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService,
-            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService)
+            IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
+            IPaymentService paymentService, IWalletTransactionService walletTransactionService, IWalletService walletService)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -69,7 +73,9 @@ namespace Washouse.Web.Controllers
             this._staffService = staffService;
             this._sendMailService = sendMailService;
             this._cloudStorageService = cloudStorageService;
-
+            _paymentService = paymentService;
+            _walletTransactionService = walletTransactionService;
+            _walletService = walletService;
         }
         #endregion
 
@@ -1088,7 +1094,7 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
-                if (order != null && ((order.CustomerMobile != Phone) || order.Customer.Phone != Phone))
+                if (order != null && ((order.CustomerMobile != Phone) && order.Customer.Phone != Phone))
                 {
                     return BadRequest(new ResponseModel
                     {
@@ -1202,6 +1208,128 @@ namespace Washouse.Web.Controllers
                     Data = response
                 });
                
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Customer")]
+        // GET: api/orders/{id}/payment
+        [HttpGet("{orderId}/payment")]
+        public async Task<IActionResult> PayOrder(string orderId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orderId) || (orderId.Length != 16))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "OrderId format wrong",
+                        Data = null
+                    });
+
+                }
+                var order = await _orderService.GetOrderById(orderId);
+                if (order == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found order",
+                        Data = null
+                    });
+                }
+                if (!order.Status.ToLower().Trim().Equals("ready"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Order status not ready",
+                        Data = null
+                    });
+                }
+                if (order.Payments.First().Status.ToLower().Trim().Equals("paid")) {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Order has been already paid",
+                        Data = null
+                    });
+                }
+                if (order.OrderDetails.FirstOrDefault().Service.Center.WalletId == null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Wallet payment to this center is not available",
+                        Data = null
+                    });
+                }
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
+                var customer = await _customerService.GetCustomerByAccID(userId);
+                if (order != null && (order.CustomerId != userId))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Do not accept you pay this order",
+                        Data = null
+                    });
+                }
+                if (customer.Account.WalletId == null || !customer.Account.Wallet.Status.ToLower().Trim().Equals("active"))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Your wallet is not available",
+                        Data = null
+                    });
+                }
+                if (customer.Account.Wallet.Balance < order.Payments.FirstOrDefault().Total)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Your wallet not enough balance",
+                        Data = null
+                    });
+                }
+                var walletPay = customer.Account.Wallet;
+                walletPay.Balance = walletPay.Balance - order.Payments.FirstOrDefault().Total;
+                await _walletService.Update(walletPay);
+
+                var payment = order.Payments.First();
+                payment.Status = "Paid";
+                await _paymentService.Update(payment);
+
+                var walletTransaction = new WalletTransaction();
+                walletTransaction.PaymentId = payment.Id;
+                walletTransaction.Type = "PayOrder";
+                walletTransaction.Status = "DonePaid";
+                walletTransaction.FromWalletId = (int)customer.Account.WalletId;
+                walletTransaction.ToWalletId = (int)order.OrderDetails.FirstOrDefault().Service.Center.WalletId;
+                walletTransaction.Amount = order.Payments.FirstOrDefault().Total;
+                walletTransaction.TimeStamp = DateTime.Now;
+                await _walletTransactionService.Add(walletTransaction);
+
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
+                    {
+                        OrderId = order.Id 
+                    }
+                });
+
             }
             catch (Exception ex)
             {
