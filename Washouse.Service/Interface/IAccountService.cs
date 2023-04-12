@@ -29,6 +29,8 @@ namespace Washouse.Service.Interface
 
         public Account GetAccountByEmail(string email);
 
+        Account GetAccountByEmailAndPhone(string email, string phone);
+
 
     }
 }

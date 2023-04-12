@@ -16,5 +16,9 @@ namespace Washouse.Data.Repositories
 
         public IEnumerable<Staff> GetAllByCenterId(int centerid);
 
+        Staff GetStaffByAccountId(int id);
+
+        Staff GetStaffByCenterId(int centerid);
+
     }
 }

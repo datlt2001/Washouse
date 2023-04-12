@@ -2,10 +2,10 @@
     Dear {recipient},
     <br>
     <br>
-    You have created an account in our platform. Please click the link below to active your account.
+    Xin chúc mựng bạn đã được chỉ định thành nhân viên của cửa hàng {name}. Vui lòng nhấn vào link bên dưới để tiếp tục xác nhận.
     <br>
     <br>
-    This is your link to active your account : <a href="{link}">Verify Account</a>
+    Link của bạn đây : <a href="{link}">Xác nhận</a>
     <br>
     <br>
     Regards,

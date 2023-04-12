@@ -63,5 +63,15 @@ namespace Washouse.Service.Implement
         {
             return _staffReposity.GetAllByCenterId(centerid);
         }
+
+        public Staff GetStaffByAccountId(int id)
+        {
+            return _staffReposity.GetStaffByAccountId(id);
+        }
+
+        public Staff GetStaffByCenterId(int centerid)
+        {
+            return _staffReposity.GetStaffByCenterId(centerid);
+        }
     }
 }

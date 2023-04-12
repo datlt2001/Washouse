@@ -64,7 +64,7 @@ namespace Washouse.Web.Controllers
             string otp = random.Next(1000, 9999).ToString();
             content = content.Replace("{recipient}", email);
             content = content.Replace("{otp}", otp);          
-            await _sendMailService.SendEmailAsync(email, "Verify OTP", content);
+            await _sendMailService.SendEmailAsync(email, "Mã OTP Washouse", content);
             DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
             .SetAbsoluteExpiration(DateTime.Now.AddMinutes(5))
             .SetSlidingExpiration(TimeSpan.FromMinutes(3));

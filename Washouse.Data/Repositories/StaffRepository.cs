@@ -53,5 +53,21 @@ namespace Washouse.Data.Repositories
                         .ToList();
             return data;
         }
+
+        public Staff GetStaffByAccountId(int id)
+        {
+            var data = this._dbContext.Staffs
+                        .SingleOrDefault(s => s.AccountId == id);
+                        
+            return data;
+        }
+
+        public Staff GetStaffByCenterId(int centerid)
+        {
+            var data = this._dbContext.Staffs
+                        .SingleOrDefault(s => s.CenterId == centerid && s.IsManager == true);
+
+            return data;
+        }
     }
 }

@@ -115,5 +115,19 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+
+        public Account GetAccountByEmailAndPhone(string email, string phone)
+        {
+            try
+            {
+
+                return this.DbContext.Accounts.SingleOrDefault(a => a.Email.Equals(email) && a.Phone.Equals(phone));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 }

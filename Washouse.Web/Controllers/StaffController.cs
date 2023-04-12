@@ -14,6 +14,12 @@ using System.Linq;
 using Washouse.Model.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using Washouse.Common.Helpers;
+using Microsoft.Extensions.Caching.Distributed;
+using static System.Net.WebRequestMethods;
+using System.Text;
+using System.Text.Json;
+using Washouse.Common.Mails;
 
 namespace Washouse.Web.Controllers
 {
@@ -32,16 +38,19 @@ namespace Washouse.Web.Controllers
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
         private readonly IPromotionService _promotionService;
+        private readonly IDistributedCache _cache;
+        private ISendMailService _sendMailService;
 
         public StaffController(IStaffService staffService, IAccountService accountService,
                                 ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 ICenterRequestService centerRequestService,
-                                IFeedbackService feedbackService, IPromotionService promotionService)
+                                IFeedbackService feedbackService, IPromotionService promotionService, 
+                                IDistributedCache cache, ISendMailService sendMailService)
         {
             this._staffService = staffService;
-            this._accountService = accountService; 
+            this._accountService = accountService;
             this._centerService = centerService;
             this._locationService = locationService;
             this._cloudStorageService = cloudStorageService;
@@ -51,6 +60,8 @@ namespace Washouse.Web.Controllers
             this._centerRequestService = centerRequestService;
             this._feedbackService = feedbackService;
             this._promotionService = promotionService;
+            this._cache = cache;
+            this._sendMailService = sendMailService;
         }
 
         [HttpGet]
@@ -538,6 +549,110 @@ namespace Washouse.Web.Controllers
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
                     Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpGet("assign")]
+        public async Task<IActionResult> AssignStaff(string email, string phone)
+        {
+            int id = int.Parse(User.FindFirst("Id")?.Value);
+            var user = _accountService.GetAccountByEmailAndPhone(email, phone);
+            var staff = _staffService.GetStaffByAccountId(user.Id);
+            if(staff != null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "The user is already a staff in the system",
+                    Data = null
+                });
+            }
+            var manager = _staffService.GetStaffByAccountId(id);
+            if(user == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "No user was found in the system",
+                    Data = null
+                });
+            }
+            string veirfycode = Utilities.GenerateRandomString(15);
+            DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
+            .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+            .SetSlidingExpiration(TimeSpan.FromMinutes(3));
+           
+            string key = phone;
+            _cache.SetString(key, veirfycode, options);
+            string centerid = manager.CenterId.ToString();
+            _cache.SetString("centerID", centerid, options);
+            var center = _centerService.GetById(int.Parse(centerid));
+            string centername = center.Result.CenterName;
+
+
+            string path = "./Templates_email/VerifyAccount.txt";
+            string content = System.IO.File.ReadAllText(path);
+            content = content.Replace("{recipient}", email);
+            content = content.Replace("{name}", centername);
+            string link = "http://localhost:3000/provider/staff/verify?code=" + veirfycode; 
+            content = content.Replace("{link}", link);
+            await _sendMailService.SendEmailAsync(email, "Xác nhận nhân viên", content);
+
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Send Successfully",
+                Data = null
+            });
+        }
+
+        [Authorize(Roles = "Customer")]
+        [HttpPut("verify")]
+        public async Task<IActionResult> VerifyStaff(string code)
+        {
+            string phone = User.FindFirst("Phone")?.Value;
+            var res = _cache.GetString(phone);
+            var centerId = _cache.GetString("centerID");
+            if (res == null && centerId == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Expire time for this code",
+                    Data = null
+                });
+            }
+            if (res.Equals(code))
+            {
+                var user = _accountService.GetAccountByPhone(phone);
+                var manager = _staffService.GetStaffByCenterId(int.Parse(centerId));
+                var email = _accountService.GetById(manager.AccountId);
+                var staff = new Staff()
+                {
+                    AccountId= user.Id,
+                    Status = true,
+                    IsManager = false,
+                    CenterId = int.Parse(centerId),
+                    CreatedDate= DateTime.Now,
+                    CreatedBy = email.Result.Email
+                };
+                await _staffService.Add(staff);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Verify Success",
+                    Data = staff
+                });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Wrong code for this account",
                     Data = null
                 });
             }
