@@ -488,18 +488,17 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
+                    var sendEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                    if (sendEmail == null)
+                    {
+                        sendEmail = createOrderRequestModel.Order.CustomerEmail;
+                    }
                     string path = "./Templates_email/CreateOrder.txt";
                     string content = System.IO.File.ReadAllText(path);
                     content = content.Replace("{recipient}", customer.Fullname);
 
                     content = content.Replace("{orderId}", orderAdded.Id);
-                    await _sendMailService.SendEmailAsync(customer.Email, "Tạo đơn hàng", content);
-
-
-
-
-
-
+                    await _sendMailService.SendEmailAsync(sendEmail, "Tạo đơn hàng", content);
 
                     return Ok(new ResponseModel
                     {
