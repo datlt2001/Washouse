@@ -1272,10 +1272,10 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-                 /*configuration = new ConfigurationBuilder()
-                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-                        .AddJsonFile("appsettings.json")
-                        .Build();*/
+                /*configuration = new ConfigurationBuilder()
+                       .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                       .AddJsonFile("appsettings.json")
+                       .Build();*/
                 configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")

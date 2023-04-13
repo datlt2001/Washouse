@@ -12,7 +12,7 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230413151634_update Db 1304")]
+    [Migration("20230413174006_update Db 1304")]
     partial class updateDb1304
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

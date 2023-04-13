@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Washouse.Data.Migrations
 {
-    public partial class updateDb : Migration
+    public partial class updateDb1304 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -57,6 +57,24 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Wallets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Wallets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Wards",
                 columns: table => new
                 {
@@ -74,6 +92,28 @@ namespace Washouse.Data.Migrations
                         principalTable: "Districts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Transactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WalletId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TimeStamp = table.Column<DateTime>(type: "datetime", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Transactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Transactions_Wallets",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -107,6 +147,7 @@ namespace Washouse.Data.Migrations
                     Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     Password = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    WalletId = table.Column<int>(type: "int", nullable: true),
                     FullName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Gender = table.Column<int>(type: "int", nullable: true),
                     Dob = table.Column<DateTime>(type: "date", nullable: true),
@@ -129,6 +170,11 @@ namespace Washouse.Data.Migrations
                         column: x => x.LocationId,
                         principalTable: "Locations",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Accounts_Wallets",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -139,6 +185,7 @@ namespace Washouse.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CenterName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    WalletId = table.Column<int>(type: "int", nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
                     Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
@@ -152,6 +199,7 @@ namespace Washouse.Data.Migrations
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
                     HasDelivery = table.Column<bool>(type: "bit", nullable: false),
+                    HasOnlinePayment = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -166,6 +214,11 @@ namespace Washouse.Data.Migrations
                         principalTable: "Locations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Centers_Wallets",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -309,6 +362,7 @@ namespace Washouse.Data.Migrations
                     RequestStatus = table.Column<bool>(type: "bit", nullable: false),
                     CenterName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    WalletId = table.Column<int>(type: "int", nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
                     Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -502,7 +556,7 @@ namespace Washouse.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
-                    IsManager = table.Column<bool>(type: "bit", nullable: false),
+                    IsManager = table.Column<bool>(type: "bit", nullable: true),
                     CenterId = table.Column<int>(type: "int", nullable: true),
                     IdNumber = table.Column<string>(type: "varchar(12)", unicode: false, maxLength: 12, nullable: true),
                     IdFrontImg = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
@@ -544,6 +598,8 @@ namespace Washouse.Data.Migrations
                     PreferredDropoffTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     PreferredDeliverTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CancelReasonByStaff = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CancelReasonByCustomer = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -614,58 +670,18 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ServiceRequests",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ServiceRequesting = table.Column<int>(type: "int", nullable: false),
-                    RequestStatus = table.Column<bool>(type: "bit", nullable: false),
-                    ServiceName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Alias = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    PriceType = table.Column<bool>(type: "bit", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    MinPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValueSql: "(N'')"),
-                    Rate = table.Column<decimal>(type: "decimal(18,3)", nullable: false),
-                    TimeEstimate = table.Column<int>(type: "int", nullable: false),
-                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
-                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
-                    HomeFlag = table.Column<bool>(type: "bit", nullable: true),
-                    HotFlag = table.Column<bool>(type: "bit", nullable: true),
-                    Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
-                    NumOfRating = table.Column<int>(type: "int", nullable: false),
-                    CenterId = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
-                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ServiceRequests", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ServiceRequests_Services_ServiceRequesting",
-                        column: x => x.ServiceRequesting,
-                        principalTable: "Services",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Deliveries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
-                    ShipperName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ShipperPhone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
+                    ShipperName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ShipperPhone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
-                    EstimatedTime = table.Column<TimeSpan>(type: "time", nullable: true),
-                    DeliveryDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    DeliveryType = table.Column<bool>(type: "bit", nullable: false),
+                    EstimatedTime = table.Column<int>(type: "int", nullable: true),
+                    DeliveryDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
@@ -689,11 +705,49 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Feedbacks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<string>(type: "varchar(20)", nullable: true),
+                    CenterId = table.Column<int>(type: "int", nullable: true),
+                    ServiceId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    ReplyMessage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ReplyBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    ReplyDate = table.Column<DateTime>(type: "datetime", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Feedbacks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Centers",
+                        column: x => x.CenterId,
+                        principalTable: "Centers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Orders",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Services",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false)
@@ -719,7 +773,8 @@ namespace Washouse.Data.Migrations
                     Measurement = table.Column<decimal>(type: "decimal(8,3)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CustomerNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StaffNote = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    StaffNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -737,6 +792,30 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderTrackings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderTrackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderTrackings_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -745,9 +824,11 @@ namespace Washouse.Data.Migrations
                     OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PlatformFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime", nullable: false),
-                    Status = table.Column<bool>(type: "bit", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime", nullable: true),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
                     PromoCode = table.Column<int>(type: "int", nullable: true),
+                    Discount = table.Column<decimal>(type: "decimal(5,4)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -766,30 +847,6 @@ namespace Washouse.Data.Migrations
                         column: x => x.PromoCode,
                         principalTable: "Promotions",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Trackings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderId = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
-                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
-                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Trackings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Trackings_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -816,33 +873,61 @@ namespace Washouse.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Feedbacks",
+                name: "OrderDetailTrackings",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
-                    OrderDetailId = table.Column<int>(type: "int", nullable: true),
-                    CenterId = table.Column<int>(type: "int", nullable: true),
-                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    ReplyMessage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ReplyBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    ReplyDate = table.Column<DateTime>(type: "datetime", nullable: true)
+                    OrderDetailId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Feedbacks", x => x.Id);
+                    table.PrimaryKey("PK_OrderDetailTrackings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Feedbacks_Centers",
-                        column: x => x.CenterId,
-                        principalTable: "Centers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Feedbacks_OrderDetails",
+                        name: "FK_OrderDetailTrackings_OrderDetails_OrderDetailId",
                         column: x => x.OrderDetailId,
                         principalTable: "OrderDetails",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WalletTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PaymentId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    FromWalletId = table.Column<int>(type: "int", nullable: false),
+                    ToWalletId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TimeStamp = table.Column<DateTime>(type: "datetime", nullable: false),
+                    UpdateTimeStamp = table.Column<DateTime>(type: "datetime", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WalletTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_Payments",
+                        column: x => x.PaymentId,
+                        principalTable: "Payments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_Wallets_From",
+                        column: x => x.FromWalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_Wallets_To",
+                        column: x => x.ToWalletId,
+                        principalTable: "Wallets",
                         principalColumn: "Id");
                 });
 
@@ -862,6 +947,11 @@ namespace Washouse.Data.Migrations
                 name: "IX_Accounts_LocationId",
                 table: "Accounts",
                 column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_WalletId",
+                table: "Accounts",
+                column: "WalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AdditionServices_CenterId",
@@ -888,6 +978,11 @@ namespace Washouse.Data.Migrations
                 name: "IX_Centers_LocationId",
                 table: "Centers",
                 column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Centers_WalletId",
+                table: "Centers",
+                column: "WalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_AccountId",
@@ -920,9 +1015,14 @@ namespace Washouse.Data.Migrations
                 column: "CenterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Feedbacks_OrderDetailId",
+                name: "IX_Feedbacks_OrderId",
                 table: "Feedbacks",
-                column: "OrderDetailId");
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_ServiceId",
+                table: "Feedbacks",
+                column: "ServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Locations_WardId",
@@ -955,6 +1055,11 @@ namespace Washouse.Data.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderDetailTrackings_OrderId",
+                table: "OrderDetailTrackings",
+                column: "OrderDetailId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
@@ -963,6 +1068,11 @@ namespace Washouse.Data.Migrations
                 name: "IX_Orders_LocationId",
                 table: "Orders",
                 column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderTrackings_OrderId",
+                table: "OrderTrackings",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_OrderId",
@@ -1005,11 +1115,6 @@ namespace Washouse.Data.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequests_ServiceRequesting",
-                table: "ServiceRequests",
-                column: "ServiceRequesting");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Services_CategoryId",
                 table: "Services",
                 column: "CategoryId");
@@ -1030,9 +1135,24 @@ namespace Washouse.Data.Migrations
                 column: "CenterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Trackings_OrderId",
-                table: "Trackings",
-                column: "OrderId");
+                name: "IX_Transactions_WalletId",
+                table: "Transactions",
+                column: "WalletId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_FromWalletId",
+                table: "WalletTransactions",
+                column: "FromWalletId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_PaymentId",
+                table: "WalletTransactions",
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_ToWalletId",
+                table: "WalletTransactions",
+                column: "ToWalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wards_DistrictId",
@@ -1067,7 +1187,10 @@ namespace Washouse.Data.Migrations
                 name: "OperatingHours");
 
             migrationBuilder.DropTable(
-                name: "Payments");
+                name: "OrderDetailTrackings");
+
+            migrationBuilder.DropTable(
+                name: "OrderTrackings");
 
             migrationBuilder.DropTable(
                 name: "Posts");
@@ -1085,16 +1208,13 @@ namespace Washouse.Data.Migrations
                 name: "ServicePrices");
 
             migrationBuilder.DropTable(
-                name: "ServiceRequests");
-
-            migrationBuilder.DropTable(
                 name: "Staffs");
 
             migrationBuilder.DropTable(
-                name: "Trackings");
+                name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "OrderDetails");
+                name: "WalletTransactions");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
@@ -1103,7 +1223,10 @@ namespace Washouse.Data.Migrations
                 name: "DaysOfWeeks");
 
             migrationBuilder.DropTable(
-                name: "Promotions");
+                name: "OrderDetails");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Services");
@@ -1112,19 +1235,25 @@ namespace Washouse.Data.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
+                name: "Promotions");
+
+            migrationBuilder.DropTable(
                 name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Centers");
+                name: "Customers");
 
             migrationBuilder.DropTable(
-                name: "Customers");
+                name: "Centers");
 
             migrationBuilder.DropTable(
                 name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Locations");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "Wards");
