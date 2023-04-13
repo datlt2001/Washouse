@@ -1,4 +1,5 @@
 ﻿//using GoogleMaps.LocationServices;
+
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -16,14 +17,34 @@ namespace Washouse.Data.Repositories
         {
         }
 
-        public Task ActivateCategory(int id)
+        public async Task ActivateCenter(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var center = this.DbContext.Centers.SingleOrDefault(c => c.Id.Equals(id));
+                DbContext.Centers.Attach(center);
+                center.Status = "Active";
+                await DbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public Task DeactivateCategory(int id)
+        public async Task DeactivateCenter(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var center = this.DbContext.Centers.SingleOrDefault(c => c.Id.Equals(id));
+                DbContext.Centers.Attach(center);
+                center.Status = "Inactive";
+                await DbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public IEnumerable<Center> SortCenterByLocation()
@@ -34,41 +55,41 @@ namespace Washouse.Data.Repositories
         public new async Task<IEnumerable<Center>> GetAll()
         {
             var data = await this._dbContext.Centers
-                    .Include(center => center.Location)
-                        .ThenInclude(location => location.Ward)
-                            .ThenInclude(ward => ward.District)
-                    .Include(center => center.OperatingHours)
-                        .ThenInclude(oh => oh.DaysOfWeek)
-                    .Include(center => center.Services)
-                        .ThenInclude(service => service.Category)
-                    .Include(center => center.Services)
-                        .ThenInclude(service => service.ServicePrices)
-                    .Include(center => center.DeliveryPriceCharts)
-                    .Include(center => center.staff)
-                        .ThenInclude(staff => staff.Account)
-                    .ToListAsync();
+                .Include(center => center.Location)
+                .ThenInclude(location => location.Ward)
+                .ThenInclude(ward => ward.District)
+                .Include(center => center.OperatingHours)
+                .ThenInclude(oh => oh.DaysOfWeek)
+                .Include(center => center.Services)
+                .ThenInclude(service => service.Category)
+                .Include(center => center.Services)
+                .ThenInclude(service => service.ServicePrices)
+                .Include(center => center.DeliveryPriceCharts)
+                .Include(center => center.staff)
+                .ThenInclude(staff => staff.Account)
+                .ToListAsync();
             return data;
         }
 
         public new async Task<Center> GetById(int id)
         {
             var data = await this._dbContext.Centers
-                    .Include(center => center.Location)
-                        .ThenInclude(location => location.Ward)
-                            .ThenInclude(ward => ward.District)
-                    .Include(center => center.OperatingHours)
-                        .ThenInclude(oh => oh.DaysOfWeek)
-                    .Include(center => center.Services)
-                        .ThenInclude(service => service.Category)
-                    .Include(center => center.Services)
-                        .ThenInclude(service => service.ServicePrices)
-                    .Include(center => center.DeliveryPriceCharts)
-                    .Include(center => center.AdditionServices)
-                    .Include(center => center.CenterGalleries)
-                    .Include(center => center.Feedbacks)
-                        //.ThenInclude(service => service.OrderDetail)
-                    .Include(center => center.Resourses)
-                    .FirstOrDefaultAsync(center => center.Id == id);
+                .Include(center => center.Location)
+                .ThenInclude(location => location.Ward)
+                .ThenInclude(ward => ward.District)
+                .Include(center => center.OperatingHours)
+                .ThenInclude(oh => oh.DaysOfWeek)
+                .Include(center => center.Services)
+                .ThenInclude(service => service.Category)
+                .Include(center => center.Services)
+                .ThenInclude(service => service.ServicePrices)
+                .Include(center => center.DeliveryPriceCharts)
+                .Include(center => center.AdditionServices)
+                .Include(center => center.CenterGalleries)
+                .Include(center => center.Feedbacks)
+                //.ThenInclude(service => service.OrderDetail)
+                .Include(center => center.Resourses)
+                .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
     }

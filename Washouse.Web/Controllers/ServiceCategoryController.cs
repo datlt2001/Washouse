@@ -130,6 +130,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequestModel Input)
         {
             try
@@ -181,6 +182,114 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateCategory([FromForm] CategoryRequestModel category, int id)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    Category existingCategorySevice = await _serviceCategoryService.GetById(id);
+                    //Category existingCategorySevice = new Category();
+                    if (existingCategorySevice == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found category.",
+                            Data = null
+                        });
+                    }
+                    else
+                    {
+                        existingCategorySevice.CategoryName = category.CategoryName;
+                        existingCategorySevice.Description = category.Description;
+                        existingCategorySevice.UpdatedDate = DateTime.Now;
+                        existingCategorySevice.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                        existingCategorySevice.Status = category.Status;
+                        existingCategorySevice.HomeFlag = category.HomeFlag;
+                        existingCategorySevice.Image = category.SavedFileName;
+                        await _serviceCategoryService.Update(existingCategorySevice);
+                        var response = new CategoryResponseModel
+                        {
+                            CategoryId = existingCategorySevice.Id,
+                            CategoryName = existingCategorySevice.CategoryName,
+                            CategoryAlias = existingCategorySevice.Alias,
+                            Description = existingCategorySevice.Description,
+                            HomeFlag = existingCategorySevice.HomeFlag,
+                            Image = existingCategorySevice.Image != null
+                                ? await _cloudStorageService.GetSignedUrlAsync(existingCategorySevice.Image)
+                                : null,
+                        };
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = 0,
+                            Message = "success",
+                            Data = response
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpPut("{id}/deactivate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeactivateCategory(int id)
+        {
+            var category = await _serviceCategoryService.GetById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var services = _serviceService.GetServicesByCategory(category.Id);
+            if (services.Any(serivce => serivce.Status.ToLower().Equals("active")))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Deactivate failed due to some active services",
+                    Data = null
+                });
+            }
+
+            await _serviceCategoryService.DeactivateCategory(id);
+            return Ok();
+        }
+
+        [HttpPut("{id}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateCategory(int id)
+        {
+            var category = await _serviceCategoryService.GetById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            await _serviceCategoryService.ActivateCategory(id);
+            return Ok();
         }
     }
 }
