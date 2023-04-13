@@ -499,6 +499,7 @@ namespace Washouse.Web.Controllers
 
 
         [HttpPut("{id}/deactivate")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeactivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
@@ -524,6 +525,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/activate")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ActivateAccount(int id)
         {
             var account = await _accountService.GetById(id);
