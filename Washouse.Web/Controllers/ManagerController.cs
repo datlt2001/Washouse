@@ -81,6 +81,15 @@ namespace Washouse.Web.Controllers
             try
             {
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                if (managerInfo.CenterId == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Account not found CenterId",
+                        Data = null
+                    });
+                }
                 var center = await _centerService.GetById((int)managerInfo.CenterId);
                 if (center == null) {
                     return NotFound(new ResponseModel

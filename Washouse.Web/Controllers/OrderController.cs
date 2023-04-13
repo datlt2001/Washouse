@@ -478,7 +478,7 @@ namespace Washouse.Web.Controllers
                     notification.Title = "Thông báo về đơn hàng:  " + orderAdded.Id;
                     notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
                     await _notificationService.Add(notification);
-                    await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
+                    //await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
                     if (id != null)
                     {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
@@ -486,7 +486,8 @@ namespace Washouse.Web.Controllers
                         notificationAccount.AccountId = int.Parse(id);
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
-                        await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
+                        //await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
+                        await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                     }
                     var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
                     if (staff != null)
@@ -496,7 +497,8 @@ namespace Washouse.Web.Controllers
                             notificationAccount.AccountId = staffItem.AccountId;
                             notificationAccount.NotificationId = notification.Id;
                             await _notificationAccountService.Add(notificationAccount);
-                            await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
+                            //await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
+                            await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                         }
                     }
 

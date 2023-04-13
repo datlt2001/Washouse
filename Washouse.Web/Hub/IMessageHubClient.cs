@@ -9,5 +9,6 @@ namespace Washouse.Web.Hub
     {
         Task NotifyToUser(string message);
         Task ReceiveNotification(string message);
+        Task SendNotification(int accountId, string message);
     }
 }
