@@ -38,6 +38,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetCategoryList()
         {
             try

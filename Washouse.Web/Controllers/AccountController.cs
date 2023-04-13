@@ -51,7 +51,8 @@ namespace Washouse.Web.Controllers
         public ILocationService _locationService;
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, 
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
-            IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService, IWardService wardService, ILocationService locationService)
+            IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService,
+            IWardService wardService, ILocationService locationService)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -80,8 +81,10 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             var token = await GenerateToken(user, false);
-            if (user.IsAdmin) {
+            if (user.IsAdmin)
+            {
                 return Ok(new ResponseModel
                 {
                     StatusCode = 17,
@@ -89,6 +92,7 @@ namespace Washouse.Web.Controllers
                     Data = token
                 });
             }
+
             return Ok(new ResponseModel
             {
                 StatusCode = 0,
@@ -135,6 +139,7 @@ namespace Washouse.Web.Controllers
                     Data = tokenUser
                 });
             }
+
             var token = await GenerateToken(user, true);
             return Ok(new ResponseModel
             {
@@ -157,11 +162,13 @@ namespace Washouse.Web.Controllers
             if (user.IsAdmin)
             {
                 Role = "Admin";
-            } else if (!isManage)
+            }
+            else if (!isManage)
             {
                 if (customer == null)
                 {
-                    try {
+                    try
+                    {
                         var cusAdding = new Customer()
                         {
                             AccountId = user.Id,
@@ -174,13 +181,16 @@ namespace Washouse.Web.Controllers
                             CreatedBy = "AutoInserted"
                         };
                         await _customerService.Add(cusAdding);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         throw ex;
                     }
                 }
+
                 Role = "Customer";
-            } else
+            }
+            else
             {
                 if (staff != null)
                 {
@@ -193,7 +203,8 @@ namespace Washouse.Web.Controllers
                     {
                         Role = "Staff";
                     }
-                } else if (staff == null)
+                }
+                else if (staff == null)
                 {
                     Role = "User";
                 }
@@ -201,7 +212,8 @@ namespace Washouse.Web.Controllers
 
             var tokenDescription = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] {
+                Subject = new ClaimsIdentity(new[]
+                {
                     new Claim(ClaimTypes.Name, user.FullName),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim("Phone", user.Phone),
@@ -216,7 +228,8 @@ namespace Washouse.Web.Controllers
                     new Claim("TokenId", Guid.NewGuid().ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKeyBytes),
+                    SecurityAlgorithms.HmacSha512Signature)
             };
 
             var token = jwtTokenHandler.CreateToken(tokenDescription);
@@ -243,6 +256,7 @@ namespace Washouse.Web.Controllers
                 RefreshToken = refreshToken
             };
         }
+
         private string GenerateRefreshToken()
         {
             var random = new byte[32];
@@ -276,13 +290,15 @@ namespace Washouse.Web.Controllers
             try
             {
                 //check 1: AccessToken valid format
-                var tokenInVerification = jwtTokenHandler.ValidateToken(model.AccessToken, tokenValidateParam, out var validatedToken);
+                var tokenInVerification =
+                    jwtTokenHandler.ValidateToken(model.AccessToken, tokenValidateParam, out var validatedToken);
 
                 //check 2: Check alg
                 if (validatedToken is JwtSecurityToken jwtSecurityToken)
                 {
-                    var result = jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512, StringComparison.InvariantCultureIgnoreCase);
-                    if (!result)//false
+                    var result = jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512,
+                        StringComparison.InvariantCultureIgnoreCase);
+                    if (!result) //false
                     {
                         return Ok(new ResponseModel
                         {
@@ -294,7 +310,8 @@ namespace Washouse.Web.Controllers
                 }
 
                 //check 3: Check accessToken expire?
-                var utcExpireDate = long.Parse(tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+                var utcExpireDate = long.Parse(tokenInVerification.Claims
+                    .FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
 
                 var expireDate = ConvertUnixTimeToDateTime(utcExpireDate);
                 if (expireDate > DateTime.UtcNow)
@@ -317,7 +334,6 @@ namespace Washouse.Web.Controllers
                         Message = "Refresh token does not exist",
                         Data = null
                     });
-
                 }
 
                 //check 5: check refreshToken is used/revoked?
@@ -330,6 +346,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 if (storedToken.IsRevoked)
                 {
                     return Ok(new ResponseModel
@@ -364,7 +381,9 @@ namespace Washouse.Web.Controllers
                 if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
                 {
                     token = await GenerateToken(user, false);
-                } else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer") {
+                }
+                else if (User.FindFirst(ClaimTypes.Role)?.Value != "Customer")
+                {
                     token = await GenerateToken(user, true);
                 }
 
@@ -396,9 +415,52 @@ namespace Washouse.Web.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public IActionResult GetAccountList()
+        public IActionResult GetAccountList([FromQuery] FilterAccountsRequestModel requestModel)
         {
             var accounts = _accountService.GetAll();
+            if (!string.IsNullOrEmpty(requestModel.SearchString))
+            {
+                accounts = accounts.Where(account =>
+                    account.FullName.ToLower().Contains(requestModel.SearchString.ToLower())
+                    || account.Email.ToLower().Contains(requestModel.SearchString.ToLower())
+                    || account.Phone.ToLower().Contains(requestModel.SearchString.ToLower()));
+            }
+
+            var totalItems = accounts.Count();
+            var totalPages = (int)Math.Ceiling((double)totalItems / requestModel.PageSize);
+            accounts = accounts.Skip((requestModel.Page - 1) * requestModel.PageSize).Take(requestModel.PageSize);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    ItemsPerPage = requestModel.PageSize,
+                    PageNumber = requestModel.Page,
+                    Items = accounts.ToList().ConvertAll(async account => new AccountResponseModel()
+                    {
+                        Id = account.Id,
+                        Dob = account.Dob,
+                        Email = account.Email,
+                        Gender = account.Gender,
+                        Phone = account.Phone,
+                        Status = account.Status,
+                        FullName = account.FullName,
+                        IsAdmin = account.IsAdmin,
+                        ProfilePic = account.ProfilePic != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(account.ProfilePic)
+                            : null,
+                    })
+                }
+            });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAccountById(int id)
+        {
+            var accounts = await _accountService.GetById(id);
             if (accounts == null)
             {
                 return NotFound(new ResponseModel
@@ -408,26 +470,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-            return Ok(new ResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = accounts
-            });
-        }
-            
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAccountById(int id)
-        {
-            var accounts = await _accountService.GetById(id);
-            if (accounts == null) {
-                return NotFound(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status404NotFound,
-                    Message = "Not found account",
-                    Data = null
-                });
-            }
+
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -443,7 +486,7 @@ namespace Washouse.Web.Controllers
             {
                 var existphone = _accountService.GetAccountByPhone(Input.Phone);
                 var existemail = _accountService.GetAccountByEmail(Input.Email);
-                if(existphone != null || existemail != null)
+                if (existphone != null || existemail != null)
                 {
                     return BadRequest(new ResponseModel
                     {
@@ -458,13 +501,12 @@ namespace Washouse.Web.Controllers
                     Phone = Input.Phone,
                     Email = Input.Email,
                     Password = Input.Password,
-                    FullName = Input.FullName,                    
+                    FullName = Input.FullName,
                     Status = false,
                     IsAdmin = false,
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\staffs", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.FullName,
-
                 };
                 await _accountService.Add(accounts);
                 var staff = new Staff()
@@ -485,9 +527,9 @@ namespace Washouse.Web.Controllers
                     Message = "Updated",
                     Data = staff
                 });
-
             }
-            else {
+            else
+            {
                 return BadRequest(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
@@ -512,6 +554,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             await _accountService.DeactivateAccount(id);
             return Ok(new ResponseModel
             {
@@ -538,6 +581,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             await _accountService.ActivateAccount(id);
             return Ok(new ResponseModel
             {
@@ -551,45 +595,9 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/change-password")]
-        public async Task<IActionResult> ChangePassword(int id, [FromBody]ChangePasswordViewModel changePasswordModel)
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordViewModel changePasswordModel)
         {
             var account = await _accountService.GetById(id);
-            if (account == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                if(account.Password != changePasswordModel.oldPass) {
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = 200,
-                        Message = "Wrong password",
-                        Data = null
-                    });
-                }
-                else
-                {
-
-                    await _accountService.ChangePassword(id, changePasswordModel.newPass);
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = 0,
-                        Message = "success",
-                        Data = new
-                        {
-                            AccountId = id
-                        }
-                    });
-                }
-                
-            }           
-        }
-
-        [HttpPut("{email}/change-password-by-email")]
-        public async Task<IActionResult> ChangePasswordByEmail(string email, [FromBody] ChangePasswordViewModel changePasswordModel)
-        {
-            Account account =  _accountService.GetAccountByEmail(email);
             if (account == null)
             {
                 return NotFound();
@@ -607,7 +615,42 @@ namespace Washouse.Web.Controllers
                 }
                 else
                 {
+                    await _accountService.ChangePassword(id, changePasswordModel.newPass);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new
+                        {
+                            AccountId = id
+                        }
+                    });
+                }
+            }
+        }
 
+        [HttpPut("{email}/change-password-by-email")]
+        public async Task<IActionResult> ChangePasswordByEmail(string email,
+            [FromBody] ChangePasswordViewModel changePasswordModel)
+        {
+            Account account = _accountService.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                if (account.Password != changePasswordModel.oldPass)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 200,
+                        Message = "Wrong password",
+                        Data = null
+                    });
+                }
+                else
+                {
                     await _accountService.ChangePassword(account.Id, changePasswordModel.newPass);
                     return Ok(new ResponseModel
                     {
@@ -619,7 +662,6 @@ namespace Washouse.Web.Controllers
                         }
                     });
                 }
-
             }
         }
 
@@ -645,8 +687,7 @@ namespace Washouse.Web.Controllers
                 {
                     Success = true,
                     Message = "Your password has been reset"
-                });              
-
+                });
             }
         }
 
@@ -676,7 +717,6 @@ namespace Washouse.Web.Controllers
                     Message = "Updated",
                     Data = otp
                 });
-
             }
         }
 
@@ -696,6 +736,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 var accounts = new Account()
                 {
                     Phone = Input.Phone,
@@ -707,25 +748,27 @@ namespace Washouse.Web.Controllers
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\customer", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.Email,
-
                 };
-                if (Input.confirmPass != Input.Password) { 
+                if (Input.confirmPass != Input.Password)
+                {
                     return BadRequest(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status400BadRequest,
                         Message = "Sai ConfirmPassword",
                         Data = null
-                    }); }
+                    });
+                }
+
                 await _accountService.Add(accounts);
                 var customer = new Customer()
                 {
-                    AccountId= accounts.Id,
-                    Fullname= accounts.FullName,
+                    AccountId = accounts.Id,
+                    Fullname = accounts.FullName,
                     Phone = accounts.Phone,
                     Email = accounts.Email,
                     Status = false,
-                    CreatedBy= accounts.CreatedBy, 
-                    CreatedDate= DateTime.Now,
+                    CreatedBy = accounts.CreatedBy,
+                    CreatedDate = DateTime.Now,
                 };
                 await _customerService.Add(customer);
                 //string path = "./Templates_email/VerifyAccount.txt";
@@ -741,8 +784,10 @@ namespace Washouse.Web.Controllers
                     Data = accounts
                 });
             }
-            else { return BadRequest(); }
-
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost("managers")]
@@ -761,18 +806,18 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 var accounts = new Account()
                 {
                     Phone = Input.Phone,
                     Email = Input.Email,
                     Password = Input.Password,
-                    FullName = Input.Phone,                    
+                    FullName = Input.Phone,
                     Status = false,
                     //RoleType = "Manager",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\managers", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
                     CreatedBy = Input.Email,
-
                 };
                 if (Input.confirmPass != Input.Password)
                 {
@@ -783,10 +828,11 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 await _accountService.Add(accounts);
                 var manager = new Staff()
                 {
-                    AccountId = accounts.Id,                   
+                    AccountId = accounts.Id,
                     Status = false,
                     IsManager = true,
                     CenterId = null,
@@ -803,8 +849,10 @@ namespace Washouse.Web.Controllers
                     Data = accounts
                 });
             }
-            else { return BadRequest(); }
-
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPut("{id}/verify")]
@@ -815,6 +863,7 @@ namespace Washouse.Web.Controllers
             {
                 return NotFound();
             }
+
             await _accountService.ActivateAccount(id);
             return Ok();
         }
@@ -836,6 +885,7 @@ namespace Washouse.Web.Controllers
                 {
                     token = await GenerateToken(user, true);
                 }
+
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
@@ -849,12 +899,15 @@ namespace Washouse.Web.Controllers
                         RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
                         LocationId = user.LocationId,
                         Name = User.FindFirst(ClaimTypes.Name)?.Value,
-                        Avatar = user.ProfilePic != null ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic) : null,
+                        Avatar = user.ProfilePic != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic)
+                            : null,
                         Gender = user.Gender,
                         Dob = user.Dob.HasValue ? (user.Dob.Value).ToString("dd-MM-yyyy") : null
                     }
                 });
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -863,14 +916,14 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-            
         }
 
         [Authorize]
         [HttpPut("profile-picture")]
         public async Task<IActionResult> UpdateProfilePic(string SavedFileName)
         {
-            if (!ModelState.IsValid) {
+            if (!ModelState.IsValid)
+            {
                 return BadRequest(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
@@ -882,13 +935,14 @@ namespace Washouse.Web.Controllers
             {
                 string id = User.FindFirst("Id")?.Value;
                 Customer existingCustomer = await _customerService.GetCustomerByAccID(int.Parse(id));
-                if (existingCustomer == null) { 
+                if (existingCustomer == null)
+                {
                     return NotFound(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status404NotFound,
                         Message = "Not found customer",
                         Data = null
-                    }); 
+                    });
                 }
                 else
                 {
@@ -904,8 +958,6 @@ namespace Washouse.Web.Controllers
                         Data = existingCustomer
                     });
                 }
-
-
             }
         }
 
@@ -913,12 +965,18 @@ namespace Washouse.Web.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfileInfo([FromBody] CustomerRequestModel input)
         {
-            if (!ModelState.IsValid) { return BadRequest(); }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
             else
             {
                 DateTime dateTime;
-                bool a = DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
-                if (input.Dob != null && !DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime)) {
+                bool a = DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out dateTime);
+                if (input.Dob != null && !DateTime.TryParseExact(input.Dob, "dd-MM-yyyy", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out dateTime))
+                {
                     return BadRequest(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status400BadRequest,
@@ -926,22 +984,25 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                    int  id = int.Parse(User.FindFirst("Id")?.Value);
-                Customer existingCustomer =  await _customerService.GetCustomerByAccID(id);
+
+                int id = int.Parse(User.FindFirst("Id")?.Value);
+                Customer existingCustomer = await _customerService.GetCustomerByAccID(id);
                 Account user = await _accountService.GetById(id);
 
-                if (existingCustomer == null) { 
+                if (existingCustomer == null)
+                {
                     return NotFound(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status404NotFound,
                         Message = "Not found customer",
                         Data = null
-                    });  }
+                    });
+                }
                 else
                 {
                     existingCustomer.Fullname = input.FullName != null ? input.FullName : existingCustomer.Fullname;
                     existingCustomer.UpdatedDate = DateTime.Now;
-                    existingCustomer.UpdatedBy = existingCustomer.Email;                  
+                    existingCustomer.UpdatedBy = existingCustomer.Email;
                     await _customerService.Update(existingCustomer);
                     user.UpdatedDate = DateTime.Now;
                     user.UpdatedBy = user.FullName;
@@ -956,6 +1017,7 @@ namespace Washouse.Web.Controllers
                         {
                             age--;
                         }
+
                         if (age > 15 && age < 80)
                         {
                             user.Dob = DateTime.ParseExact(input.Dob, format, CultureInfo.InvariantCulture);
@@ -980,7 +1042,6 @@ namespace Washouse.Web.Controllers
                         Data = existingCustomer
                     });
                 }
-
             }
         }
 
@@ -988,7 +1049,10 @@ namespace Washouse.Web.Controllers
         [HttpPut("address")]
         public async Task<IActionResult> UpdateAddressInfo([FromBody] LocationRequestModel Input)
         {
-            if (!ModelState.IsValid) { return BadRequest(); }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
             else
             {
                 int accId = int.Parse(User.FindFirst("Id")?.Value);
@@ -1014,8 +1078,11 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                string fullAddress = Input.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+
+                string fullAddress = Input.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
+                                     ", Thành phố Hồ Chí Minh";
+                string url =
+                    $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                 using (HttpClient client = new HttpClient())
                 {
                     var response = await client.GetAsync(url);
@@ -1025,21 +1092,24 @@ namespace Washouse.Web.Controllers
                         dynamic result = JsonConvert.DeserializeObject(json);
                         if (result.Count > 0)
                         {
-
                             location.Latitude = result[0].lat;
                             location.Longitude = result[0].lon;
                         }
                     }
                 }
+
                 if (Input.Latitude != null && Input.Latitude != 0)
                 {
                     location.Latitude = Input.Latitude;
                 }
+
                 if (Input.Longitude != null && Input.Longitude != 0)
                 {
                     location.Longitude = Input.Longitude;
                 }
-                if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
+
+                if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 &&
+                    location.Longitude != 0)
                 {
                     location.Latitude = Math.Round((decimal)location.Latitude, 9);
                     location.Longitude = Math.Round((decimal)location.Longitude, 9);
@@ -1049,13 +1119,18 @@ namespace Washouse.Web.Controllers
                     return BadRequest(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                        Message =
+                            "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
                         Data = null
                     });
                 }
+
                 var locationAdded = await _locationService.Add(location);
 
-                if (existingCustomer == null) { return NotFound(); }
+                if (existingCustomer == null)
+                {
+                    return NotFound();
+                }
                 else
                 {
                     existingCustomer.Address = locationAdded.Id;
@@ -1073,8 +1148,6 @@ namespace Washouse.Web.Controllers
                         Data = existingCustomer
                     });
                 }
-
-
             }
         }
 
@@ -1091,7 +1164,8 @@ namespace Washouse.Web.Controllers
                     Message = "Account not found",
                     Data = null
                 });
-            } else
+            }
+            else
             {
                 if (account.Wallet == null)
                 {
@@ -1101,7 +1175,8 @@ namespace Washouse.Web.Controllers
                         Message = "Account do not have wallet",
                         Data = null
                     });
-                } else
+                }
+                else
                 {
                     var transactions = new List<TransactionResponseModel>();
                     foreach (var item in account.Wallet.Transactions)
@@ -1111,6 +1186,7 @@ namespace Washouse.Web.Controllers
                         {
                             _plusOrMinus = "plus";
                         }
+
                         transactions.Add(new TransactionResponseModel
                         {
                             Type = item.Type,
@@ -1120,6 +1196,7 @@ namespace Washouse.Web.Controllers
                             TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss")
                         });
                     }
+
                     var walletTransactions = new List<WalletTransactionResponseModel>();
                     foreach (var item in account.Wallet.WalletTransactionFromWallets)
                     {
@@ -1131,9 +1208,12 @@ namespace Washouse.Web.Controllers
                             PlusOrMinus = "Minus",
                             Amount = item.Amount,
                             TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
-                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue
+                                ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
                         });
                     }
+
                     foreach (var item in account.Wallet.WalletTransactionToWallets)
                     {
                         walletTransactions.Add(new WalletTransactionResponseModel
@@ -1144,9 +1224,12 @@ namespace Washouse.Web.Controllers
                             PlusOrMinus = "Plus",
                             Amount = item.Amount,
                             TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
-                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue
+                                ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
                         });
                     }
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = 0,
@@ -1156,14 +1239,16 @@ namespace Washouse.Web.Controllers
                             WalletId = account.Wallet.Id,
                             Balance = account.Wallet.Balance,
                             Status = account.Wallet.Status,
-                            Transactions = transactions.OrderByDescending(tran => DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)).ToList(),
-                            WalletTransactions = walletTransactions.OrderByDescending(tran => DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)).ToList()
+                            Transactions = transactions.OrderByDescending(tran =>
+                                DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture)).ToList(),
+                            WalletTransactions = walletTransactions.OrderByDescending(tran =>
+                                DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture)).ToList()
                         }
                     });
                 }
             }
-
         }
-
     }
 }

@@ -278,6 +278,7 @@ namespace Washouse.Web.Controllers
         /// <returns>
         /// </returns>
         [HttpPost("posts")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreatePost([FromBody] PostRequestModel Input)
         {
             try
