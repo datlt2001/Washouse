@@ -36,6 +36,7 @@ using Washouse.Service.Interface;
 using Washouse.Web.Models;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
+using Washouse.Web.Hub;
 
 namespace Washouse.Web
 {
@@ -83,7 +84,10 @@ namespace Washouse.Web
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
-
+            services.AddSignalR();
+            services.AddCors(options => {
+                options.AddPolicy("CORSPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((hosts) => true));
+            });
             services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
             services.Configure<GCSConfigOptions>(Configuration.GetSection("GCSConfigOptions"));
             //services.Configure<GCSConfigOptions>(Configuration.GetSection("GoogleCloudStorageBucketName"));
@@ -257,6 +261,8 @@ namespace Washouse.Web
 
             app.UseHttpsRedirection();
 
+            app.UseCors("CORSPolicy");
+
             app.UseRouting();
 
             app.UseAuthentication();
@@ -266,6 +272,7 @@ namespace Washouse.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<MessageHub>("/messageHub");
             });
         }
     }

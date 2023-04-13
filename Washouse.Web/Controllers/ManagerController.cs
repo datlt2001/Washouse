@@ -18,6 +18,8 @@ using Washouse.Model.RequestModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
+using Washouse.Web.Hub;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Washouse.Web.Controllers
 {
@@ -41,13 +43,15 @@ namespace Washouse.Web.Controllers
         private readonly IAccountService _accountService;
         private readonly INotificationService _notificationService;
         private readonly INotificationAccountService _notificationAccountService;
+        private IHubContext<MessageHub, IMessageHubClient> messageHub;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 IStaffService staffService, ICenterRequestService centerRequestService, 
                                 IFeedbackService feedbackService, IPromotionService promotionService,
                                 INotificationService notificationService, INotificationAccountService notificationAccountService,
-                                ICustomerService customerService, IOrderService orderService, IAccountService accountService)
+                                ICustomerService customerService, IOrderService orderService, IAccountService accountService,
+                                IHubContext<MessageHub, IMessageHubClient> _messageHub)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -64,6 +68,7 @@ namespace Washouse.Web.Controllers
             this._accountService = accountService;
             this._notificationService = notificationService;
             this._notificationAccountService = notificationAccountService;
+            messageHub = _messageHub;
         }
 
         #endregion

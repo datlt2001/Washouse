@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
+using Washouse.Web.Hub;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
@@ -19,12 +21,15 @@ namespace Washouse.Web.Controllers
         public INotificationService _notificationService;
         public IAccountService _accountService;
         public INotificationAccountService _notificationAccountService;
+        private IHubContext<MessageHub, IMessageHubClient> messageHub;
 
-        public NotificationController(INotificationService notificationService, IAccountService accountService, INotificationAccountService notificationAccountService)
+        public NotificationController(INotificationService notificationService, IAccountService accountService, 
+            INotificationAccountService notificationAccountService, IHubContext<MessageHub, IMessageHubClient> _messageHub)
         {
             _notificationService = notificationService;
             _accountService = accountService;
             _notificationAccountService = notificationAccountService;
+            messageHub = _messageHub;
         }
         //[HttpGet("unread")]
         //public IActionResult GetUnreadNotifications(int accId)
@@ -75,8 +80,7 @@ namespace Washouse.Web.Controllers
             {
                 notis = _notificationService.GetNotificationUnread(accountId);
 
-            }                       
-
+            }
             return Ok(new ResponseModel
             {
                 StatusCode = 0,
@@ -108,6 +112,14 @@ namespace Washouse.Web.Controllers
                     Data = noti
                 });
             }
+        }
+
+        [HttpPost]
+        [Route("notificationsoffers")]
+        public string Get()
+        {
+            messageHub.Clients.All.NotifyToUser("Notification");
+            return "Offers sent successfully to all users!";
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
@@ -13,6 +15,7 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ViewModel;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
+using Washouse.Web.Hub;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
@@ -36,7 +39,8 @@ namespace Washouse.Web.Controllers
         private readonly ICloudStorageService _cloudStorageService;
         private readonly IOrderDetailTrackingService _orderDetailTrackingService;
         private readonly IWalletService _walletService;
-        private readonly IWalletTransactionService _walletTransactionService;
+        private readonly IWalletTransactionService _walletTransactionService; 
+        private IHubContext<MessageHub, IMessageHubClient> messageHub;
 
         public TrackingController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
@@ -44,7 +48,7 @@ namespace Washouse.Web.Controllers
             INotificationService notificationService, INotificationAccountService notificationAccountService,
             IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
             IOrderDetailTrackingService orderDetailTrackingService, IWalletService walletService, 
-            IWalletTransactionService walletTransactionService, IPaymentService paymentService)
+            IWalletTransactionService walletTransactionService, IPaymentService paymentService, IHubContext<MessageHub, IMessageHubClient> _messageHub)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -61,16 +65,19 @@ namespace Washouse.Web.Controllers
             this._cloudStorageService = cloudStorageService;
             this._walletService = walletService;
             this._walletTransactionService = walletTransactionService;
-
+            messageHub = _messageHub;
         }
         #endregion
 
+        [Authorize(Roles ="Manager,Staff")]
         [HttpPut]
         [Route("orders/{orderId}/tracking")]
         public async Task<IActionResult> UpdateOrderStatus(string orderId)
         {
             
             var order = await _orderService.GetOrderById(orderId);
+            string StaffId = User.FindFirst("Id")?.Value;
+            var staff = await _staffService.GetById(int.Parse(StaffId));
             if (order == null)
             {
                 return NotFound(new ResponseModel
@@ -120,6 +127,35 @@ namespace Washouse.Web.Controllers
                 order.UpdatedDate = DateTime.Now;
                 order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                 await _orderService.Update(order);
+
+                //notification
+                Notification notification = new Notification();
+                NotificationAccount notificationAccount = new NotificationAccount();
+                notification.OrderId = order.Id;
+                notification.CreatedDate = DateTime.Now;
+                notification.Title = "Thông báo về đơn hàng:  " + order.Id;
+                notification.Content = "Trạng thái của đơn hàng " + order.Id + " đã được cập nhật.";
+                await _notificationService.Add(notification);
+
+                if (order.Customer.AccountId != null)
+                {
+                    //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
+                    //var accId = cusinfo.Result.AccountId ?? 0;
+                    notificationAccount.AccountId = (int)order.Customer.AccountId;
+                    notificationAccount.NotificationId = notification.Id;
+                    await _notificationAccountService.Add(notificationAccount);
+                }
+
+                var staffs = _staffService.GetAllByCenterId((int)staff.CenterId);
+                if (staffs != null)
+                {
+                    foreach (var staffItem in staffs)
+                    {
+                        notificationAccount.AccountId = staffItem.AccountId;
+                        notificationAccount.NotificationId = notification.Id;
+                        await _notificationAccountService.Add(notificationAccount);
+                    }
+                }
                 return Ok(new ResponseModel
                 {
                     StatusCode = 0,

@@ -28,6 +28,8 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using Microsoft.AspNetCore.SignalR;
+using Washouse.Web.Hub;
 
 namespace Washouse.Web.Controllers
 {
@@ -52,13 +54,14 @@ namespace Washouse.Web.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IWalletTransactionService _walletTransactionService;
         private readonly IWalletService _walletService;
+        private IHubContext<MessageHub, IMessageHubClient> _messageHub;
 
         public OrderController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService,
             IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
-            IPaymentService paymentService, IWalletTransactionService walletTransactionService, IWalletService walletService)
+            IPaymentService paymentService, IWalletTransactionService walletTransactionService, IWalletService walletService, IHubContext<MessageHub, IMessageHubClient> messageHub)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -76,6 +79,7 @@ namespace Washouse.Web.Controllers
             _paymentService = paymentService;
             _walletTransactionService = walletTransactionService;
             _walletService = walletService;
+            _messageHub = messageHub;
         }
         #endregion
 
@@ -474,7 +478,7 @@ namespace Washouse.Web.Controllers
                     notification.Title = "Thông báo về đơn hàng:  " + orderAdded.Id;
                     notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
                     await _notificationService.Add(notification);
-
+                    await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
                     if (id != null)
                     {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
