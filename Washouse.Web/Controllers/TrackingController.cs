@@ -77,7 +77,7 @@ namespace Washouse.Web.Controllers
             
             var order = await _orderService.GetOrderById(orderId);
             string StaffId = User.FindFirst("Id")?.Value;
-            var staff = await _staffService.GetById(int.Parse(StaffId));
+            var staff = await _staffService.GetByAccountId(int.Parse(StaffId));
             if (order == null)
             {
                 return NotFound(new ResponseModel
