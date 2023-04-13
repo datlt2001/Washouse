@@ -15,7 +15,7 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ViewModel;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
-using Washouse.Web.Hub;
+using Washouse.Web.Hubs;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
@@ -40,7 +40,7 @@ namespace Washouse.Web.Controllers
         private readonly IOrderDetailTrackingService _orderDetailTrackingService;
         private readonly IWalletService _walletService;
         private readonly IWalletTransactionService _walletTransactionService; 
-        private IHubContext<MessageHub, IMessageHubClient> messageHub;
+        private readonly IHubContext<MessageHub> messageHub;
 
         public TrackingController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
@@ -48,7 +48,7 @@ namespace Washouse.Web.Controllers
             INotificationService notificationService, INotificationAccountService notificationAccountService,
             IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
             IOrderDetailTrackingService orderDetailTrackingService, IWalletService walletService, 
-            IWalletTransactionService walletTransactionService, IPaymentService paymentService, IHubContext<MessageHub, IMessageHubClient> _messageHub)
+            IWalletTransactionService walletTransactionService, IPaymentService paymentService, IHubContext<MessageHub> _messageHub)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -144,7 +144,7 @@ namespace Washouse.Web.Controllers
                     notificationAccount.AccountId = (int)order.Customer.AccountId;
                     notificationAccount.NotificationId = notification.Id;
                     await _notificationAccountService.Add(notificationAccount);
-                    await messageHub.Clients.All.NotifyToUser("UpdateOrderStatus");
+                    await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
                 }
 
                 var staffs = _staffService.GetAllByCenterId((int)staff.CenterId);
@@ -155,7 +155,7 @@ namespace Washouse.Web.Controllers
                         notificationAccount.AccountId = staffItem.AccountId;
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
-                        await messageHub.Clients.All.NotifyToUser("UpdateOrderStatus");
+                        await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
                     }
                 }
                 return Ok(new ResponseModel

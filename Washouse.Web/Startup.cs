@@ -36,7 +36,7 @@ using Washouse.Service.Interface;
 using Washouse.Web.Models;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
-using Washouse.Web.Hub;
+using Washouse.Web.Hubs;
 
 namespace Washouse.Web
 {

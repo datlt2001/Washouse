@@ -29,7 +29,8 @@ using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
 using Microsoft.AspNetCore.SignalR;
-using Washouse.Web.Hub;
+using Washouse.Web.Hubs;
+using Washouse.Web.Hubs;
 
 namespace Washouse.Web.Controllers
 {
@@ -54,14 +55,14 @@ namespace Washouse.Web.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IWalletTransactionService _walletTransactionService;
         private readonly IWalletService _walletService;
-        private IHubContext<MessageHub, IMessageHubClient> _messageHub;
+        private readonly IHubContext<MessageHub> _messageHub;
 
         public OrderController(IOrderService orderService, ICustomerService customerService,
             IWardService wardService, ILocationService locationService, IServiceService serviceService,
             ICenterService centerService, IPromotionService promotionService, IOptions<VNPaySettings> vnpaySettings,
             INotificationService notificationService, INotificationAccountService notificationAccountService,
             IStaffService staffService, ISendMailService sendMailService, ICloudStorageService cloudStorageService, 
-            IPaymentService paymentService, IWalletTransactionService walletTransactionService, IWalletService walletService, IHubContext<MessageHub, IMessageHubClient> messageHub)
+            IPaymentService paymentService, IWalletTransactionService walletTransactionService, IWalletService walletService, IHubContext<MessageHub> messageHub)
         {
             this._orderService = orderService;
             this._customerService = customerService;
@@ -487,7 +488,8 @@ namespace Washouse.Web.Controllers
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
                         //await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
-                        await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                        //await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                        //await _messageHub(notificationAccount.AccountId, "NotificationAdded");
                     }
                     var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
                     if (staff != null)
@@ -498,7 +500,7 @@ namespace Washouse.Web.Controllers
                             notificationAccount.NotificationId = notification.Id;
                             await _notificationAccountService.Add(notificationAccount);
                             //await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
-                            await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                            //await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                         }
                     }
 

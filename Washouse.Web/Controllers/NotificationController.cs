@@ -9,7 +9,7 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
-using Washouse.Web.Hub;
+using Washouse.Web.Hubs;
 using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
@@ -21,10 +21,10 @@ namespace Washouse.Web.Controllers
         public INotificationService _notificationService;
         public IAccountService _accountService;
         public INotificationAccountService _notificationAccountService;
-        private IHubContext<MessageHub, IMessageHubClient> messageHub;
+        private readonly IHubContext<MessageHub> messageHub;
 
         public NotificationController(INotificationService notificationService, IAccountService accountService, 
-            INotificationAccountService notificationAccountService, IHubContext<MessageHub, IMessageHubClient> _messageHub)
+            INotificationAccountService notificationAccountService, IHubContext<MessageHub> _messageHub)
         {
             _notificationService = notificationService;
             _accountService = accountService;
@@ -118,7 +118,8 @@ namespace Washouse.Web.Controllers
         [Route("notificationsoffers")]
         public string Get()
         {
-            messageHub.Clients.All.NotifyToUser("Notification");
+            /*await _hubContext.Clients.All.SendAsync("ReceiveMessage", user, message);
+            messageHub.Clients.All.NotifyToUser("Notification");*/
             return "Offers sent successfully to all users!";
         }
     }

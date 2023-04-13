@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 
-namespace Washouse.Web.Hub
+namespace Washouse.Web.Hubs
 {
-    public class MessageHub : Hub<IMessageHubClient>
+    public class MessageHub : Hub
     {
         public async Task NotifyToUser(string message)
         {
             /*string clientId = Context.ConnectionId;
             await Clients.Clients(clientId).NotifyToUser(message);*/
-            await Clients.All.NotifyToUser(message);
+            await Clients.All.SendAsync(message);
         }
 
         public async Task SendNotification(int accountId, string message)
@@ -20,7 +20,7 @@ namespace Washouse.Web.Hub
 
             if (user != null && user == accountId.ToString())
             {
-                await Clients.User(user).ReceiveNotification(message);
+                await Clients.User(user).SendAsync(message);
             }
         }
 

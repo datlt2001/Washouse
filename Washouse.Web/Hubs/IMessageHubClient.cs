@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
 
-namespace Washouse.Web.Hub
+namespace Washouse.Web.Hubs
 {
     public interface IMessageHubClient
     {
