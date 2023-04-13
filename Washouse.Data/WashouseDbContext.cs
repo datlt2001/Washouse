@@ -489,7 +489,9 @@ namespace Washouse.Data
             {
                 entity.HasIndex(e => e.CenterId, "IX_Feedbacks_CenterId");
 
-                entity.HasIndex(e => e.OrderDetailId, "IX_Feedbacks_OrderDetailId");
+                entity.HasIndex(e => e.ServiceId, "IX_Feedbacks_ServiceId");
+
+                entity.HasIndex(e => e.OrderId, "IX_Feedbacks_OrderId");
 
                 entity.Property(e => e.Content)
                     .IsRequired()
@@ -515,10 +517,16 @@ namespace Washouse.Data
                     .HasForeignKey(d => d.CenterId)
                     .HasConstraintName("FK_Feedbacks_Centers");
 
-                entity.HasOne(d => d.OrderDetail)
+                entity.HasOne(d => d.Order)
                     .WithMany(p => p.Feedbacks)
-                    .HasForeignKey(d => d.OrderDetailId)
-                    .HasConstraintName("FK_Feedbacks_OrderDetails");
+                    .HasForeignKey(d => d.OrderId)
+                    .HasConstraintName("FK_Feedbacks_Orders");
+
+                entity.HasOne(d => d.Service)
+                    .WithMany(p => p.Feedbacks)
+                    .HasForeignKey(d => d.ServiceId)
+                    .HasConstraintName("FK_Feedbacks_Services");
+
             });
 
             modelBuilder.Entity<Location>(entity =>
@@ -640,6 +648,10 @@ namespace Washouse.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.CustomerMessage).HasMaxLength(500);
+
+                entity.Property(e => e.CancelReasonByStaff).HasMaxLength(100);
+
+                entity.Property(e => e.CancelReasonByCustomer).HasMaxLength(100);
 
                 entity.Property(e => e.CustomerMobile)
                     .IsRequired()
@@ -1260,10 +1272,10 @@ namespace Washouse.Data
                        .AddJsonFile("appsettings.json")
                        .Build();
                 }*/
-//                 configuration = new ConfigurationBuilder()
-//                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
-//                        .AddJsonFile("appsettings.json")
-//                        .Build();
+                 /*configuration = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "\\Washouse.Web")
+                        .AddJsonFile("appsettings.json")
+                        .Build();*/
                 configuration = new ConfigurationBuilder()
                                    .SetBasePath(Directory.GetCurrentDirectory())
                                    .AddJsonFile("appsettings.json")

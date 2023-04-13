@@ -379,7 +379,7 @@ namespace Washouse.Web.Controllers
                         {
                             Content = item.Content,
                             Rating = item.Rating,
-                            OrderId = item.OrderDetail.OrderId,
+                            //OrderId = item.OrderDetail.OrderId,
                             CreatedBy = item.CreatedBy,
                             CreatedDate = item.CreatedDate,
                             ReplyMessage = item.ReplyMessage,

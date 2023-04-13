@@ -66,7 +66,7 @@ namespace Washouse.Data.Repositories
                     .Include(center => center.AdditionServices)
                     .Include(center => center.CenterGalleries)
                     .Include(center => center.Feedbacks)
-                        .ThenInclude(service => service.OrderDetail)
+                        //.ThenInclude(service => service.OrderDetail)
                     .Include(center => center.Resourses)
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;

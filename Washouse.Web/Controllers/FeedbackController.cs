@@ -39,7 +39,7 @@ namespace Washouse.Web.Controllers
                 {
                     Content = Input.Content,
                     Rating = Input.Rating,
-                    OrderDetailId = orderDetailId,
+                    //OrderDetailId = orderDetailId,
                     CenterId = centerId,
                     CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
                     CreatedDate = DateTime.Now

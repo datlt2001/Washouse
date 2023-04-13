@@ -15,6 +15,7 @@ namespace Washouse.Model.Models
             OrderDetails = new HashSet<OrderDetail>();
             Payments = new HashSet<Payment>();
             OrderTrackings = new HashSet<OrderTracking>();
+            Feedbacks = new HashSet<Feedback>();
         }
 
         public string Id { get; set; }
@@ -29,6 +30,8 @@ namespace Washouse.Model.Models
         public DateTime? PreferredDropoffTime { get; set; }
         public DateTime? PreferredDeliverTime { get; set; }
         public string Status { get; set; }
+        public string CancelReasonByStaff { get; set; }
+        public string CancelReasonByCustomer { get; set; }
 
         public virtual Location Location { get; set; }
         public virtual Customer Customer { get; set; }
@@ -37,5 +40,6 @@ namespace Washouse.Model.Models
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<OrderTracking> OrderTrackings { get; set; }
+        public virtual ICollection<Feedback> Feedbacks { get; set; }
     }
 }

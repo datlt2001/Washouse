@@ -1,6 +1,8 @@
 ﻿//using GoogleMaps.LocationServices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using NuGet.Packaging.Signing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,44 +10,35 @@ using System.Threading.Tasks;
 using Washouse.Model.Models;
 using Washouse.Service;
 using Washouse.Service.Interface;
+using Washouse.Web.Hubs;
 
 namespace Washouse.Web.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    [Route("api/Test")]
+    public class TestController : Controller
     {
-        public readonly ICenterService _centerService;
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private IHubContext<MessageHub> _signalrHub;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, ICenterService centerService)
+        public TestController(IHubContext<MessageHub> signalrHub)
         {
-            _logger = logger;
-            _centerService = centerService;
+            _signalrHub = signalrHub;
         }
 
-        /*[HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost]
+        public async Task<string> Post()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var retMessage = string.Empty;
+            try
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }*/
-        [HttpGet]
-        public ActionResult Get()
-        {
-
-            return Ok();
+                //msg.Timestamp = Timestamp.UtcNow.ToString();
+                await _signalrHub.Clients.All.SendAsync("haha");
+                retMessage = "Success";
+            }
+            catch (Exception e)
+            {
+                retMessage = e.ToString();
+            }
+            return retMessage;
         }
     }
 }
