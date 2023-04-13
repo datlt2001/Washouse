@@ -127,31 +127,20 @@ namespace Washouse.Web.Controllers
                 response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize)
                     .Take(filterCentersRequestModel.PageSize).ToList();
 
-                if (response.Count != 0)
+
+                return Ok(new ResponseModel
                 {
-                    return Ok(new ResponseModel
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
                     {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "success",
-                        Data = new
-                        {
-                            TotalItems = totalItems,
-                            TotalPages = totalPages,
-                            ItemsPerPage = filterCentersRequestModel.PageSize,
-                            PageNumber = filterCentersRequestModel.Page,
-                            Items = response
-                        }
-                    });
-                }
-                else
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found",
-                        Data = null
-                    });
-                }
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filterCentersRequestModel.PageSize,
+                        PageNumber = filterCentersRequestModel.Page,
+                        Items = response
+                    }
+                });
             }
             catch (Exception ex)
             {
