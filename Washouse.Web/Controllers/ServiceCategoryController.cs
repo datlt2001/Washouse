@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Washouse.Common.Helpers;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
@@ -21,11 +24,16 @@ namespace Washouse.Web.Controllers
     public class ServiceCategoryController : ControllerBase
     {
         private readonly IServiceCategoryService _serviceCategoryService;
+        private readonly IServiceService _serviceService;
         private readonly ICloudStorageService _cloudStorageService;
 
-        public ServiceCategoryController(IServiceCategoryService serviceCategoryService, ICloudStorageService cloudStorageService)
+        public ServiceCategoryController(
+            IServiceCategoryService serviceCategoryService,
+            IServiceService serviceService,
+            ICloudStorageService cloudStorageService)
         {
             this._serviceCategoryService = serviceCategoryService;
+            _serviceService = serviceService;
             this._cloudStorageService = cloudStorageService;
         }
 
@@ -44,6 +52,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 var response = new List<CategoryResponseModel>();
                 foreach (var item in categories)
                 {
@@ -57,6 +66,7 @@ namespace Washouse.Web.Controllers
                         Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                     });
                 }
+
                 return Ok(
                     new ResponseModel
                     {
@@ -79,7 +89,8 @@ namespace Washouse.Web.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
-            try {
+            try
+            {
                 var item = await _serviceCategoryService.GetById(id);
                 if (item == null)
                 {
@@ -90,6 +101,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 var response = new CategoryResponseModel
                 {
                     CategoryId = item.Id,
@@ -118,102 +130,30 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody]CreateCategoryRequestModel Input)
+        public async Task<IActionResult> Create([FromBody] CreateCategoryRequestModel Input)
         {
             try
             {
                 if (ModelState.IsValid)
-            {
-                Category cate = new Category();
-                cate.CreatedDate = DateTime.Now;
-                cate.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
-                cate.CategoryName= Input.CategoryName;
-                cate.Status= Input.Status;
-                cate.Description= Input.Description;
-                cate.HomeFlag= Input.HomeFlag;
-                cate.Image = Input.SavedFileName;
-                
-                await  _serviceCategoryService.Add(cate);
-                var response = new CategoryResponseModel
                 {
-                    CategoryId = cate.Id,
-                    CategoryName = cate.CategoryName,
-                    CategoryAlias = cate.Alias,
-                    Description = cate.Description,
-                    HomeFlag = cate.HomeFlag,
-                    Image = cate.Image != null ? await _cloudStorageService.GetSignedUrlAsync(cate.Image) : null,
-                };
-                return Ok(new ResponseModel
-                {
-                    StatusCode = 0,
-                    Message = "success",
-                    Data = response
-                });
-            }
-            else {
-                return BadRequest(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Model is not valid",
-                    Data = null
-                });
-            }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = ex.Message,
-                    Data = null
-                });
-            }
-        }
+                    Category cate = new Category();
+                    cate.CreatedDate = DateTime.Now;
+                    cate.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    cate.CategoryName = Input.CategoryName;
+                    cate.Status = Input.Status;
+                    cate.Description = Input.Description;
+                    cate.HomeFlag = Input.HomeFlag;
+                    cate.Image = Input.SavedFileName;
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromForm] CategoryRequestModel category, int id) 
-        {
-            try
-            {
-            if(!ModelState.IsValid) {
-                return BadRequest(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Model is not valid",
-                    Data = null
-                });
-            }
-            else
-            {
-                Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
-                //Category existingCategorySevice = new Category();
-                if (existingCategorySevice == null)
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found category.",
-                        Data = null
-                    });
-                }
-                else
-                {
-                    existingCategorySevice.CategoryName = category.CategoryName;
-                    existingCategorySevice.Description = category.Description;
-                    existingCategorySevice.UpdatedDate = DateTime.Now;
-                    existingCategorySevice.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
-                    existingCategorySevice.Status = category.Status;
-                    existingCategorySevice.HomeFlag= category.HomeFlag;
-                    existingCategorySevice.Image = category.SavedFileName;
-                    await _serviceCategoryService.Update(existingCategorySevice);
+                    await _serviceCategoryService.Add(cate);
                     var response = new CategoryResponseModel
                     {
-                        CategoryId = existingCategorySevice.Id,
-                        CategoryName = existingCategorySevice.CategoryName,
-                        CategoryAlias = existingCategorySevice.Alias,
-                        Description = existingCategorySevice.Description,
-                        HomeFlag = existingCategorySevice.HomeFlag,
-                        Image = existingCategorySevice.Image != null ? await _cloudStorageService.GetSignedUrlAsync(existingCategorySevice.Image) : null,
+                        CategoryId = cate.Id,
+                        CategoryName = cate.CategoryName,
+                        CategoryAlias = cate.Alias,
+                        Description = cate.Description,
+                        HomeFlag = cate.HomeFlag,
+                        Image = cate.Image != null ? await _cloudStorageService.GetSignedUrlAsync(cate.Image) : null,
                     };
                     return Ok(new ResponseModel
                     {
@@ -222,9 +162,15 @@ namespace Washouse.Web.Controllers
                         Data = response
                     });
                 }
-                
-                
-            }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -235,30 +181,6 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-        }
-
-        [HttpPut("{id}/deactivate")]
-        public async Task<IActionResult> DeactivateCategory(int id)
-        {
-            var category = await _serviceCategoryService.GetById(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-            await _serviceCategoryService.DeactivateCategory(id);
-            return Ok();
-        }
-
-        [HttpPut("{id}/activate")]
-        public async Task<IActionResult> ActivateCategory(int id)
-        {
-            var category = await _serviceCategoryService.GetById(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-            await _serviceCategoryService.ActivateCategory(id);
-            return Ok();
         }
     }
 }
