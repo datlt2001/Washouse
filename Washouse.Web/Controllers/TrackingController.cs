@@ -144,6 +144,7 @@ namespace Washouse.Web.Controllers
                     notificationAccount.AccountId = (int)order.Customer.AccountId;
                     notificationAccount.NotificationId = notification.Id;
                     await _notificationAccountService.Add(notificationAccount);
+                    await messageHub.Clients.All.NotifyToUser("UpdateOrderStatus");
                 }
 
                 var staffs = _staffService.GetAllByCenterId((int)staff.CenterId);
@@ -154,6 +155,7 @@ namespace Washouse.Web.Controllers
                         notificationAccount.AccountId = staffItem.AccountId;
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
+                        await messageHub.Clients.All.NotifyToUser("UpdateOrderStatus");
                     }
                 }
                 return Ok(new ResponseModel
