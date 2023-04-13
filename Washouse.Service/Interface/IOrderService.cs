@@ -14,6 +14,7 @@ namespace Washouse.Service.Interface
         Task Update(Order order);
         void Save();
         Task<IEnumerable<Order>> GetAll();
+        Task UpdateOrderDetail(OrderDetail orderDetail, Payment payment);
         Task<IEnumerable<Order>> GetAllOfDay(string date);
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
         Task<Order> GetOrderById(string orderId);

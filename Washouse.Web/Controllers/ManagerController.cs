@@ -39,11 +39,14 @@ namespace Washouse.Web.Controllers
         private readonly ICustomerService _customerService;
         private readonly IOrderService _orderService;
         private readonly IAccountService _accountService;
+        private readonly INotificationService _notificationService;
+        private readonly INotificationAccountService _notificationAccountService;
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
                                 IOperatingHourService operatingHourService, IServiceService serviceService,
                                 IStaffService staffService, ICenterRequestService centerRequestService, 
                                 IFeedbackService feedbackService, IPromotionService promotionService,
+                                INotificationService notificationService, INotificationAccountService notificationAccountService,
                                 ICustomerService customerService, IOrderService orderService, IAccountService accountService)
         {
             this._centerService = centerService;
@@ -59,6 +62,8 @@ namespace Washouse.Web.Controllers
             this._customerService = customerService;
             this._orderService = orderService;
             this._accountService = accountService;
+            this._notificationService = notificationService;
+            this._notificationAccountService = notificationAccountService;
         }
 
         #endregion
@@ -1063,5 +1068,186 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+
+        [Authorize(Roles ="Staff,Manager")]
+        // GET: api/manager/my-center/orders/{orderId}/details/{orderDetailId}
+        [HttpPut("my-center/orders/{orderId}/details/{orderDetailId}")]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateOrderDetail(string orderId, int orderDetailId, [FromBody] UpdateOrderDetailRequestModel updateModel)
+        {
+            try
+            {
+                if (updateModel.Measurement == null && updateModel.StaffNote == null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Not update",
+                        Data = null
+                    });
+                }
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = ""
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(orderId);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = ""
+                        });
+                    }
+                    var orderDetail = order.OrderDetails.FirstOrDefault(orderDetail => orderDetail.Id == orderDetailId);
+                    if (orderDetail == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order detail",
+                            Data = ""
+                        });
+                    }
+                    if (orderDetail.Status.Trim().ToLower().Equals("completed"))
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Order detail has been already completed",
+                            Data = null
+                        });
+                    }
+                    var payment = order.Payments.FirstOrDefault();
+                    if (updateModel.Measurement != null)
+                    {
+                        orderDetail.Measurement = (decimal)updateModel.Measurement;
+                        var service = orderDetail.Service;
+
+                        decimal totalCurrentPrice = 0;
+                        decimal currentPrice = 0;
+                        if (service.PriceType)
+                        {
+                            var priceChart = service.ServicePrices.OrderBy(a => a.MaxValue).ToList();
+                            bool check = false;
+                            foreach (var itemSerivePrice in priceChart)
+                            {
+                                if (updateModel.Measurement <= itemSerivePrice.MaxValue && !check)
+                                {
+                                    currentPrice = itemSerivePrice.Price;
+                                }
+                                if (currentPrice > 0)
+                                {
+                                    check = true;
+                                }
+                            }
+                            if (currentPrice * updateModel.Measurement < service.MinPrice)
+                            {
+                                totalCurrentPrice = (decimal)service.MinPrice;
+                            }
+                            else
+                            {
+                                totalCurrentPrice = currentPrice * (decimal)updateModel.Measurement;
+                            }
+                        }
+                        else
+                        {
+                            totalCurrentPrice = (decimal)service.Price * (decimal)updateModel.Measurement;
+                        }
+                        
+                        //payment
+                        if (payment.Discount != null)
+                        {
+                            decimal total = payment.Total/(1 - (decimal)payment.Discount) - orderDetail.Price + totalCurrentPrice;
+                            if (total > 0)
+                            {
+                                payment.Total = total;
+                            } else
+                            {
+                                payment.Total = 0;
+                            }
+                        } else
+                        {
+                            decimal total = payment.Total - orderDetail.Price + totalCurrentPrice;
+                            if (total > 0)
+                            {
+                                payment.Total = total;
+                            }
+                            else
+                            {
+                                payment.Total = 0;
+                            }
+                        }
+                        payment.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                        payment.UpdatedDate = DateTime.Now;
+                        orderDetail.Price = totalCurrentPrice;
+                    }
+                    if (updateModel.StaffNote != null)
+                    {
+                        orderDetail.StaffNote = updateModel.StaffNote;
+                    }
+                    await _orderService.UpdateOrderDetail(orderDetail, payment);
+                    //notification
+                    string id = User.FindFirst("Id")?.Value;
+                    Notification notification = new Notification();
+                    NotificationAccount notificationAccount = new NotificationAccount();
+                    notification.OrderId = order.Id;
+                    notification.CreatedDate = DateTime.Now;
+                    notification.Title = "Thông báo về đơn hàng:  " + order.Id;
+                    notification.Content = "Đơn hàng " + order.Id + " đã được cập nhật.";
+                    await _notificationService.Add(notification);
+
+                    if (order.Customer.AccountId != null)
+                    {
+                        //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
+                        //var accId = cusinfo.Result.AccountId ?? 0;
+                        notificationAccount.AccountId = (int)order.Customer.AccountId;
+                        notificationAccount.NotificationId = notification.Id;
+                        await _notificationAccountService.Add(notificationAccount);
+                    }
+                    var staff = _staffService.GetAllByCenterId(center.Id);
+                    if (staff != null)
+                    {
+                        foreach (var staffItem in staff)
+                        {
+                            notificationAccount.AccountId = staffItem.AccountId;
+                            notificationAccount.NotificationId = notification.Id;
+                            await _notificationAccountService.Add(notificationAccount);
+                        }
+                    }
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            orderId = order.Id
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }

@@ -114,5 +114,18 @@ namespace Washouse.Service.Implement
                 throw;
             }
         }
+
+        public async Task UpdateOrderDetail(OrderDetail orderDetail, Payment payment)
+        {
+            try
+            {
+                await _paymentRepository.Update(payment);
+                await _orderDetailRepository.Update(orderDetail);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
