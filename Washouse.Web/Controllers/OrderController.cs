@@ -486,6 +486,7 @@ namespace Washouse.Web.Controllers
                         notificationAccount.AccountId = int.Parse(id);
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
+                        await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
                     }
                     var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
                     if (staff != null)
@@ -495,6 +496,7 @@ namespace Washouse.Web.Controllers
                             notificationAccount.AccountId = staffItem.AccountId;
                             notificationAccount.NotificationId = notification.Id;
                             await _notificationAccountService.Add(notificationAccount);
+                            await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
                         }
                     }
 

@@ -8,5 +8,6 @@ namespace Washouse.Web.Hub
     public interface IMessageHubClient
     {
         Task NotifyToUser(string message);
+        Task ReceiveNotification(string message);
     }
 }
