@@ -856,7 +856,7 @@ namespace Washouse.Web.Controllers
 
         [Authorize(Roles = "Manager")]
         // PUT: api/manager/promotions
-        [HttpPut("promotions/Activate")]
+        [HttpPut("promotions/activate")]
         public async Task<IActionResult> ActivatePromotion(int PromotionId)
         {
             try
@@ -913,6 +913,64 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/promotions
+        [HttpPut("promotions/deactivate")]
+        public async Task<IActionResult> DeactivatePromotion(int PromotionId)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+
+                    var promotion = await _promotionService.GetById(PromotionId);
+                    if (promotion == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion",
+                            Data = ""
+                        });
+                    }
+
+                    promotion.Status = false;
+                    promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    promotion.UpdatedDate = DateTime.Now;
+                    await _promotionService.Update(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
 
 
         [Authorize(Roles = "Manager,Staff")]

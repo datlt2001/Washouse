@@ -30,6 +30,7 @@ namespace Washouse.Model.Models
         public DateTime? PreferredDropoffTime { get; set; }
         public DateTime? PreferredDeliverTime { get; set; }
         public string Status { get; set; }
+        public bool IsFeedback { get; set; }
         public string CancelReasonByStaff { get; set; }
         public string CancelReasonByCustomer { get; set; }
 

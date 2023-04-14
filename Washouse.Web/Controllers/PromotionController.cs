@@ -134,7 +134,7 @@ namespace Washouse.Web.Controllers
             if (dis == 0.0M) 
             return BadRequest(new ResponseModel
             {
-                StatusCode = StatusCodes.Status200OK,
+                StatusCode = StatusCodes.Status400BadRequest,
                 Message = "Wrong Code",
                 Data = 0.0M
             });
