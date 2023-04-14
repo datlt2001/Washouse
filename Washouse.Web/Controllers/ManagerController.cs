@@ -27,6 +27,7 @@ using Washouse.Common.Mails;
 using Microsoft.CodeAnalysis;
 using System.Data;
 using System.Net.Http;
+using Twilio.Rest.Chat.V1.Service;
 
 namespace Washouse.Web.Controllers
 {
@@ -50,6 +51,10 @@ namespace Washouse.Web.Controllers
         private readonly IAccountService _accountService;
         private readonly INotificationService _notificationService;
         private readonly INotificationAccountService _notificationAccountService;
+        private readonly IDeliveryService _deliveryService;
+        private readonly IWalletTransactionService _walletTransactionService;
+        private readonly IWalletService _walletService;
+        private readonly IPaymentService _paymentService;
         private readonly IHubContext<MessageHub> messageHub;
         private ISendMailService _sendMailService;
 
@@ -60,7 +65,8 @@ namespace Washouse.Web.Controllers
                                 IFeedbackService feedbackService, IPromotionService promotionService,
                                 INotificationService notificationService, INotificationAccountService notificationAccountService,
                                 ICustomerService customerService, IOrderService orderService, IAccountService accountService,
-                                IHubContext<MessageHub> _messageHub, ISendMailService sendMailService)
+                                IWalletService walletService, IWalletTransactionService walletTransactionService, IPaymentService paymentService,
+                                IHubContext<MessageHub> _messageHub, ISendMailService sendMailService, IDeliveryService deliveryService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -78,7 +84,11 @@ namespace Washouse.Web.Controllers
             this._notificationService = notificationService;
             this._notificationAccountService = notificationAccountService;
             this._sendMailService = sendMailService;
-            messageHub = _messageHub;
+            this.messageHub = _messageHub;
+            this._deliveryService = deliveryService;
+            this._walletService = walletService;
+            this._walletTransactionService = walletTransactionService;
+            this._paymentService = paymentService;
         }
 
         #endregion
@@ -1144,7 +1154,8 @@ namespace Washouse.Web.Controllers
                             StaffNote = item.StaffNote,
                             Status = item.Status,
                             Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
-                            Price = item.Service.Price,
+                            Price = item.Price,
+                            UnitPrice = item.Price / item.Measurement,
                             OrderDetailTrackings = _orderDetailTrackingModel
                         });
                     }
@@ -2027,5 +2038,319 @@ namespace Washouse.Web.Controllers
                 return null;
             }
         }
+
+        /// <summary>
+        /// type: dropoff/deliver
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="type"></param>
+        /// <param name="updateModel"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Staff,Manager")]
+        // GET: api/manager/my-center/orders/{orderId}/deliveries/{type}/assign
+        [HttpPut("my-center/orders/{orderId}/deliveries/{type}/assign")]
+        [Produces("application/json")]
+        public async Task<IActionResult> AssignStaffToDelivery(string orderId, string type, [FromBody] DriverInformationRequestModel updateModel)
+        {
+            try
+            {
+                if (updateModel.ShipperName == null && updateModel.ShipperPhone == null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Not update",
+                        Data = null
+                    });
+                }
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = ""
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(orderId);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = ""
+                        });
+                    }
+                    if (order.Deliveries.Count == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Do not exist any delivery",
+                            Data = ""
+                        });
+                    }
+                    var deliveryItem = new Delivery();
+                    if (type.ToLower().Trim().Equals("dropoff"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false);
+                    } else if (type.ToLower().Trim().Equals("deliver"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == true);
+                    } else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "type of deliver not correct",
+                            Data = null
+                        });
+                    }
+                    deliveryItem.ShipperName = updateModel.ShipperName;
+                    deliveryItem.ShipperPhone = updateModel.ShipperPhone;
+                    deliveryItem.UpdatedDate = DateTime.Now;
+                    deliveryItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _deliveryService.Update(deliveryItem);
+/*
+                    //notification
+                    string id = User.FindFirst("Id")?.Value;
+                    Notification notification = new Notification();
+                    NotificationAccount notificationAccount = new NotificationAccount();
+                    notification.OrderId = order.Id;
+                    notification.CreatedDate = DateTime.Now;
+                    notification.Title = "Thông báo về đơn hàng:  " + order.Id;
+                    notification.Content = "Đơn hàng " + order.Id + " đã được cập nhật.";
+                    await _notificationService.Add(notification);
+
+                    if (order.Customer.AccountId != null)
+                    {
+                        //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
+                        //var accId = cusinfo.Result.AccountId ?? 0;
+                        notificationAccount.AccountId = (int)order.Customer.AccountId;
+                        notificationAccount.NotificationId = notification.Id;
+                        await _notificationAccountService.Add(notificationAccount);
+                    }
+                    var staff = _staffService.GetAllByCenterId(center.Id);
+                    if (staff != null)
+                    {
+                        foreach (var staffItem in staff)
+                        {
+                            notificationAccount.AccountId = staffItem.AccountId;
+                            notificationAccount.NotificationId = notification.Id;
+                            await _notificationAccountService.Add(notificationAccount);
+                        }
+                    }*/
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            deliveryId = deliveryItem.Id,
+                            orderId = orderId
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        /// <summary>
+        /// Pending->Delivering->Completed
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Staff,Manager")]
+        // GET: api/manager/my-center/orders/{orderId}/deliveries/{type}/assign
+        [HttpPut("my-center/orders/{orderId}/deliveries/{type}/change-status")]
+        [Produces("application/json")]
+        public async Task<IActionResult> ChangeDeliverStatus(string orderId, string type)
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = ""
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(orderId);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = ""
+                        });
+                    }
+                    if (order.Deliveries.Count == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Do not exist any delivery",
+                            Data = ""
+                        });
+                    }
+                    var deliveryItem = new Delivery();
+                    if (type.ToLower().Trim().Equals("dropoff"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false);
+                        if (deliveryItem.Status.Trim().ToLower().Equals("pending"))
+                        {
+                            deliveryItem.Status = "Delivering";
+
+                        } else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
+                        {
+                            deliveryItem.Status = "Completed";
+                        } else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Do not accept update status",
+                                Data = null
+                            });
+                        }
+                    }
+                    else if (type.ToLower().Trim().Equals("deliver"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == true);
+                        if (deliveryItem.Status.Trim().ToLower().Equals("pending"))
+                        {
+                            if (!order.Status.Trim().ToLower().Equals("ready"))
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Order is not ready",
+                                    Data = null
+                                });
+                            } else if (order.Payments.LastOrDefault().PaymentMethod != 0 && !order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Payment is not paid",
+                                    Data = null
+                                });
+                            }
+                            else if (order.Status.Trim().ToLower().Equals("ready") && 
+                                (order.Payments.LastOrDefault().PaymentMethod == 0 || 
+                                (order.Payments.LastOrDefault().PaymentMethod != 0 && 
+                                        order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))))
+                            {
+                                deliveryItem.Status = "Delivering";
+                            } else
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Do not accept update status",
+                                    Data = null
+                                });
+                            }
+                        }
+                        else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
+                        {
+                            deliveryItem.Status = "Completed";
+                            deliveryItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            var payment = order.Payments.LastOrDefault();
+                            if (payment.PaymentMethod == 1) {
+                                var walletTransaction = payment.WalletTransactions.FirstOrDefault();
+                                if (walletTransaction != null && walletTransaction.Status.Trim().ToLower().Equals("paid"))
+                                {
+                                    walletTransaction.Status = "Received";
+                                    walletTransaction.UpdateTimeStamp = DateTime.Now;
+                                    await _walletTransactionService.Update(walletTransaction);
+                                    var wallet = await _walletService.GetById(walletTransaction.ToWalletId);
+                                    wallet.Balance = wallet.Balance + order.Payments.LastOrDefault().Total - order.Payments.LastOrDefault().PlatformFee;
+                                    wallet.UpdatedDate = DateTime.Now;
+                                    wallet.UpdatedBy = "Payment_Order_" + orderId;
+                                    await _walletService.Update(wallet);
+                                }
+                            }
+
+                            payment.Status = "Received";
+                            payment.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            payment.UpdatedDate = DateTime.Now;
+                            await _paymentService.Update(payment);
+
+                            await _deliveryService.Update(deliveryItem);
+
+                            order.Status = "Completed";
+                            order.UpdatedDate = DateTime.Now;
+                            order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            await _orderService.Update(order);
+                        }
+                        else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Do not accept update status",
+                                Data = null
+                            });
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "type of deliver not correct",
+                            Data = null
+                        });
+                    }
+                    
+                    await _deliveryService.Update(deliveryItem);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            deliveryId = deliveryItem.Id,
+                            orderId = orderId
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
     }
 }

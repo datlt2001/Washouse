@@ -97,7 +97,16 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
+                if (order.Status.ToLower().Trim().Equals("confirmed") && (order.DeliveryType == 1 || order.DeliveryType == 3)
+                    && (order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false).Status.Trim().ToLower().Equals("completed")))
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Dropoff has not been completed",
+                        Data = null
+                    });
+                }
                 string Status = Utilities.OrderNextStatus(order.Status);
                 
                 if (Status.ToLower().Trim().Equals("status not valid"))

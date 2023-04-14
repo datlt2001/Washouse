@@ -233,6 +233,7 @@ namespace Washouse.Web
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IDeliveryRepository, DeliveryRepository>();
+            services.AddTransient<IDeliveryService, DeliveryService>();
             var twiliosettings = Configuration.GetSection("Twilio");
             services.Configure<TwilioSettings>(twiliosettings);
             services.AddTransient<ISMSService, SMSService>();
