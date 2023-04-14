@@ -6,8 +6,11 @@ using NuGet.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
@@ -23,18 +26,22 @@ namespace Washouse.Web.Controllers
     public class ServiceController : ControllerBase
     {
         #region Initialize
+
         private readonly ICenterService _centerService;
         private readonly IServiceService _serviceService;
         private readonly ICloudStorageService _cloudStorageService;
+        private readonly IStaffService _staffService;
         private readonly IFeedbackService _feedbackService;
 
         public ServiceController(ICenterService centerService, IServiceService serviceService,
-            IFeedbackService feedbackService, ICloudStorageService cloudStorageService)
+            IFeedbackService feedbackService, ICloudStorageService cloudStorageService,
+            IStaffService staffService)
         {
             this._centerService = centerService;
             this._serviceService = serviceService;
             this._feedbackService = feedbackService;
             this._cloudStorageService = cloudStorageService;
+            _staffService = staffService;
         }
 
         #endregion
@@ -63,7 +70,8 @@ namespace Washouse.Web.Controllers
                     return NotFound();
                 }
             }
-            catch {
+            catch
+            {
                 return BadRequest();
             }
         }
@@ -87,16 +95,37 @@ namespace Washouse.Web.Controllers
                         };
                         servicePriceViewModels.Add(sp);
                     }
+
                     var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
                     int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                     foreach (var feedback in feedbackList)
                     {
-                        if (feedback.Rating == 1) { st1++; }
-                        if (feedback.Rating == 2) { st2++; }
-                        if (feedback.Rating == 3) { st3++; }
-                        if (feedback.Rating == 4) { st4++; }
-                        if (feedback.Rating == 5) { st5++; }
+                        if (feedback.Rating == 1)
+                        {
+                            st1++;
+                        }
+
+                        if (feedback.Rating == 2)
+                        {
+                            st2++;
+                        }
+
+                        if (feedback.Rating == 3)
+                        {
+                            st3++;
+                        }
+
+                        if (feedback.Rating == 4)
+                        {
+                            st4++;
+                        }
+
+                        if (feedback.Rating == 5)
+                        {
+                            st5++;
+                        }
                     }
+
                     var itemResponse = new ServicesOfCenterResponseModel
                     {
                         ServiceId = item.Id,
@@ -144,7 +173,6 @@ namespace Washouse.Web.Controllers
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateService(int id)
         {
-
             try
             {
                 var service = await _serviceService.GetById(id);
@@ -152,13 +180,16 @@ namespace Washouse.Web.Controllers
                 {
                     return NotFound();
                 }
+
                 await _serviceService.DeactivateService(id);
                 return Ok();
-            } catch {   
+            }
+            catch
+            {
                 return BadRequest();
             }
-            
         }
+
         /// <summary>
         /// Create a service.
         /// </summary>
@@ -199,8 +230,7 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success create a ceter</response>     
         /// <response code="400">One or more error occurs</response>   
         // POST: api/centers
-
-        [Authorize(Roles ="Manager")]
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestModel serviceRequestmodel)
         {
@@ -211,10 +241,12 @@ namespace Washouse.Web.Controllers
                 List<ServiceGallery> galleries = new List<ServiceGallery>();
                 if (ModelState.IsValid)
                 {
-                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) || int.Parse(User.FindFirst("CenterManaged")?.Value)==0)
+                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) ||
+                        int.Parse(User.FindFirst("CenterManaged")?.Value) == 0)
                     {
                         return BadRequest();
                     }
+
                     serviceRequest.ServiceName = serviceRequestmodel.ServiceName;
                     serviceRequest.Alias = serviceRequestmodel.Alias;
                     serviceRequest.CategoryId = serviceRequestmodel.ServiceCategory;
@@ -226,6 +258,7 @@ namespace Washouse.Web.Controllers
                         serviceRequestmodel.Prices = null;
                         serviceRequest.Price = serviceRequestmodel.Price;
                     }
+
                     serviceRequest.MinPrice = serviceRequestmodel.MinPrice;
                     serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
                     serviceRequest.Unit = serviceRequestmodel.Unit;
@@ -244,7 +277,9 @@ namespace Washouse.Web.Controllers
                     //Add Prices
                     if (serviceRequest.PriceType)
                     {
-                        List<ServicePriceViewModel> servicePrices = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                        List<ServicePriceViewModel> servicePrices =
+                            JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(
+                                serviceRequestmodel.Prices.ToJson());
                         if (servicePrices.Count > 0)
                         {
                             servicePrices = servicePrices.OrderBy(sp => sp.MaxValue).ToList();
@@ -256,6 +291,7 @@ namespace Washouse.Web.Controllers
                                     serviceRequest.MinPrice = item.MaxValue * item.Price;
                                     firstLoop = false;
                                 }
+
                                 var servicePrice = new ServicePrice();
                                 servicePrice.MaxValue = item.MaxValue;
                                 servicePrice.Price = item.Price;
@@ -270,7 +306,8 @@ namespace Washouse.Web.Controllers
                     }
 
                     //Add Galleries
-                    List<string> serviceGalleries = JsonConvert.DeserializeObject<List<string>>(serviceRequestmodel.ServiceGalleries.ToJson());
+                    List<string> serviceGalleries =
+                        JsonConvert.DeserializeObject<List<string>>(serviceRequestmodel.ServiceGalleries.ToJson());
                     if (serviceGalleries.Count > 0)
                     {
                         foreach (var item in serviceGalleries)
@@ -285,7 +322,8 @@ namespace Washouse.Web.Controllers
                     }
 
                     var result = await _serviceService.Create(serviceRequest, prices, galleries);
-                    List<ServicePriceViewModel> servicePriceList = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                    List<ServicePriceViewModel> servicePriceList =
+                        JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
@@ -296,7 +334,9 @@ namespace Washouse.Web.Controllers
                             CategoryId = result.CategoryId,
                             ServiceName = result.ServiceName,
                             Description = result.Description,
-                            Image = result.Image != null ? await _cloudStorageService.GetSignedUrlAsync(result.Image) : null,
+                            Image = result.Image != null
+                                ? await _cloudStorageService.GetSignedUrlAsync(result.Image)
+                                : null,
                             PriceType = result.PriceType,
                             Price = result.Price,
                             MinPrice = result.MinPrice,
@@ -309,9 +349,80 @@ namespace Washouse.Web.Controllers
                         }
                     });
                 }
-                else { return BadRequest(); }
+                else
+                {
+                    return BadRequest();
+                }
             }
-            catch {
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPut("{serviceId:int}")]
+        public async Task<IActionResult> UpdateService([FromRoute] int serviceId,
+            [FromBody] UpdateServiceRequestModel updateServiceRequestModel)
+        {
+            try
+            {
+                var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)staffInfo.CenterId);
+
+                var service = await _serviceService.GetById(serviceId);
+                if (service == null || !Equals(center.Id, service.CenterId))
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Service not found",
+                        Data = null
+                    });
+                }
+
+                if (!string.IsNullOrWhiteSpace(updateServiceRequestModel.Description))
+                {
+                    service.Description = Strings.Trim(updateServiceRequestModel.Description);
+                }
+
+                if (!string.IsNullOrWhiteSpace(updateServiceRequestModel.Image))
+                {
+                    service.Image = Strings.Trim(updateServiceRequestModel.Image);
+                }
+
+                if (updateServiceRequestModel.TimeEstimate != null)
+                {
+                    service.TimeEstimate = updateServiceRequestModel.TimeEstimate;
+                }
+
+                if (!service.PriceType && updateServiceRequestModel.Price != null)
+                {
+                    service.Price = updateServiceRequestModel.Price;
+                }
+
+                if (updateServiceRequestModel.MinPrice != null)
+                {
+                    service.MinPrice = updateServiceRequestModel.MinPrice;
+                }
+
+                if (service.PriceType && updateServiceRequestModel.ServicePrices != null
+                                      && !updateServiceRequestModel.ServicePrices.IsNullOrEmpty())
+                {
+                    service.ServicePrices = updateServiceRequestModel.ServicePrices
+                        .ToList().ConvertAll(sp =>
+                            new ServicePrice
+                            {
+                                Price = sp.Price,
+                                MaxValue = sp.MaxValue
+                            });
+                }
+                _serviceService.Update(service);
+
+                return Ok();
+            }
+            catch
+            {
                 return BadRequest();
             }
         }
@@ -321,11 +432,12 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var service =  _serviceService.GetServicesByCategory(id);
+                var service = _serviceService.GetServicesByCategory(id);
                 if (service == null)
                 {
                     return NotFound();
                 }
+
                 //await _serviceService.DeactivateService(id);
                 return Ok(service);
             }

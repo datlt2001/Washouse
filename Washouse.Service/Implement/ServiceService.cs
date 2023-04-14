@@ -17,7 +17,7 @@ namespace Washouse.Service.Implement
         IServiceGalleryRepository _serviceGalleryRepository;
         IUnitOfWork _unitOfWork;
 
-        public ServiceService(IServiceRepository serviceRepository,  IUnitOfWork unitOfWork, 
+        public ServiceService(IServiceRepository serviceRepository, IUnitOfWork unitOfWork,
             IServicePriceRepository servicePriceRepository, IServiceGalleryRepository serviceGalleryRepository)
         {
             this._serviceRepository = serviceRepository;
@@ -25,6 +25,7 @@ namespace Washouse.Service.Implement
             this._servicePriceRepository = servicePriceRepository;
             this._serviceGalleryRepository = serviceGalleryRepository;
         }
+
         public async Task Add(Model.Models.Service service)
         {
             await _serviceRepository.Add(service);
@@ -35,7 +36,8 @@ namespace Washouse.Service.Implement
             return await _serviceRepository.GetAll();
         }
 
-        public IEnumerable<Model.Models.Service> GetAllByCategoryPaging(int categoryId, int page, int pageSize, out int totalRow)
+        public IEnumerable<Model.Models.Service> GetAllByCategoryPaging(int categoryId, int page, int pageSize,
+            out int totalRow)
         {
             throw new NotImplementedException();
         }
@@ -60,9 +62,9 @@ namespace Washouse.Service.Implement
             throw new NotImplementedException();
         }
 
-        public Task Update(Model.Models.Service service)
+        public async Task Update(Model.Models.Service service)
         {
-            throw new NotImplementedException();
+            await _serviceRepository.Update(service);
         }
 
         public async Task DeactivateService(int id)
@@ -70,7 +72,8 @@ namespace Washouse.Service.Implement
             await _serviceRepository.DeactivateService(id);
         }
 
-        public async Task<Model.Models.Service> Create(Model.Models.Service service, List<ServicePrice> servicePrices, List<ServiceGallery> serviceGalleries)
+        public async Task<Model.Models.Service> Create(Model.Models.Service service, List<ServicePrice> servicePrices,
+            List<ServiceGallery> serviceGalleries)
         {
             try
             {
