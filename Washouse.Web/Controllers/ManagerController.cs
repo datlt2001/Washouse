@@ -584,6 +584,7 @@ namespace Washouse.Web.Controllers
 
                             var itemResponse = new PromotionCenterModel
                             {
+                                Id = item.Id,
                                 Code = item.Code,
                                 Description = item.Description,
                                 Discount = item.Discount,
@@ -591,7 +592,8 @@ namespace Washouse.Web.Controllers
                                 ExpireDate = _expireDate,
                                 CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                 UpdatedDate = _updatedDate,
-                                UseTimes = item.UseTimes
+                                UseTimes = item.UseTimes,
+                                IsAvailable = item.Status
                             };
                             promotionResponses.Add(itemResponse);
                         }
@@ -645,12 +647,12 @@ namespace Washouse.Web.Controllers
                 {
                     DateTime StartDate;
                     DateTime ExpireDate;
-                    if (!string.IsNullOrEmpty(Input.StartDate) && DateTime.TryParseExact(Input.StartDate, "dd-MM-yyyy HH:mm:ss",
+                    if (!string.IsNullOrEmpty(Input.StartDate) && DateTime.TryParseExact(Input.StartDate, "dd-MM-yyyy",
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out StartDate))
                     {
                         try
                         {
-                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -667,12 +669,12 @@ namespace Washouse.Web.Controllers
                         StartDate = DateTime.Now;
                     }
 
-                    if (!string.IsNullOrEmpty(Input.ExpireDate) && DateTime.TryParseExact(Input.ExpireDate, "dd-MM-yyyy HH:mm:ss",
+                    if (!string.IsNullOrEmpty(Input.ExpireDate) && DateTime.TryParseExact(Input.ExpireDate, "dd-MM-yyyy",
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpireDate))
                     {
                         try
                         {
-                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -695,7 +697,7 @@ namespace Washouse.Web.Controllers
                         Description = Input.Description,
                         Discount = Input.Discount,
                         StartDate = StartDate,
-                        ExpireDate = ExpireDate,
+                        ExpireDate = ExpireDate.AddDays(1).AddSeconds(-1),
                         UseTimes = Input.UseTimes,
                         CenterId = int.Parse(User.FindFirst("CenterManaged")?.Value),
                         CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
@@ -732,6 +734,187 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/promotions
+        [HttpPut("promotions")]
+        public async Task<IActionResult> UpdatePromotion(int PromotionId, [FromBody] UpdatePromotionRequestModel Input)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+
+                    var promotion = await _promotionService.GetById(PromotionId);
+                    if (promotion == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion",
+                            Data = ""
+                        });
+                    }
+                    DateTime StartDate;
+                    DateTime ExpireDate;
+                    if (Input.StartDate != null)
+                    {
+                        try
+                        {
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "StartDate: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                        promotion.StartDate = StartDate;
+                    }
+                    
+                    if (Input.ExpireDate != null)
+                    {
+                        try
+                        {
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate: " + ex.Message,
+                                Data = ""
+                            });
+                        }
+                        promotion.ExpireDate = ExpireDate.AddDays(1).AddSeconds(-1);
+                    }
+                    if (Input.UseTimes != null)
+                    {
+                        if ((int)Input.UseTimes < 1)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "UseTimes must be an integer more than or equal 1.",
+                                Data = ""
+                            });
+                        }
+                        promotion.UseTimes = Input.UseTimes;
+                    }
+                    if (Input.StartDate != null && Input.ExpireDate != null)
+                    {
+                        if (promotion.ExpireDate <= promotion.StartDate)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate must be more than StartDate.",
+                                Data = ""
+                            });
+                        }
+                    }
+                    promotion.UpdatedDate = DateTime.Now;
+                    promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _promotionService.Update(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+                    
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/promotions
+        [HttpPut("promotions/Activate")]
+        public async Task<IActionResult> ActivatePromotion(int PromotionId)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+
+                    var promotion = await _promotionService.GetById(PromotionId);
+                    if (promotion == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion",
+                            Data = ""
+                        });
+                    }
+                    
+                    promotion.Status = true;
+                    promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    promotion.UpdatedDate = DateTime.Now;
+                    await _promotionService.Update(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
+
         [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers
         [HttpGet("my-center/customers")]

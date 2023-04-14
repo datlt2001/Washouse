@@ -70,7 +70,7 @@ namespace Washouse.Web.Controllers
                     _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                 }
                 if(item.StartDate< DateTime.Now && DateTime.Now < item.ExpireDate && 
-                    (item.UseTimes == null || (item.UseTimes !=null && item.UseTimes > 0))) 
+                    (item.UseTimes == null || (item.UseTimes !=null && item.UseTimes > 0)) && item.Status == true) 
                 {
                     available = true;
                 }
