@@ -13,7 +13,7 @@ namespace Washouse.Service.Interface
 
         public Task Update(Account account);
 
-        IEnumerable<Account> GetAll();
+        Task<IEnumerable<Account>> GetAll();
 
         public Task<Account> GetById(int id);
 
@@ -30,7 +30,5 @@ namespace Washouse.Service.Interface
         public Account GetAccountByEmail(string email);
 
         Account GetAccountByEmailAndPhone(string email, string phone);
-
-
     }
 }
