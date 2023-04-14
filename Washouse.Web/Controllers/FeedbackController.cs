@@ -205,31 +205,55 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Staff")]
         [HttpPost("reply")]
-        public async Task<IActionResult> ReplyFeedback([FromBody] ReplyFeedbackRequestModel Input,
-                                                                    int? centerId, int? orderDetailId, int FbId)
+        public async Task<IActionResult> ReplyFeedback([FromBody] ReplyFeedbackRequestModel Input, int feedbackId)
         {
-            if (ModelState.IsValid)
+            try
             {
-                //var account = _accountService.GetById(userid);
-                if (centerId == 0) centerId = null;
-                if (orderDetailId == 0) orderDetailId = null;
-                Feedback existingFB = await _feedbackService.GetById(FbId);
-
-
-                existingFB.ReplyDate = DateTime.Now;
-                existingFB.ReplyBy = User.FindFirst(ClaimTypes.Email)?.Value;
-                existingFB.ReplyMessage = Input.ReplyMessage;
-                await _feedbackService.Update(existingFB);
-                return Ok(new ResponseModel
+                if (ModelState.IsValid)
                 {
-                    StatusCode = StatusCodes.Status200OK,
-                    Message = "success",
-                    Data = existingFB
+                    Feedback existingFeedback = await _feedbackService.GetById(feedbackId);
+                    if (existingFeedback == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Not found feedback",
+                            Data = ""
+                        });
+                    }
+
+                    existingFeedback.ReplyDate = DateTime.Now;
+                    existingFeedback.ReplyBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    existingFeedback.ReplyMessage = Input.ReplyMessage;
+                    await _feedbackService.Update(existingFeedback);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = existingFeedback
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
                 });
             }
-            else { return BadRequest(); }
-
         }
 
         [HttpGet("centers/{centerId}")]
