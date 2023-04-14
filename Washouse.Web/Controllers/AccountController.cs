@@ -49,7 +49,8 @@ namespace Washouse.Web.Controllers
         public IWalletService _walletService;
         public IWardService _wardService;
         public ILocationService _locationService;
-        public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor, 
+
+        public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor,
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
             IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService,
             IWardService wardService, ILocationService locationService)
@@ -415,9 +416,9 @@ namespace Washouse.Web.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public IActionResult GetAccountList([FromQuery] FilterAccountsRequestModel requestModel)
+        public async Task<IActionResult> GetAccountList([FromQuery] FilterAccountsRequestModel requestModel)
         {
-            var accounts = _accountService.GetAll();
+            var accounts = await _accountService.GetAll();
             if (!string.IsNullOrEmpty(requestModel.SearchString))
             {
                 accounts = accounts.Where(account =>
@@ -429,6 +430,26 @@ namespace Washouse.Web.Controllers
             var totalItems = accounts.Count();
             var totalPages = (int)Math.Ceiling((double)totalItems / requestModel.PageSize);
             accounts = accounts.Skip((requestModel.Page - 1) * requestModel.PageSize).Take(requestModel.PageSize);
+
+            var accountModelResponses = new List<AccountResponseModel>();
+            foreach (var account in accounts)
+            {
+                accountModelResponses.Add(new AccountResponseModel
+                {
+                    Id = account.Id,
+                    Dob = account.Dob,
+                    Email = account.Email,
+                    Gender = account.Gender,
+                    Phone = account.Phone,
+                    Status = account.Status,
+                    FullName = account.FullName,
+                    IsAdmin = account.IsAdmin,
+                    ProfilePic = account.ProfilePic != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(account.ProfilePic)
+                        : null,
+                });
+            }
+
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -439,20 +460,7 @@ namespace Washouse.Web.Controllers
                     TotalPages = totalPages,
                     ItemsPerPage = requestModel.PageSize,
                     PageNumber = requestModel.Page,
-                    Items = accounts.ToList().ConvertAll(async account => new AccountResponseModel()
-                    {
-                        Id = account.Id,
-                        Dob = account.Dob,
-                        Email = account.Email,
-                        Gender = account.Gender,
-                        Phone = account.Phone,
-                        Status = account.Status,
-                        FullName = account.FullName,
-                        IsAdmin = account.IsAdmin,
-                        ProfilePic = account.ProfilePic != null
-                            ? await _cloudStorageService.GetSignedUrlAsync(account.ProfilePic)
-                            : null,
-                    })
+                    Items = accountModelResponses
                 }
             });
         }
