@@ -41,6 +41,7 @@ namespace Washouse.Data.Repositories
         {
             var ordersAtCenter = await this._dbContext.Orders
                                 .Include(order => order.Payments)
+                                .Include(order => order.Deliveries)
                                 .Include(order => order.OrderDetails)
                                     .ThenInclude(od => od.Service)
                                         .ThenInclude(service => service.Category)
