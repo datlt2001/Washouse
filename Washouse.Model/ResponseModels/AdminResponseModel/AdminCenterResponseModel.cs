@@ -20,7 +20,7 @@ namespace Washouse.Model.ResponseModels.AdminResponseModel
         //public bool IsOpening { get; set; }
         public string Status { get; set; }
         public string TaxCode { get; set; }
-        public int ManagerId { get; set; }
+        public int? ManagerId { get; set; }
         public string ManagerName { get; set; }
 
     }

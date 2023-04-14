@@ -13,6 +13,9 @@ namespace Washouse.Model.ResponseModels
         public string Title { get; set; }
         public string Content { get; set; }
         public string Thumbnail { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public string Type { get; set; }
+        public string Status { get; set; }
+        public string CreatedDate { get; set; }
+        public string UpdatedDate { get; set; }
     }
 }

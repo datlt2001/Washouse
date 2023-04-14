@@ -28,12 +28,16 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetPostList()
+        public IActionResult GetPostList(FilterPostRequestModel filterPostModel)
         {
             try { 
             var post = _postService.GetAll();
-            post = post.OrderByDescending(p => p.CreatedDate)
-                        .Where(p => p.Status == "true");
+            post = post.Where(p => p.Status.Trim().ToLower().Equals("published"))
+                        .OrderByDescending(p => p.UpdateDate ?? p.CreatedDate);
+            if (filterPostModel.Type != null)
+                {
+                    post = post.Where(p => p.Type.Trim().ToLower().Equals(filterPostModel.Type.ToLower().Trim()));
+                }
             var response = new List<PostResponseModel>();
             foreach (var postItem in post)
             {
@@ -43,43 +47,102 @@ namespace Washouse.Web.Controllers
                     Title = postItem.Title,
                     Content = postItem.Content,
                     Thumbnail = postItem.Thumbnail,
-                    CreatedDate = DateTime.Now,
-
+                    Type = postItem.Type,
+                    Status = postItem.Status,
+                    CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
+                    UpdatedDate = postItem.UpdateDate.HasValue ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
                 });
             }
-            return Ok(new ResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = response
-            });
+                int totalItems = response.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
+                response = response.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize).Take(filterPostModel.PageSize).ToList();
+                if (response.Count > 0)
+                {
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
+                            ItemsPerPage = filterPostModel.PageSize,
+                            PageNumber = filterPostModel.Page,
+                            Items = response
+                        }
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = ""
+                    });
+                }
             }
             catch (Exception ex)
             {
-                //await _errorLogger.LogErrorAsync(ex);
-                return BadRequest();
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetPostById(int id)
+        [HttpGet("{PostId}")]
+        public async Task<IActionResult> GetPostDetail(int PostId)
         {
-            var post = await _postService.GetById(id);
-            var response = new PostResponseModel{
-                Id = post.Id,
-                Title = post.Title,
-                Content = post.Content,
-                Thumbnail = post.Thumbnail,
-                CreatedDate = DateTime.Now,
-            };
-            
-            if (post == null) { return NotFound(); }
-            return Ok(new ResponseModel
+            try
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = response
-            });
+                var postItem = await _postService.GetById(PostId);
+                if (postItem == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = ""
+                    });
+                }
+                if (!postItem.Status.Trim().ToLower().Equals("published")) {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "This post is not available now",
+                        Data = null
+                    });
+                }
+                var response = new PostResponseModel
+                {
+                    Id = postItem.Id,
+                    Title = postItem.Title,
+                    Content = postItem.Content,
+                    Thumbnail = postItem.Thumbnail,
+                    Type = postItem.Type,
+                    Status = postItem.Status,
+                    CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
+                    UpdatedDate = postItem.UpdateDate.HasValue ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
         [HttpPost]
