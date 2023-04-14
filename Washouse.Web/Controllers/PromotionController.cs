@@ -70,7 +70,7 @@ namespace Washouse.Web.Controllers
                     _expireDate = item.ExpireDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                 }
                 if(item.StartDate< DateTime.Now && DateTime.Now < item.ExpireDate && 
-                    (item.UseTimes == null || (item.UseTimes !=null && item.UseTimes > 0))) 
+                    (item.UseTimes == null || (item.UseTimes !=null && item.UseTimes > 0)) && item.Status == true) 
                 {
                     available = true;
                 }
@@ -96,7 +96,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPost]
+        /*[HttpPost]
         public async Task<IActionResult> Create([FromBody] PromotionRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -125,7 +125,7 @@ namespace Washouse.Web.Controllers
             }
             else { return BadRequest(); }
 
-        }
+        }*/
 
         [HttpGet("code")]
         public IActionResult GetPromotionByCode(string code, int centerId)

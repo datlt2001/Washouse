@@ -18,6 +18,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public string StaffNote { get; set; }
         public string Status { get; set; }
         public decimal? Price { get; set; }
+        public decimal? UnitPrice { get; set; }
         public List<OrderDetailTrackingModel> OrderDetailTrackings { get; set; }
     }
 }

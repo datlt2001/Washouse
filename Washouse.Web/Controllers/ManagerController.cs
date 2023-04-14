@@ -12,7 +12,7 @@ using System.Linq;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Model.Models;
 using Washouse.Service.Implement;
-using Twilio.Http;
+//using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
 using Washouse.Model.RequestModels;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +21,13 @@ using Microsoft.IdentityModel.Tokens;
 using Washouse.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using NuGet.Protocol;
+using Washouse.Common.Helpers;
+using Washouse.Common.Mails;
+using Microsoft.CodeAnalysis;
+using System.Data;
+using System.Net.Http;
+using Twilio.Rest.Chat.V1.Service;
 
 namespace Washouse.Web.Controllers
 {
@@ -45,16 +52,22 @@ namespace Washouse.Web.Controllers
         private readonly IAccountService _accountService;
         private readonly INotificationService _notificationService;
         private readonly INotificationAccountService _notificationAccountService;
+        private readonly IDeliveryService _deliveryService;
+        private readonly IWalletTransactionService _walletTransactionService;
+        private readonly IWalletService _walletService;
+        private readonly IPaymentService _paymentService;
         private readonly IHubContext<MessageHub> messageHub;
+        private ISendMailService _sendMailService;
 
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
-            ILocationService locationService, IWardService wardService,
-            IOperatingHourService operatingHourService, IServiceService serviceService,
-            IStaffService staffService, ICenterRequestService centerRequestService,
-            IFeedbackService feedbackService, IPromotionService promotionService,
-            INotificationService notificationService, INotificationAccountService notificationAccountService,
-            ICustomerService customerService, IOrderService orderService, IAccountService accountService,
-            IHubContext<MessageHub> _messageHub)
+                                ILocationService locationService, IWardService wardService,
+                                IOperatingHourService operatingHourService, IServiceService serviceService,
+                                IStaffService staffService, ICenterRequestService centerRequestService, 
+                                IFeedbackService feedbackService, IPromotionService promotionService,
+                                INotificationService notificationService, INotificationAccountService notificationAccountService,
+                                ICustomerService customerService, IOrderService orderService, IAccountService accountService,
+                                IWalletService walletService, IWalletTransactionService walletTransactionService, IPaymentService paymentService,
+                                IHubContext<MessageHub> _messageHub, ISendMailService sendMailService, IDeliveryService deliveryService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -71,7 +84,12 @@ namespace Washouse.Web.Controllers
             this._accountService = accountService;
             this._notificationService = notificationService;
             this._notificationAccountService = notificationAccountService;
-            messageHub = _messageHub;
+            this._sendMailService = sendMailService;
+            this.messageHub = _messageHub;
+            this._deliveryService = deliveryService;
+            this._walletService = walletService;
+            this._walletTransactionService = walletTransactionService;
+            this._paymentService = paymentService;
         }
 
         #endregion
@@ -440,17 +458,14 @@ namespace Washouse.Web.Controllers
 
 
                     response.Id = center.Id;
-                    response.Thumbnail = center.Image != null
-                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
-                        : null;
+                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
                     response.Title = center.CenterName;
                     response.Alias = center.Alias;
                     response.Description = center.Description;
                     response.Rating = center.Rating;
                     response.NumOfRating = center.NumOfRating;
                     response.Phone = center.Phone;
-                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
-                                             ", " + center.Location.Ward.District.DistrictName;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
                     //response.Distance = distance;
                     response.IsAvailable = center.IsAvailable;
                     response.Status = center.Status;
@@ -618,32 +633,12 @@ namespace Washouse.Web.Controllers
                             int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                             foreach (var feedback in feedbackList)
                             {
-                                if (feedback.Rating == 1)
-                                {
-                                    st1++;
-                                }
-
-                                if (feedback.Rating == 2)
-                                {
-                                    st2++;
-                                }
-
-                                if (feedback.Rating == 3)
-                                {
-                                    st3++;
-                                }
-
-                                if (feedback.Rating == 4)
-                                {
-                                    st4++;
-                                }
-
-                                if (feedback.Rating == 5)
-                                {
-                                    st5++;
-                                }
+                                if (feedback.Rating == 1) { st1++; }
+                                if (feedback.Rating == 2) { st2++; }
+                                if (feedback.Rating == 3) { st3++; }
+                                if (feedback.Rating == 4) { st4++; }
+                                if (feedback.Rating == 5) { st5++; }
                             }
-
                             var itemResponse = new ServiceCenterModel
                             {
                                 ServiceId = item.Id,
@@ -652,9 +647,7 @@ namespace Washouse.Web.Controllers
                                 CategoryId = item.CategoryId,
                                 CategoryName = item.Category.CategoryName,
                                 Description = item.Description,
-                                Image = item.Image != null
-                                    ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
-                                    : null,
+                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                                 PriceType = item.PriceType,
                                 Price = item.Price,
                                 MinPrice = item.MinPrice,
@@ -672,7 +665,6 @@ namespace Washouse.Web.Controllers
                             };
                             servicesOfCenter.Add(itemResponse);
                         }
-
                         int totalItems = servicesOfCenter.Count();
                         if (filter.Pagination != null && filter.Pagination.PageSize == -1)
                         {
@@ -766,9 +758,8 @@ namespace Washouse.Web.Controllers
 
                 if (center != null)
                 {
-                    var promotion = _promotionService.GetAll();
-                    if (promotion == null)
-                    {
+                    var promotion = _promotionService.GetAllByCenterId((int)managerInfo.CenterId);
+                    if (promotion == null) {
                         return NotFound(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status404NotFound,
@@ -802,6 +793,7 @@ namespace Washouse.Web.Controllers
 
                             var itemResponse = new PromotionCenterModel
                             {
+                                Id = item.Id,
                                 Code = item.Code,
                                 Description = item.Description,
                                 Discount = item.Discount,
@@ -809,7 +801,8 @@ namespace Washouse.Web.Controllers
                                 ExpireDate = _expireDate,
                                 CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                                 UpdatedDate = _updatedDate,
-                                UseTimes = item.UseTimes
+                                UseTimes = item.UseTimes,
+                                IsAvailable = item.Status
                             };
                             promotionResponses.Add(itemResponse);
                         }
@@ -851,6 +844,286 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        [Authorize(Roles = "Manager")]
+        // POST: api/manager/promotions
+        [HttpPost("promotions")]
+        public async Task<IActionResult> CreatePromotion([FromBody] PromotionRequestModel Input)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+                    DateTime StartDate;
+                    DateTime ExpireDate;
+                    if (!string.IsNullOrEmpty(Input.StartDate) && DateTime.TryParseExact(Input.StartDate, "dd-MM-yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out StartDate))
+                    {
+                        try
+                        {
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "StartDate: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                    }
+                    else
+                    {
+                        StartDate = DateTime.Now;
+                    }
+
+                    if (!string.IsNullOrEmpty(Input.ExpireDate) && DateTime.TryParseExact(Input.ExpireDate, "dd-MM-yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpireDate))
+                    {
+                        try
+                        {
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                    }
+                    else
+                    {
+                        ExpireDate = StartDate.AddMonths(3);
+                    }
+
+                    var promotion = new Promotion()
+                    {
+                        Code = Input.Code,
+                        Description = Input.Description,
+                        Discount = Input.Discount,
+                        StartDate = StartDate,
+                        ExpireDate = ExpireDate.AddDays(1).AddSeconds(-1),
+                        UseTimes = Input.UseTimes,
+                        CenterId = int.Parse(User.FindFirst("CenterManaged")?.Value),
+                        CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                        CreatedDate = DateTime.Now
+                    };
+                    await _promotionService.Add(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            } catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/promotions
+        [HttpPut("promotions")]
+        public async Task<IActionResult> UpdatePromotion(int PromotionId, [FromBody] UpdatePromotionRequestModel Input)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+
+                    var promotion = await _promotionService.GetById(PromotionId);
+                    if (promotion == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion",
+                            Data = ""
+                        });
+                    }
+                    DateTime StartDate;
+                    DateTime ExpireDate;
+                    if (Input.StartDate != null)
+                    {
+                        try
+                        {
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "StartDate: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                        promotion.StartDate = StartDate;
+                    }
+                    
+                    if (Input.ExpireDate != null)
+                    {
+                        try
+                        {
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate: " + ex.Message,
+                                Data = ""
+                            });
+                        }
+                        promotion.ExpireDate = ExpireDate.AddDays(1).AddSeconds(-1);
+                    }
+                    if (Input.UseTimes != null)
+                    {
+                        if ((int)Input.UseTimes < 1)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "UseTimes must be an integer more than or equal 1.",
+                                Data = ""
+                            });
+                        }
+                        promotion.UseTimes = Input.UseTimes;
+                    }
+                    if (Input.StartDate != null && Input.ExpireDate != null)
+                    {
+                        if (promotion.ExpireDate <= promotion.StartDate)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate must be more than StartDate.",
+                                Data = ""
+                            });
+                        }
+                    }
+                    promotion.UpdatedDate = DateTime.Now;
+                    promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _promotionService.Update(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+                    
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/promotions
+        [HttpPut("promotions/Activate")]
+        public async Task<IActionResult> ActivatePromotion(int PromotionId)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+
+                    var promotion = await _promotionService.GetById(PromotionId);
+                    if (promotion == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found promotion",
+                            Data = ""
+                        });
+                    }
+                    
+                    promotion.Status = true;
+                    promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    promotion.UpdatedDate = DateTime.Now;
+                    await _promotionService.Update(promotion);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            PromotionId = promotion.Id,
+                            PromotionCode = promotion.Code
+                        }
+                    });
+
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
 
         [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers
@@ -1279,6 +1552,7 @@ namespace Washouse.Web.Controllers
                     response.Id = id;
                     response.CustomerName = order.CustomerName;
                     response.LocationId = order.LocationId;
+                    response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName + ", " + order.Location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
                     response.CustomerEmail = order.CustomerEmail;
                     response.CustomerMobile = order.CustomerMobile;
                     response.CustomerMessage = order.CustomerMessage;
@@ -1343,14 +1617,12 @@ namespace Washouse.Web.Controllers
                             CustomerNote = item.CustomerNote,
                             StaffNote = item.StaffNote,
                             Status = item.Status,
-                            Image = item.Service.Image != null
-                                ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image)
-                                : null,
-                            Price = item.Service.Price,
+                            Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                            Price = item.Price,
+                            UnitPrice = item.Price / item.Measurement,
                             OrderDetailTrackings = _orderDetailTrackingModel
                         });
                     }
-
                     response.TotalOrderValue = TotalOrderValue;
                     response.OrderedDetails = OrderedDetails;
                     foreach (var tracking in order.OrderTrackings)
@@ -1358,15 +1630,10 @@ namespace Washouse.Web.Controllers
                         OrderTrackings.Add(new OrderTrackingModel
                         {
                             Status = tracking.Status,
-                            CreatedDate = tracking.CreatedDate.HasValue
-                                ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
-                                : null,
-                            UpdatedDate = tracking.UpdatedDate.HasValue
-                                ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
-                                : null,
+                            CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
                         });
                     }
-
                     response.OrderTrackings = OrderTrackings;
                     foreach (var delivery in order.Deliveries)
                     {
@@ -1378,9 +1645,7 @@ namespace Washouse.Web.Controllers
                             DeliveryType = delivery.DeliveryType,
                             EstimatedTime = delivery.EstimatedTime,
                             Status = delivery.Status,
-                            DeliveryDate = delivery.DeliveryDate.HasValue
-                                ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
-                                : null
+                            DeliveryDate = delivery.DeliveryDate.HasValue ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
                         });
                     }
 
@@ -1597,5 +1862,974 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Create a service.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST api/services
+        ///       {
+        ///       serviceName: "Giặt sấy hấp ủi",
+        ///       alias: "Giat say hap ui",
+        ///       serviceCategory: 1,
+        ///       serviceDescription: "Giặt rồi sấy rồi hấp xong đem ủi",
+        ///       serviceImage: "test.png",
+        ///       timeEstimate: 310,
+        ///       unit: "Kg",
+        ///       rate: 1,
+        ///       priceType: true,
+        ///       price: 15000,
+        ///       minPrice: 40000,
+        ///       serviceGalleries: [
+        ///       galleries1.png, "galleries2.png"
+        ///       ],
+        ///       prices: [
+        ///       {
+        ///       maxValue: 4,
+        ///       price: 15000
+        ///       },
+        ///       {
+        ///       maxValue: 6,
+        ///       price: 12000
+        ///       }
+        ///       ]
+        ///       }
+        ///   
+        /// </remarks>
+        /// 
+        /// <returns>Center created.</returns>
+        /// <response code="200">Success create a ceter</response>     
+        /// <response code="400">One or more error occurs</response>   
+        // POST: api/centers
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("services")]
+        public async Task<IActionResult> CreateService([FromBody] ServiceRequestModel serviceRequestmodel)
+        {
+            try
+            {
+                Model.Models.Service serviceRequest = new Model.Models.Service();
+                List<ServicePrice> prices = new List<ServicePrice>();
+                List<ServiceGallery> galleries = new List<ServiceGallery>();
+                if (ModelState.IsValid)
+                {
+                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) || int.Parse(User.FindFirst("CenterManaged")?.Value) == 0)
+                    {
+                        return BadRequest();
+                    }
+                    serviceRequest.ServiceName = serviceRequestmodel.ServiceName;
+                    serviceRequest.Alias = serviceRequestmodel.Alias;
+                    serviceRequest.CategoryId = serviceRequestmodel.ServiceCategory;
+                    serviceRequest.Description = serviceRequestmodel.ServiceDescription;
+                    serviceRequest.PriceType = serviceRequestmodel.PriceType;
+                    serviceRequest.Image = serviceRequestmodel.ServiceImage;
+                    if (!serviceRequest.PriceType)
+                    {
+                        serviceRequestmodel.Prices = null;
+                        serviceRequest.Price = serviceRequestmodel.Price;
+                    }
+                    serviceRequest.MinPrice = serviceRequestmodel.MinPrice;
+                    serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
+                    serviceRequest.Unit = serviceRequestmodel.Unit;
+                    serviceRequest.Rate = serviceRequestmodel.Rate;
+                    serviceRequest.Status = "Active";
+                    serviceRequest.HomeFlag = false;
+                    serviceRequest.HotFlag = false;
+                    serviceRequest.Rating = null;
+                    serviceRequest.NumOfRating = 0;
+                    serviceRequest.CreatedDate = DateTime.Now;
+                    serviceRequest.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    serviceRequest.UpdatedDate = null;
+                    serviceRequest.UpdatedBy = null;
+                    serviceRequest.CenterId = int.Parse(User.FindFirst("CenterManaged")?.Value);
+
+                    //Add Prices
+                    if (serviceRequest.PriceType)
+                    {
+                        List<ServicePriceViewModel> servicePrices = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                        if (servicePrices.Count > 0)
+                        {
+                            servicePrices = servicePrices.OrderBy(sp => sp.MaxValue).ToList();
+                            var firstLoop = true;
+                            foreach (var item in servicePrices)
+                            {
+                                if (firstLoop && serviceRequest.MinPrice == null)
+                                {
+                                    serviceRequest.MinPrice = item.MaxValue * item.Price;
+                                    firstLoop = false;
+                                }
+                                var servicePrice = new ServicePrice();
+                                servicePrice.MaxValue = item.MaxValue;
+                                servicePrice.Price = item.Price;
+                                servicePrice.CreatedDate = DateTime.Now;
+                                servicePrice.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                                servicePrice.UpdatedDate = null;
+                                servicePrice.UpdatedBy = null;
+
+                                prices.Add(servicePrice);
+                            }
+                        }
+                    }
+
+                    //Add Galleries
+                    List<string> serviceGalleries = JsonConvert.DeserializeObject<List<string>>(serviceRequestmodel.ServiceGalleries.ToJson());
+                    if (serviceGalleries.Count > 0)
+                    {
+                        foreach (var item in serviceGalleries)
+                        {
+                            var gallery = new ServiceGallery();
+                            gallery.Image = item;
+                            gallery.CreatedDate = DateTime.Now;
+                            gallery.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+
+                            galleries.Add(gallery);
+                        }
+                    }
+
+                    var result = await _serviceService.Create(serviceRequest, prices, galleries);
+                    List<ServicePriceViewModel> servicePriceList = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new ServicesOfCenterResponseModel
+                        {
+                            ServiceId = result.Id,
+                            CategoryId = result.CategoryId,
+                            ServiceName = result.ServiceName,
+                            Description = result.Description,
+                            Image = result.Image != null ? await _cloudStorageService.GetSignedUrlAsync(result.Image) : null,
+                            PriceType = result.PriceType,
+                            Price = result.Price,
+                            MinPrice = result.MinPrice,
+                            Unit = result.Unit,
+                            Rate = result.Rate,
+                            Prices = servicePriceList,
+                            TimeEstimate = result.TimeEstimate,
+                            Rating = result.Rating,
+                            NumOfRating = result.NumOfRating,
+                        }
+                    });
+                }
+                else { return BadRequest(); }
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [Authorize(Roles = "Manager, Staff")]
+        //POST: api/orders
+        [HttpPost("my-center/orders")]
+        public async Task<IActionResult> CreateOrder([FromBody] StaffCreateOrderRequestModel createOrderRequestModel)
+        {
+            try
+            {
+                var order = new Order();
+                var customer = new Customer();
+                if (ModelState.IsValid)
+                {
+
+                    var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                    var CenterId = (int)managerInfo.CenterId;
+                    var center = await _centerService.GetById(CenterId);
+                    if (center == null)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "You are not in any center",
+                            Data = null
+                        });
+                    }
+                    DateTime UserPreferredDropoffTime;
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) && DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out UserPreferredDropoffTime))
+                    {
+                        try
+                        {
+                            UserPreferredDropoffTime = DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "PreferredDropoffTime: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                    }
+                    else
+                    {
+                        UserPreferredDropoffTime = DateTime.Now;
+                    }
+
+                    if (center == null)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "CenterId is not valid",
+                            Data = null
+                        });
+                    }
+                    else
+                    {
+                        var openTimePreferredDropoffDay = center.OperatingHours.FirstOrDefault(day => day.DaysOfWeekId == (int)UserPreferredDropoffTime.DayOfWeek);
+                        //kiểm tra ngày giờ lấy hàng không là giờ hoạt động
+                        if (openTimePreferredDropoffDay == null || openTimePreferredDropoffDay.OpenTime > UserPreferredDropoffTime.TimeOfDay || openTimePreferredDropoffDay.CloseTime < UserPreferredDropoffTime.TimeOfDay)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Center is closed at time that you choosen.",
+                                Data = null
+                            });
+                        }
+
+                    }
+                    var promotion = new Promotion();
+                    if (createOrderRequestModel.PromoCode != null)
+                    {
+                        var promo = await _promotionService.CheckValidPromoCode(CenterId, createOrderRequestModel.PromoCode);
+
+                        if (promo == null)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "PromoCode is not valid",
+                                Data = null
+                            });
+                        }
+
+                        promotion = promo;
+                    }
+                    else
+                    {
+                        promotion = null;
+                    }
+                    //location
+                    decimal? Latitude = null;
+                    decimal? Longitude = null;
+                    var ward = await _wardService.GetWardById(createOrderRequestModel.Order.CustomerWardId);
+                    string AddressString = createOrderRequestModel.Order.CustomerAddressString;
+                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    var result = await SearchRelativeAddress(fullAddress);
+                    if (result != null)
+                    {
+                        Latitude = result.lat;
+                        Longitude = result.lon;
+                    }
+                    else
+                    {
+                        result = await SearchRelativeAddress(wardAddress);
+                        if (result != null)
+                        {
+                            Latitude = result.lat;
+                            Longitude = result.lon;
+                        }
+                        else
+                        {
+                            return NotFound(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status404NotFound,
+                                Message = "Not found latitude and longitude of this address",
+                                Data = null
+                            });
+                        }
+                    }
+                    //add Location
+                    var location = new Model.Models.Location();
+                    location.AddressString = AddressString;
+                    location.WardId = createOrderRequestModel.Order.CustomerWardId;
+                    location.Latitude = Latitude;
+                    location.Longitude = Longitude;
+                    var locationResult = await _locationService.Add(location);
+
+                    var customerByPhone = await _customerService.GetByPhone(createOrderRequestModel.Order.CustomerMobile);
+
+                    if (customerByPhone == null)
+                    {
+                        //add Customer
+                        customer.Fullname = createOrderRequestModel.Order.CustomerName;
+                        customer.Phone = createOrderRequestModel.Order.CustomerMobile;
+                        customer.Address = locationResult.Id;
+                        customer.Email = createOrderRequestModel.Order.CustomerEmail;
+                        customer.Status = true;
+                        customer.AccountId = null;
+                        customer.CreatedDate = DateTime.Now;
+                        customer.CreatedBy = "AutoInsert";
+                        await _customerService.Add(customer);
+                    }
+                    else if (customerByPhone != null)
+                    {
+                        customer = customerByPhone;
+                    }
+
+                    var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
+
+                    int lastId = 0;
+                    if (orders.ToList().Count > 0)
+                    {
+                        var lastOrder = orders.LastOrDefault();
+                        lastId = int.Parse(lastOrder.Id.Substring(10));
+                    }
+
+                    //add Order
+                    int newId = lastId + 1;
+                    order.Id = $"{DateTime.Now.ToString("yyyyMMdd")}_{newId.ToString("D7")}";
+                    order.CustomerName = createOrderRequestModel.Order.CustomerName;
+                    order.LocationId = locationResult.Id;
+                    order.CustomerEmail = createOrderRequestModel.Order.CustomerEmail;
+                    order.CustomerMobile = createOrderRequestModel.Order.CustomerMobile;
+                    order.CustomerMessage = createOrderRequestModel.Order.CustomerMessage;
+                    order.CustomerId = customer.Id;
+                    order.DeliveryType = createOrderRequestModel.Order.DeliveryType;
+                    if (createOrderRequestModel.Order.DeliveryType == 0)
+                    {
+                        order.DeliveryPrice = null;
+                    }
+                    if (createOrderRequestModel.Order.DeliveryPrice != null)
+                    {
+                        order.DeliveryPrice = createOrderRequestModel.Order.DeliveryPrice;
+                    }
+                    else
+                    {
+                        order.DeliveryPrice = null;
+                    }
+
+                    order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    //order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    order.Status = "Pending";
+                    order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
+                    order.CreatedDate = DateTime.Now;
+
+                    //create List OrderDetails
+                    var orderDetails = new List<OrderDetail>();
+                    List<OrderDetailRequestModel> orderDetailRequestModels = JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(createOrderRequestModel.OrderDetails.ToJson());
+                    decimal totalPayment = 0;
+                    foreach (var item in orderDetailRequestModels)
+                    {
+                        var serviceItem = await _serviceService.GetById(item.ServiceId);
+                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("Updating") || !!serviceItem.Status.ToLower().Equals("Active")))
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Service is not valid",
+                                Data = null
+                            });
+                        }
+                        else
+                        {
+                            if (serviceItem.CenterId != CenterId)
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Service is not of this center or not valid",
+                                    Data = null
+                                });
+                            }
+                        }
+
+                        decimal currentPrice = 0;
+                        decimal totalCurrentPrice = 0;
+                        if (serviceItem.PriceType)
+                        {
+                            var priceChart = serviceItem.ServicePrices.OrderBy(a => a.MaxValue).ToList();
+                            bool check = false;
+                            foreach (var itemSerivePrice in priceChart)
+                            {
+                                if (item.Measurement <= itemSerivePrice.MaxValue && !check)
+                                {
+                                    currentPrice = itemSerivePrice.Price;
+                                }
+                                if (currentPrice > 0)
+                                {
+                                    check = true;
+                                }
+                            }
+                            if (currentPrice * item.Measurement < serviceItem.MinPrice)
+                            {
+                                totalCurrentPrice = (decimal)serviceItem.MinPrice;
+                            }
+                            else
+                            {
+                                totalCurrentPrice = currentPrice * item.Measurement;
+                            }
+                        }
+                        else
+                        {
+                            totalCurrentPrice = (decimal)serviceItem.Price * item.Measurement;
+                        }
+
+                        if (totalCurrentPrice != item.Price)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Service price with measurement has been changed.",
+                                Data = null
+                            });
+                        }
+                        orderDetails.Add(new OrderDetail
+                        {
+                            OrderId = order.Id,
+                            ServiceId = item.ServiceId,
+                            Measurement = item.Measurement,
+                            Price = item.Price,
+                            CustomerNote = item.CustomerNote,
+                            StaffNote = item.StaffNote,
+                        });
+
+                        totalPayment = totalPayment + item.Price;
+                    }
+
+                    //create List Deliveries
+
+                    var deliveries = new List<Delivery>();
+                    List<DeliveryRequestModel> deliveryRequestModels = JsonConvert.DeserializeObject<List<DeliveryRequestModel>>(createOrderRequestModel.Deliveries.ToJson());
+
+                    foreach (var item in deliveryRequestModels)
+                    {
+                        //location
+                        decimal? deliveryLatitude = null;
+                        decimal? deliveryLongitude = null;
+                        var deliveryWard = await _wardService.GetWardById(item.WardId);
+                        string deliveryAddressString = item.AddressString;
+                        string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
+                        if (resultDelivery != null)
+                        {
+                            deliveryLatitude = resultDelivery.lat;
+                            deliveryLongitude = resultDelivery.lon;
+                        }
+                        else
+                        {
+                            resultDelivery = await SearchRelativeAddress(wardDeliveryAddress);
+                            if (resultDelivery != null)
+                            {
+                                deliveryLatitude = resultDelivery.lat;
+                                deliveryLongitude = resultDelivery.lon;
+                            }
+                            else
+                            {
+                                return NotFound(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status404NotFound,
+                                    Message = "Not found latitude and longitude of this address",
+                                    Data = null
+                                });
+                            }
+                        }
+                        //add Location
+                        var deliveryLocation = new Model.Models.Location();
+                        deliveryLocation.AddressString = deliveryAddressString;
+                        deliveryLocation.WardId = item.WardId;
+                        deliveryLocation.Latitude = deliveryLatitude;
+                        deliveryLocation.Longitude = deliveryLongitude;
+                        var deliveryLocationResult = await _locationService.Add(deliveryLocation);
+                        var estimatedTime = await Utilities.CalculateDeliveryEstimatedTime(Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
+                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        DateTime? deliveryDate = null;
+                        // Dropoff = false, Deliver = true
+                        if (!item.DeliveryType)
+                        {
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
+                            if (deliveryDate == null)
+                            {
+                                deliveryDate = DateTime.Now;
+                            }
+                        }
+                        deliveries.Add(new Delivery
+                        {
+                            OrderId = order.Id,
+                            ShipperName = null,
+                            ShipperPhone = null,
+                            LocationId = deliveryLocationResult.Id,
+                            EstimatedTime = estimatedTime,
+                            DeliveryType = item.DeliveryType,
+                            DeliveryDate = deliveryDate,
+                            Status = "Waiting",
+                            CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail,
+                            CreatedDate = DateTime.Now
+                        });
+                    }
+
+                    decimal paymentDelivery = 0;
+                    if (order.DeliveryPrice != null && order.DeliveryPrice != 0)
+                    {
+                        paymentDelivery = (decimal)order.DeliveryPrice;
+                    }
+                    //create Payment
+                    var payment = new Payment();
+                    payment.OrderId = order.Id;
+                    payment.PlatformFee = Utilities.platformFee;
+                    payment.Date = null;
+                    payment.Status = "Pending";
+                    payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
+                    payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
+                    payment.Discount = promotion != null ? promotion.Discount : 0;
+                    payment.Total = payment.PromoCode != null ? (totalPayment * (1 - promotion.Discount) + paymentDelivery) : (totalPayment + paymentDelivery);
+                    payment.CreatedDate = DateTime.Now;
+                    payment.CreatedBy = "AutoInsert";
+
+                    //OrderTracking
+                    var orderTracking = new OrderTracking();
+                    orderTracking.OrderId = order.Id;
+                    orderTracking.Status = "Pending";
+                    orderTracking.CreatedDate = DateTime.Now;
+                    orderTracking.CreatedBy = "AutoInsert";
+
+
+
+                    //
+                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
+
+                    //Update Promotion UseTimes
+                    if (promotion != null)
+                    {
+                        promotion.UseTimes = promotion.UseTimes - 1;
+                        await _promotionService.Update(promotion);
+                    }
+
+                    //
+
+                    //notification
+                    //string id = customer;
+                    Notification notification = new Notification();
+                    NotificationAccount notificationAccount = new NotificationAccount();
+                    notification.OrderId = orderAdded.Id;
+                    notification.CreatedDate = DateTime.Now;
+                    notification.Title = "Thông báo về đơn hàng:  " + orderAdded.Id;
+                    notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
+                    await _notificationService.Add(notification);
+                    //await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
+                    if (customer.AccountId != null)                     {
+                        //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
+                        //var accId = cusinfo.Result.AccountId ?? 0;
+                        notificationAccount.AccountId = (int)customer.AccountId;
+                        notificationAccount.NotificationId = notification.Id;
+                        await _notificationAccountService.Add(notificationAccount);
+                        //await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
+                        //await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                        //await _messageHub(notificationAccount.AccountId, "NotificationAdded");
+                    }
+                    var staff = _staffService.GetAllByCenterId(CenterId);
+                    if (staff != null)
+                    {
+                        foreach (var staffItem in staff)
+                        {
+                            notificationAccount.AccountId = staffItem.AccountId;
+                            notificationAccount.NotificationId = notification.Id;
+                            await _notificationAccountService.Add(notificationAccount);
+                            //await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
+                            //await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                        }
+                    }
+
+                    var sendEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                    if (sendEmail == null)
+                    {
+                        sendEmail = createOrderRequestModel.Order.CustomerEmail;
+                    }
+                    string path = "./Templates_email/CreateOrder.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", customer.Fullname);
+
+                    content = content.Replace("{orderId}", orderAdded.Id);
+                    await _sendMailService.SendEmailAsync(sendEmail, "Tạo đơn hàng", content);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new
+                        {
+                            OrderId = orderAdded.Id
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        private static async Task<dynamic> SearchRelativeAddress(string query)
+        {
+            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={query}&format=json&limit=1";
+            try
+            {
+
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(json);
+                        if (result.Count > 0)
+                        {
+                            return new
+                            {
+                                lat = result[0].lat,
+                                lon = result[0].lon
+                            };
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// type: dropoff/deliver
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="type"></param>
+        /// <param name="updateModel"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Staff,Manager")]
+        // GET: api/manager/my-center/orders/{orderId}/deliveries/{type}/assign
+        [HttpPut("my-center/orders/{orderId}/deliveries/{type}/assign")]
+        [Produces("application/json")]
+        public async Task<IActionResult> AssignStaffToDelivery(string orderId, string type, [FromBody] DriverInformationRequestModel updateModel)
+        {
+            try
+            {
+                if (updateModel.ShipperName == null && updateModel.ShipperPhone == null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Not update",
+                        Data = null
+                    });
+                }
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = ""
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(orderId);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = ""
+                        });
+                    }
+                    if (order.Deliveries.Count == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Do not exist any delivery",
+                            Data = ""
+                        });
+                    }
+                    var deliveryItem = new Delivery();
+                    if (type.ToLower().Trim().Equals("dropoff"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false);
+                    } else if (type.ToLower().Trim().Equals("deliver"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == true);
+                    } else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "type of deliver not correct",
+                            Data = null
+                        });
+                    }
+                    deliveryItem.ShipperName = updateModel.ShipperName;
+                    deliveryItem.ShipperPhone = updateModel.ShipperPhone;
+                    deliveryItem.UpdatedDate = DateTime.Now;
+                    deliveryItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _deliveryService.Update(deliveryItem);
+/*
+                    //notification
+                    string id = User.FindFirst("Id")?.Value;
+                    Notification notification = new Notification();
+                    NotificationAccount notificationAccount = new NotificationAccount();
+                    notification.OrderId = order.Id;
+                    notification.CreatedDate = DateTime.Now;
+                    notification.Title = "Thông báo về đơn hàng:  " + order.Id;
+                    notification.Content = "Đơn hàng " + order.Id + " đã được cập nhật.";
+                    await _notificationService.Add(notification);
+
+                    if (order.Customer.AccountId != null)
+                    {
+                        //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
+                        //var accId = cusinfo.Result.AccountId ?? 0;
+                        notificationAccount.AccountId = (int)order.Customer.AccountId;
+                        notificationAccount.NotificationId = notification.Id;
+                        await _notificationAccountService.Add(notificationAccount);
+                    }
+                    var staff = _staffService.GetAllByCenterId(center.Id);
+                    if (staff != null)
+                    {
+                        foreach (var staffItem in staff)
+                        {
+                            notificationAccount.AccountId = staffItem.AccountId;
+                            notificationAccount.NotificationId = notification.Id;
+                            await _notificationAccountService.Add(notificationAccount);
+                        }
+                    }*/
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            deliveryId = deliveryItem.Id,
+                            orderId = orderId
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        /// <summary>
+        /// Pending->Delivering->Completed
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Staff,Manager")]
+        // GET: api/manager/my-center/orders/{orderId}/deliveries/{type}/assign
+        [HttpPut("my-center/orders/{orderId}/deliveries/{type}/change-status")]
+        [Produces("application/json")]
+        public async Task<IActionResult> ChangeDeliverStatus(string orderId, string type)
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = ""
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderById(orderId);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = ""
+                        });
+                    }
+                    if (order.Deliveries.Count == 0)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Do not exist any delivery",
+                            Data = ""
+                        });
+                    }
+                    var deliveryItem = new Delivery();
+                    if (type.ToLower().Trim().Equals("dropoff"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false);
+                        if (deliveryItem.Status.Trim().ToLower().Equals("pending"))
+                        {
+                            deliveryItem.Status = "Delivering";
+
+                        } else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
+                        {
+                            deliveryItem.Status = "Completed";
+                        } else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Do not accept update status",
+                                Data = null
+                            });
+                        }
+                    }
+                    else if (type.ToLower().Trim().Equals("deliver"))
+                    {
+                        deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == true);
+                        if (deliveryItem.Status.Trim().ToLower().Equals("pending"))
+                        {
+                            if (!order.Status.Trim().ToLower().Equals("ready"))
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Order is not ready",
+                                    Data = null
+                                });
+                            } else if (order.Payments.LastOrDefault().PaymentMethod != 0 && !order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Payment is not paid",
+                                    Data = null
+                                });
+                            }
+                            else if (order.Status.Trim().ToLower().Equals("ready") && 
+                                (order.Payments.LastOrDefault().PaymentMethod == 0 || 
+                                (order.Payments.LastOrDefault().PaymentMethod != 0 && 
+                                        order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))))
+                            {
+                                deliveryItem.Status = "Delivering";
+                            } else
+                            {
+                                return BadRequest(new ResponseModel
+                                {
+                                    StatusCode = StatusCodes.Status400BadRequest,
+                                    Message = "Do not accept update status",
+                                    Data = null
+                                });
+                            }
+                        }
+                        else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
+                        {
+                            deliveryItem.Status = "Completed";
+                            deliveryItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            var payment = order.Payments.LastOrDefault();
+                            if (payment.PaymentMethod == 1) {
+                                var walletTransaction = payment.WalletTransactions.FirstOrDefault();
+                                if (walletTransaction != null && walletTransaction.Status.Trim().ToLower().Equals("paid"))
+                                {
+                                    walletTransaction.Status = "Received";
+                                    walletTransaction.UpdateTimeStamp = DateTime.Now;
+                                    await _walletTransactionService.Update(walletTransaction);
+                                    var wallet = await _walletService.GetById(walletTransaction.ToWalletId);
+                                    wallet.Balance = wallet.Balance + order.Payments.LastOrDefault().Total - order.Payments.LastOrDefault().PlatformFee;
+                                    wallet.UpdatedDate = DateTime.Now;
+                                    wallet.UpdatedBy = "Payment_Order_" + orderId;
+                                    await _walletService.Update(wallet);
+                                }
+                            }
+
+                            payment.Status = "Received";
+                            payment.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            payment.UpdatedDate = DateTime.Now;
+                            await _paymentService.Update(payment);
+
+                            await _deliveryService.Update(deliveryItem);
+
+                            order.Status = "Completed";
+                            order.UpdatedDate = DateTime.Now;
+                            order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            await _orderService.Update(order);
+                        }
+                        else
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "Do not accept update status",
+                                Data = null
+                            });
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "type of deliver not correct",
+                            Data = null
+                        });
+                    }
+                    
+                    await _deliveryService.Update(deliveryItem);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            deliveryId = deliveryItem.Id,
+                            orderId = orderId
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
     }
 }

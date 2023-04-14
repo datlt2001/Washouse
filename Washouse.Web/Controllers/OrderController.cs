@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Authorization;
 using System.Data;
 using Microsoft.AspNetCore.SignalR;
 using Washouse.Web.Hubs;
-using Washouse.Web.Hubs;
 
 namespace Washouse.Web.Controllers
 {
@@ -426,7 +425,7 @@ namespace Washouse.Web.Controllers
                             EstimatedTime = estimatedTime,
                             DeliveryType = item.DeliveryType,
                             DeliveryDate = deliveryDate,
-                            Status = "Waiting",
+                            Status = "Pending",
                             CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail,
                             CreatedDate = DateTime.Now
                         });
@@ -1196,7 +1195,8 @@ namespace Washouse.Web.Controllers
                         CustomerNote = item.CustomerNote,
                         StaffNote = item.StaffNote,
                         Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
-                        Price = item.Service.Price,
+                        Price = item.Price,
+                        UnitPrice = item.Price / item.Measurement,
                         OrderDetailTrackings = _orderDetailTrackingModel
                     });
                 }
