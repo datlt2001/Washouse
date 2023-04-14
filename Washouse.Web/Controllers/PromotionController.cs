@@ -96,7 +96,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPost]
+        /*[HttpPost]
         public async Task<IActionResult> Create([FromBody] PromotionRequestModel Input)
         {
             if (ModelState.IsValid)
@@ -125,7 +125,7 @@ namespace Washouse.Web.Controllers
             }
             else { return BadRequest(); }
 
-        }
+        }*/
 
         [HttpGet("code")]
         public IActionResult GetPromotionByCode(string code, int centerId)

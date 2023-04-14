@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Authorization;
 using System.Data;
 using Microsoft.AspNetCore.SignalR;
 using Washouse.Web.Hubs;
-using Washouse.Web.Hubs;
 
 namespace Washouse.Web.Controllers
 {
