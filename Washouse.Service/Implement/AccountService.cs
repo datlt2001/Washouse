@@ -14,6 +14,7 @@ namespace Washouse.Service.Implement
     {
         public IAccountRepository _AccountRepository;
         private IUnitOfWork _unitOfWork;
+
         public AccountService(IAccountRepository accountRepository, IUnitOfWork unitOfWork)
         {
             _AccountRepository = accountRepository;
@@ -25,9 +26,9 @@ namespace Washouse.Service.Implement
             await _AccountRepository.Add(account);
         }
 
-        public IEnumerable<Account> GetAll()
+        public async Task<IEnumerable<Account>> GetAll()
         {
-            return _AccountRepository.Get();
+            return await _AccountRepository.GetAll();
         }
 
         public async Task<Account> GetById(int id)

@@ -1132,6 +1132,16 @@ namespace Washouse.Web.Controllers
 
                         orders = orders.Where(order => (order.CreatedDate <= dateValue.AddDays(1)));
                     }
+                    
+                    if (filterOrdersRequestModel.DeliveryType != null)
+                    {
+                        orders = orders.Where(order => Equals(order.DeliveryType, filterOrdersRequestModel.DeliveryType));
+                    }
+                    
+                    if (filterOrdersRequestModel.DeliveryStatus != null)
+                    {
+                        orders = orders.Where(order => order.Deliveries.Any(delivery => Equals(delivery.Status.ToLower(), filterOrdersRequestModel.DeliveryStatus.ToLower())));
+                    }
                     var response = new List<OrderCenterModel>();
 
                     orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
@@ -1157,6 +1167,7 @@ namespace Washouse.Web.Controllers
                         {
                             _orderDate = order.CreatedDate.Value.ToString("dd-MM-yyyy HH:mm:ss");
                         }
+
                         
                         response.Add(new OrderCenterModel
                         {
@@ -1164,9 +1175,14 @@ namespace Washouse.Web.Controllers
                             OrderDate = _orderDate,
                             CustomerName = order.CustomerName,
                             TotalOrderValue = TotalOrderValue,
+                            DeliveryType = order.DeliveryType,
                             Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                             TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
                             Status = order.Status,
+                            Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
+                            {
+                                DeliveryStatus = delivery.Status
+                            }),
                             OrderedServices = orderedServices
                         });
                     }
