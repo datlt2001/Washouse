@@ -20,12 +20,13 @@ using static Google.Apis.Requests.BatchRequest;
 
 namespace Washouse.Web.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     [Route("api/admin")]
     [ApiController]
     public class AdminController : ControllerBase
     {
         #region Initialize
+
         private readonly IAccountService _accountService;
         private readonly ICenterService _centerService;
         private readonly ICloudStorageService _cloudStorageService;
@@ -37,11 +38,14 @@ namespace Washouse.Web.Controllers
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
         private readonly IPostService _postService;
-        public AdminController(ICenterService centerService, ICloudStorageService cloudStorageService, IAccountService accountService,
-                                ILocationService locationService, IWardService wardService,
-                                IOperatingHourService operatingHourService, IServiceService serviceService,
-                                IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
-                                IPostService postService)
+        private readonly IServiceCategoryService _serviceCategoryService;
+
+        public AdminController(ICenterService centerService, ICloudStorageService cloudStorageService,
+            IAccountService accountService,
+            ILocationService locationService, IWardService wardService,
+            IOperatingHourService operatingHourService, IServiceService serviceService,
+            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
+            IPostService postService, IServiceCategoryService serviceCategoryService)
         {
             this._centerService = centerService;
             this._accountService = accountService;
@@ -52,6 +56,7 @@ namespace Washouse.Web.Controllers
             this._serviceService = serviceService;
             this._staffService = staffService;
             this._centerRequestService = centerRequestService;
+            this._serviceCategoryService = serviceCategoryService;
             this._feedbackService = feedbackService;
             this._postService = postService;
         }
@@ -64,21 +69,27 @@ namespace Washouse.Web.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAllCenters([FromQuery] AdminFilterCentersRequestModel filterCentersRequestModel)
+        public async Task<IActionResult> GetAllCenters(
+            [FromQuery] AdminFilterCentersRequestModel filterCentersRequestModel)
         {
             try
             {
                 var centerList = await _centerService.GetAll();
                 if (filterCentersRequestModel.SearchString != null)
                 {
-                    centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
-                                                  || (res.Alias != null && res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower()))
-                                             ).ToList();
+                    centerList = centerList.Where(res =>
+                        res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
+                        || (res.Alias != null &&
+                            res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower()))
+                    ).ToList();
                 }
+
                 if (filterCentersRequestModel.Status != null)
                 {
-                    centerList = centerList.Where(res => res.Status.Trim().ToLower().Equals(filterCentersRequestModel.Status.Trim().ToLower())).ToList();
+                    centerList = centerList.Where(res =>
+                        res.Status.Trim().ToLower().Equals(filterCentersRequestModel.Status.Trim().ToLower())).ToList();
                 }
+
                 var response = new List<AdminCenterResponseModel>();
                 foreach (var center in centerList)
                 {
@@ -89,10 +100,13 @@ namespace Washouse.Web.Controllers
                     {
                         account = await _accountService.GetById(manager.AccountId);
                     }
+
                     response.Add(new AdminCenterResponseModel
                     {
                         Id = center.Id,
-                        Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null,
+                        Thumbnail = center.Image != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                            : null,
                         Title = center.CenterName,
                         Alias = center.Alias,
                         Rating = center.Rating,
@@ -102,41 +116,31 @@ namespace Washouse.Web.Controllers
                         TaxCode = center.TaxCode.Trim(),
                         ManagerId = manager != null ? manager.Id : null,
                         ManagerName = manager != null ? account.FullName : null,
-                        CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName                        
+                        CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " +
+                                        center.Location.Ward.District.DistrictName
                     });
                 }
-                
+
                 int totalItems = response.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
 
-                response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize).Take(filterCentersRequestModel.PageSize).ToList();
+                response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize)
+                    .Take(filterCentersRequestModel.PageSize).ToList();
 
-                if (response.Count != 0)
-                {
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "success",
-                        Data = new
-                        {
-                            TotalItems = totalItems,
-                            TotalPages = totalPages,
-                            ItemsPerPage = filterCentersRequestModel.PageSize,
-                            PageNumber = filterCentersRequestModel.Page,
-                            Items = response
-                        }
-                    });
-                }
-                else
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found",
-                        Data = null
-                    });
-                }
 
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
+                    {
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filterCentersRequestModel.PageSize,
+                        PageNumber = filterCentersRequestModel.Page,
+                        Items = response
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -177,14 +181,17 @@ namespace Washouse.Web.Controllers
                         Data = ""
                     });
                 }
+
                 if (filterPostModel.Type != null)
                 {
                     post = post.Where(p => p.Type.Trim().ToLower().Equals(filterPostModel.Type.ToLower().Trim()));
                 }
+
                 if (filterPostModel.Status != null)
                 {
                     post = post.Where(p => p.Status.Trim().ToLower().Equals(filterPostModel.Status.ToLower().Trim()));
                 }
+
                 var response = new List<PostResponseModel>();
                 foreach (var postItem in post)
                 {
@@ -197,12 +204,16 @@ namespace Washouse.Web.Controllers
                         Type = postItem.Type,
                         Status = postItem.Status,
                         CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
-                        UpdatedDate = postItem.UpdateDate.HasValue ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                        UpdatedDate = postItem.UpdateDate.HasValue
+                            ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                            : null
                     });
                 }
+
                 int totalItems = response.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
-                response = response.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize).Take(filterPostModel.PageSize).ToList();
+                response = response.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize)
+                    .Take(filterPostModel.PageSize).ToList();
                 if (response.Count > 0)
                 {
                     return Ok(new ResponseModel
@@ -256,22 +267,25 @@ namespace Washouse.Web.Controllers
         /// <returns>
         /// </returns>
         [HttpPost("posts")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreatePost([FromBody] PostRequestModel Input)
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
                     DateTime? UpdatedTime = null;
                     if (Input.Status.Trim().ToLower().Equals("scheduled"))
                     {
                         DateTime PublishTime;
-                        if (!string.IsNullOrEmpty(Input.PublishTime) && DateTime.TryParseExact(Input.PublishTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out PublishTime))
+                        if (!string.IsNullOrEmpty(Input.PublishTime) && DateTime.TryParseExact(Input.PublishTime,
+                                "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None,
+                                out PublishTime))
                         {
                             try
                             {
-                                UpdatedTime = DateTime.ParseExact(Input.PublishTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                                UpdatedTime = DateTime.ParseExact(Input.PublishTime, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture);
                             }
                             catch (FormatException ex)
                             {
@@ -290,6 +304,7 @@ namespace Washouse.Web.Controllers
                             UpdatedTime = DateTime.Now;
                         }
                     }
+
                     var posts = new Post()
                     {
                         AuthorId = int.Parse(User.FindFirst("Id")?.Value),
@@ -321,7 +336,8 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -330,13 +346,13 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-
         }
 
         [HttpPut("posts")]
-        public async Task<IActionResult> Update(int Id, [FromBody]UpdatePostRequestModel updatePost)
+        public async Task<IActionResult> Update(int Id, [FromBody] UpdatePostRequestModel updatePost)
         {
-            if (!ModelState.IsValid) {
+            if (!ModelState.IsValid)
+            {
                 return BadRequest(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
@@ -348,7 +364,8 @@ namespace Washouse.Web.Controllers
             {
                 //Category existingCategorySevice =  await _serviceCategoryService.GetById(id);
                 Post existingPost = await _postService.GetById(Id);
-                if (existingPost == null) {
+                if (existingPost == null)
+                {
                     return NotFound(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status404NotFound,
@@ -362,11 +379,14 @@ namespace Washouse.Web.Controllers
                     if (updatePost.Status != null && updatePost.Status.Trim().ToLower().Equals("scheduled"))
                     {
                         DateTime PublishTime;
-                        if (!string.IsNullOrEmpty(updatePost.PublishTime) && DateTime.TryParseExact(updatePost.PublishTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out PublishTime))
+                        if (!string.IsNullOrEmpty(updatePost.PublishTime) && DateTime.TryParseExact(
+                                updatePost.PublishTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture,
+                                DateTimeStyles.None, out PublishTime))
                         {
                             try
                             {
-                                UpdatedTime = DateTime.ParseExact(updatePost.PublishTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                                UpdatedTime = DateTime.ParseExact(updatePost.PublishTime, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture);
                             }
                             catch (FormatException ex)
                             {
@@ -385,9 +405,12 @@ namespace Washouse.Web.Controllers
                             UpdatedTime = DateTime.Now;
                         }
                     }
+
                     existingPost.Title = updatePost.Title != null ? updatePost.Title : existingPost.Title;
                     existingPost.Content = updatePost.Content != null ? updatePost.Content : existingPost.Content;
-                    existingPost.Thumbnail = updatePost.SavedFileName != null ? updatePost.SavedFileName : existingPost.Thumbnail;
+                    existingPost.Thumbnail = updatePost.SavedFileName != null
+                        ? updatePost.SavedFileName
+                        : existingPost.Thumbnail;
                     existingPost.Type = updatePost.Type != null ? updatePost.Type : existingPost.Type;
                     existingPost.Status = updatePost.Status != null ? updatePost.Status : existingPost.Status;
                     existingPost.UpdateDate = UpdatedTime;
@@ -403,8 +426,6 @@ namespace Washouse.Web.Controllers
                         }
                     });
                 }
-
-
             }
         }
     }

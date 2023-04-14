@@ -33,7 +33,8 @@ namespace Washouse.Web.Controllers
     public class CenterController : ControllerBase
     {
         #region Initialize
-        private readonly ICenterService _centerService; 
+
+        private readonly ICenterService _centerService;
         private readonly ICloudStorageService _cloudStorageService;
         private readonly ILocationService _locationService;
         private readonly IWardService _wardService;
@@ -42,10 +43,11 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
+
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
-                                ILocationService locationService, IWardService wardService,
-                                IOperatingHourService operatingHourService, IServiceService serviceService,
-                                IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService)
+            ILocationService locationService, IWardService wardService,
+            IOperatingHourService operatingHourService, IServiceService serviceService,
+            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -97,15 +99,19 @@ namespace Washouse.Web.Controllers
                 if (role == null || role.Trim().ToLower().Equals("customer"))
                 {
                     centerList = centerList.Where(center => center.Status.Trim().ToLower().Equals("active")
-                                                        || center.Status.Trim().ToLower().Equals("updating"));
+                                                            || center.Status.Trim().ToLower().Equals("updating"));
                 }
+
                 centerList = centerList.Where(center => center.Services.Count > 0).ToList();
                 if (filterCentersRequestModel.SearchString != null)
                 {
-                    centerList = centerList.Where(res => res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
-                                                  || (res.Alias != null && res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower()))
-                                             ).ToList();
+                    centerList = centerList.Where(res =>
+                        res.CenterName.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower())
+                        || (res.Alias != null &&
+                            res.Alias.ToLower().Contains(filterCentersRequestModel.SearchString.ToLower()))
+                    ).ToList();
                 }
+
                 var response = new List<CenterResponseModel>();
                 foreach (var center in centerList)
                 {
@@ -123,45 +129,53 @@ namespace Washouse.Web.Controllers
                                 {
                                     minPrice = (decimal)service.MinPrice;
                                 }
-                                if (maxPrice < (servicePrice.Price*servicePrice.MaxValue) || maxPrice == 0)
+
+                                if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
                                 {
                                     maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
                                 }
                             }
-                        } 
+                        }
                         else
                         {
                             if (minPrice > service.Price || minPrice == 0)
                             {
                                 minPrice = (decimal)service.Price;
                             }
+
                             if (maxPrice < service.Price || maxPrice == 0)
                             {
                                 maxPrice = (decimal)service.Price;
                             }
                         }
-                        
+
                         var centerService = new CenterServiceResponseModel
                         {
                             ServiceCategoryID = service.CategoryId,
                             ServiceCategoryName = service.Category.CategoryName,
                             Services = null
                         };
-                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
-
+                        if (centerServices.FirstOrDefault(cs =>
+                                cs.ServiceCategoryID == centerService.ServiceCategoryID) ==
+                            null) centerServices.Add(centerService);
                     }
+
                     List<int> dayOffs = new List<int>();
                     bool MonthOff = false;
-                    for (int i = 0; i < 7; i++) {
+                    for (int i = 0; i < 7; i++)
+                    {
                         dayOffs.Add(i);
                     }
+
                     bool _isOpening = false;
                     foreach (var item in center.OperatingHours)
                     {
-                        if(item.DaysOfWeek.Id == (int)DateTime.Today.DayOfWeek && item.CloseTime > DateTime.Now.TimeOfDay && item.OpenTime < DateTime.Now.TimeOfDay)
+                        if (item.DaysOfWeek.Id == (int)DateTime.Today.DayOfWeek &&
+                            item.CloseTime > DateTime.Now.TimeOfDay && item.OpenTime < DateTime.Now.TimeOfDay)
                         {
                             _isOpening = true;
                         }
+
                         dayOffs.Remove(item.DaysOfWeek.Id);
                         var centerOperatingHour = new CenterOperatingHoursResponseModel
                         {
@@ -171,6 +185,7 @@ namespace Washouse.Web.Controllers
                         };
                         centerOperatingHours.Add(centerOperatingHour);
                     }
+
                     foreach (var item in dayOffs)
                     {
                         var dayOff = new CenterOperatingHoursResponseModel
@@ -181,29 +196,41 @@ namespace Washouse.Web.Controllers
                         };
                         centerOperatingHours.Add(dayOff);
                     }
+
                     double distance = 0;
-                    if (center.Location.Latitude == null || center.Location.Longitude == null || filterCentersRequestModel.CurrentUserLatitude == null || filterCentersRequestModel.CurrentUserLongitude == null)
+                    if (center.Location.Latitude == null || center.Location.Longitude == null ||
+                        filterCentersRequestModel.CurrentUserLatitude == null ||
+                        filterCentersRequestModel.CurrentUserLongitude == null)
                     {
                         distance = 0;
-                    } else
-                    {
-                        distance = Utilities.CalculateDistance(Math.Round((decimal)filterCentersRequestModel.CurrentUserLatitude, 6), Math.Round((decimal)filterCentersRequestModel.CurrentUserLongitude, 6),
-                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
                     }
+                    else
+                    {
+                        distance = Utilities.CalculateDistance(
+                            Math.Round((decimal)filterCentersRequestModel.CurrentUserLatitude, 6),
+                            Math.Round((decimal)filterCentersRequestModel.CurrentUserLongitude, 6),
+                            Math.Round((decimal)center.Location.Latitude, 6),
+                            Math.Round((decimal)center.Location.Longitude, 6));
+                    }
+
                     if (center.MonthOff != null)
                     {
                         string[] offs = center.MonthOff.Split('-');
                         for (int i = 0; i < offs.Length; i++)
                         {
-                            if (DateTime.Now.Day == (int.Parse(offs[i]))) {
+                            if (DateTime.Now.Day == (int.Parse(offs[i])))
+                            {
                                 MonthOff = true;
                             }
                         }
                     }
+
                     response.Add(new CenterResponseModel
                     {
                         Id = center.Id,
-                        Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null,
+                        Thumbnail = center.Image != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                            : null,
                         Title = center.CenterName,
                         Alias = center.Alias,
                         Description = center.Description,
@@ -211,7 +238,8 @@ namespace Washouse.Web.Controllers
                         Rating = center.Rating,
                         NumOfRating = center.NumOfRating,
                         Phone = center.Phone,
-                        CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName,
+                        CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " +
+                                        center.Location.Ward.District.DistrictName,
                         Distance = Math.Round(distance, 1),
                         MinPrice = minPrice,
                         MaxPrice = maxPrice,
@@ -227,6 +255,7 @@ namespace Washouse.Web.Controllers
                         MonthOff = MonthOff
                     });
                 }
+
                 if (filterCentersRequestModel.Sort != null)
                 {
                     string[] sorts = filterCentersRequestModel.Sort.Split(',');
@@ -234,13 +263,17 @@ namespace Washouse.Web.Controllers
                     {
                         if (item.ToLower().Equals("rating"))
                         {
-                            response = response.OrderByDescending(res => res.Rating).ThenBy(res => res.Distance).ToList();
-                        } else if (item.ToLower().Equals("location"))
+                            response = response.OrderByDescending(res => res.Rating).ThenBy(res => res.Distance)
+                                .ToList();
+                        }
+                        else if (item.ToLower().Equals("location"))
                         {
-                            response = response.OrderBy(res => res.Distance).ThenByDescending(res => res.Rating).ToList();
+                            response = response.OrderBy(res => res.Distance).ThenByDescending(res => res.Rating)
+                                .ToList();
                         }
                     }
                 }
+
                 if (filterCentersRequestModel.BudgetRange != null)
                 {
                     string[] budgetRanges = filterCentersRequestModel.BudgetRange.Split('-');
@@ -252,14 +285,16 @@ namespace Washouse.Web.Controllers
                         minPrice = maxPrice;
                         maxPrice = exchange;
                     }
+
                     foreach (var item in response.ToList())
                     {
-                        if (item.MaxPrice < minPrice || item.MinPrice > maxPrice) 
+                        if (item.MaxPrice < minPrice || item.MinPrice > maxPrice)
                         {
-                            response.Remove(item); 
-                        }   
+                            response.Remove(item);
+                        }
                     }
                 }
+
                 if (filterCentersRequestModel.CategoryServices != null)
                 {
                     string[] categories = filterCentersRequestModel.CategoryServices.Split(',');
@@ -268,6 +303,7 @@ namespace Washouse.Web.Controllers
                     {
                         categoryIds[i] = int.Parse(categories[i]);
                     }
+
                     foreach (var item in response.ToList())
                     {
                         int count = 0;
@@ -281,13 +317,14 @@ namespace Washouse.Web.Controllers
                                 }
                             }
                         }
+
                         if (count == 0)
                         {
                             response.Remove(item);
                         }
                     }
-
                 }
+
                 if (filterCentersRequestModel.HasDelivery)
                 {
                     foreach (var item in response.ToList())
@@ -298,6 +335,7 @@ namespace Washouse.Web.Controllers
                         }
                     }
                 }
+
                 if (filterCentersRequestModel.HasOnlinePayment)
                 {
                     foreach (var item in response.ToList())
@@ -308,11 +346,13 @@ namespace Washouse.Web.Controllers
                         }
                     }
                 }
+
                 response.OrderByDescending(center => center.IsOpening).ToList();
                 int totalItems = response.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filterCentersRequestModel.PageSize);
 
-                response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize).Take(filterCentersRequestModel.PageSize).ToList();
+                response = response.Skip((filterCentersRequestModel.Page - 1) * filterCentersRequestModel.PageSize)
+                    .Take(filterCentersRequestModel.PageSize).ToList();
 
                 if (response.Count != 0)
                 {
@@ -320,7 +360,8 @@ namespace Washouse.Web.Controllers
                     {
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
-                        Data = new {
+                        Data = new
+                        {
                             TotalItems = totalItems,
                             TotalPages = totalPages,
                             ItemsPerPage = filterCentersRequestModel.PageSize,
@@ -328,7 +369,8 @@ namespace Washouse.Web.Controllers
                             Items = response
                         }
                     });
-                } else
+                }
+                else
                 {
                     return NotFound(new ResponseModel
                     {
@@ -337,7 +379,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -362,7 +403,7 @@ namespace Washouse.Web.Controllers
                 if (role == null || role.Trim().ToLower().Equals("customer"))
                 {
                     if (!(center.Status.Trim().ToLower().Equals("active")
-                                                        || center.Status.Trim().ToLower().Equals("updating")))
+                          || center.Status.Trim().ToLower().Equals("updating")))
                     {
                         return BadRequest(new ResponseModel
                         {
@@ -372,6 +413,7 @@ namespace Washouse.Web.Controllers
                         });
                     }
                 }
+
                 if (center != null)
                 {
                     var response = new CenterResponseModel();
@@ -392,23 +434,45 @@ namespace Washouse.Web.Controllers
                             };
                             servicePriceViewModels.Add(sp);
                         }
+
                         var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
                         int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                         foreach (var feedback in feedbackList)
                         {
-                            if (feedback.Rating == 1) { st1++; }
-                            if (feedback.Rating == 2) { st2++; }
-                            if (feedback.Rating == 3) { st3++; }
-                            if (feedback.Rating == 4) { st4++; }
-                            if (feedback.Rating == 5) { st5++; }
+                            if (feedback.Rating == 1)
+                            {
+                                st1++;
+                            }
+
+                            if (feedback.Rating == 2)
+                            {
+                                st2++;
+                            }
+
+                            if (feedback.Rating == 3)
+                            {
+                                st3++;
+                            }
+
+                            if (feedback.Rating == 4)
+                            {
+                                st4++;
+                            }
+
+                            if (feedback.Rating == 5)
+                            {
+                                st5++;
+                            }
                         }
+
                         var service = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
                             CategoryId = item.CategoryId,
                             ServiceName = item.ServiceName,
                             Description = item.Description,
-                            Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                            Image =
+                                item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                             PriceType = item.PriceType,
                             Price = item.Price,
                             MinPrice = item.MinPrice,
@@ -419,9 +483,10 @@ namespace Washouse.Web.Controllers
                             Rating = item.Rating,
                             NumOfRating = item.NumOfRating,
                             Ratings = new int[] { st1, st2, st3, st4, st5 }
-                    };
+                        };
                         servicesOfCenter.Add(service);
                     }
+
                     foreach (var service in center.Services)
                     {
                         if (service.PriceType)
@@ -432,6 +497,7 @@ namespace Washouse.Web.Controllers
                                 {
                                     minPrice = (decimal)service.MinPrice;
                                 }
+
                                 if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
                                 {
                                     maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
@@ -444,6 +510,7 @@ namespace Washouse.Web.Controllers
                             {
                                 minPrice = (decimal)service.Price;
                             }
+
                             if (maxPrice < service.Price || maxPrice == 0)
                             {
                                 maxPrice = (decimal)service.Price;
@@ -456,8 +523,11 @@ namespace Washouse.Web.Controllers
                             ServiceCategoryName = service.Category.CategoryName,
                             Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
                         };
-                        if (centerServices.FirstOrDefault(cs => cs.ServiceCategoryID == centerService.ServiceCategoryID) == null) centerServices.Add(centerService);
+                        if (centerServices.FirstOrDefault(cs =>
+                                cs.ServiceCategoryID == centerService.ServiceCategoryID) ==
+                            null) centerServices.Add(centerService);
                     }
+
                     //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
                     //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
                     //{
@@ -466,6 +536,7 @@ namespace Washouse.Web.Controllers
                     {
                         dayOffs.Add(i);
                     }
+
                     foreach (var item in center.OperatingHours)
                     {
                         dayOffs.Remove(item.DaysOfWeek.Id);
@@ -488,16 +559,21 @@ namespace Washouse.Web.Controllers
                         };
                         centerOperatingHours.Add(dayOff);
                     }
+
                     double distance = 0;
-                    if (center.Location.Latitude == null || center.Location.Longitude == null || CurrentUserLatitude == null || CurrentUserLongitude == null)
+                    if (center.Location.Latitude == null || center.Location.Longitude == null ||
+                        CurrentUserLatitude == null || CurrentUserLongitude == null)
                     {
                         distance = 0;
                     }
                     else
                     {
-                        distance = Utilities.CalculateDistance(Math.Round((decimal)CurrentUserLatitude, 6), Math.Round((decimal)CurrentUserLongitude, 6),
-                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        distance = Utilities.CalculateDistance(Math.Round((decimal)CurrentUserLatitude, 6),
+                            Math.Round((decimal)CurrentUserLongitude, 6),
+                            Math.Round((decimal)center.Location.Latitude, 6),
+                            Math.Round((decimal)center.Location.Longitude, 6));
                     }
+
                     //}
                     bool MonthOff = false;
                     if (center.MonthOff != null)
@@ -526,7 +602,9 @@ namespace Washouse.Web.Controllers
 
 
                     response.Id = center.Id;
-                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
+                    response.Thumbnail = center.Image != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                        : null;
                     response.Title = center.CenterName;
                     response.Alias = center.Alias;
                     response.Description = center.Description;
@@ -534,7 +612,8 @@ namespace Washouse.Web.Controllers
                     response.Rating = center.Rating;
                     response.NumOfRating = center.NumOfRating;
                     response.Phone = center.Phone;
-                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                                             ", " + center.Location.Ward.District.DistrictName;
                     response.Distance = distance;
                     response.MinPrice = minPrice;
                     response.MaxPrice = maxPrice;
@@ -564,7 +643,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -577,7 +655,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [Authorize(Roles =("Manager,User"))]
+        [Authorize(Roles = ("Manager,User"))]
         /// <summary>
         /// Create a center.
         /// </summary>
@@ -687,6 +765,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     //Add Location
                     location.AddressString = createCenterRequestModel.Location.AddressString;
                     location.WardId = createCenterRequestModel.Location.WardId;
@@ -694,7 +773,8 @@ namespace Washouse.Web.Controllers
                     try
                     {
                         ward = await _wardService.GetWardById(location.WardId);
-                    } catch
+                    }
+                    catch
                     {
                         return NotFound(new ResponseModel
                         {
@@ -703,8 +783,11 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
-                    string fullAddress = createCenterRequestModel.Location.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                    string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+
+                    string fullAddress = createCenterRequestModel.Location.AddressString + ", " + ward.WardName + ", " +
+                                         ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string url =
+                        $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                     using (HttpClient client = new HttpClient())
                     {
                         var response = await client.GetAsync(url);
@@ -714,37 +797,45 @@ namespace Washouse.Web.Controllers
                             dynamic result = JsonConvert.DeserializeObject(json);
                             if (result.Count > 0)
                             {
-
                                 location.Latitude = result[0].lat;
                                 location.Longitude = result[0].lon;
                             }
                         }
                     }
-                    if (createCenterRequestModel.Location.Latitude != null && createCenterRequestModel.Location.Latitude != 0)
+
+                    if (createCenterRequestModel.Location.Latitude != null &&
+                        createCenterRequestModel.Location.Latitude != 0)
                     {
                         location.Latitude = createCenterRequestModel.Location.Latitude;
                     }
-                    if (createCenterRequestModel.Location.Longitude != null && createCenterRequestModel.Location.Longitude != 0)
+
+                    if (createCenterRequestModel.Location.Longitude != null &&
+                        createCenterRequestModel.Location.Longitude != 0)
                     {
                         location.Longitude = createCenterRequestModel.Location.Longitude;
                     }
-                    if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
+
+                    if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 &&
+                        location.Longitude != 0)
                     {
-                        location.Latitude = Math.Round((decimal)location.Latitude,9);
+                        location.Latitude = Math.Round((decimal)location.Latitude, 9);
                         location.Longitude = Math.Round((decimal)location.Longitude, 9);
-                    } else
+                    }
+                    else
                     {
                         return BadRequest(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status400BadRequest,
-                            Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                            Message =
+                                "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
                             Data = null
                         });
                     }
+
                     var locationAdded = await _locationService.Add(location);
 
                     var checkLocationExistCenter = await _locationService.GetById(locationAdded.Id);
-                    if (checkLocationExistCenter.Centers.ToList() != null) 
+                    if (checkLocationExistCenter.Centers.ToList() != null)
                     {
                         var centerExist = checkLocationExistCenter.Centers.ToList();
                         foreach (var item in centerExist)
@@ -760,6 +851,7 @@ namespace Washouse.Web.Controllers
                             }
                         }
                     }
+
                     //Add Center 
                     /*if (createCenterRequestModel.Center.HasDelivery == null)
                     {
@@ -794,7 +886,9 @@ namespace Washouse.Web.Controllers
 
 
                     //Add Operating time
-                    List<OperatingHoursRequestModel> operatings = JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel.CenterOperatingHours.ToJson());
+                    List<OperatingHoursRequestModel> operatings =
+                        JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(createCenterRequestModel
+                            .CenterOperatingHours.ToJson());
                     foreach (var item in operatings)
                     {
                         var operatingTime = new OperatingHour();
@@ -837,9 +931,9 @@ namespace Washouse.Web.Controllers
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
                         Data = new { CenterId = center.Id }
-                });
+                    });
                 }
-                else 
+                else
                 {
                     return BadRequest(new ResponseModel
                     {
@@ -848,7 +942,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -885,23 +978,46 @@ namespace Washouse.Web.Controllers
                                 };
                                 servicePriceViewModels.Add(sp);
                             }
+
                             var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
                             int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                             foreach (var feedback in feedbackList)
                             {
-                                if (feedback.Rating == 1) { st1++; }
-                                if (feedback.Rating == 2) { st2++; }
-                                if (feedback.Rating == 3) { st3++; }
-                                if (feedback.Rating == 4) { st4++; }
-                                if (feedback.Rating == 5) { st5++; }
+                                if (feedback.Rating == 1)
+                                {
+                                    st1++;
+                                }
+
+                                if (feedback.Rating == 2)
+                                {
+                                    st2++;
+                                }
+
+                                if (feedback.Rating == 3)
+                                {
+                                    st3++;
+                                }
+
+                                if (feedback.Rating == 4)
+                                {
+                                    st4++;
+                                }
+
+                                if (feedback.Rating == 5)
+                                {
+                                    st5++;
+                                }
                             }
+
                             var itemResponse = new ServicesOfCenterResponseModel
                             {
                                 ServiceId = item.Id,
                                 CategoryId = item.CategoryId,
                                 ServiceName = item.ServiceName,
                                 Description = item.Description,
-                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                                Image = item.Image != null
+                                    ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
+                                    : null,
                                 PriceType = item.PriceType,
                                 Price = item.Price,
                                 MinPrice = item.MinPrice,
@@ -915,6 +1031,7 @@ namespace Washouse.Web.Controllers
                             };
                             servicesOfCenter.Add(itemResponse);
                         }
+
                         return Ok(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status200OK,
@@ -1006,7 +1123,6 @@ namespace Washouse.Web.Controllers
                     var checkLocationExistCenter = new Model.Models.Location();
                     if (center.Location != null)
                     {
-
                         location.AddressString = center.Location.AddressString;
                         location.WardId = center.Location.WardId;
                         var ward = new Ward();
@@ -1023,8 +1139,11 @@ namespace Washouse.Web.Controllers
                                 Data = null
                             });
                         }
-                        string fullAddress = center.Location.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                        string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
+
+                        string fullAddress = center.Location.AddressString + ", " + ward.WardName + ", " +
+                                             ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string url =
+                            $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                         using (HttpClient client = new HttpClient())
                         {
                             var response = await client.GetAsync(url);
@@ -1034,21 +1153,24 @@ namespace Washouse.Web.Controllers
                                 dynamic result = JsonConvert.DeserializeObject(json);
                                 if (result.Count > 0)
                                 {
-
                                     location.Latitude = result[0].lat;
                                     location.Longitude = result[0].lon;
                                 }
                             }
                         }
+
                         if (center.Location.Latitude != null && center.Location.Latitude != 0)
                         {
                             location.Latitude = center.Location.Latitude;
                         }
+
                         if (center.Location.Longitude != null && center.Location.Longitude != 0)
                         {
                             location.Longitude = center.Location.Longitude;
                         }
-                        if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 && location.Longitude != 0)
+
+                        if (location.Latitude != null && location.Longitude != null && location.Latitude != 0 &&
+                            location.Longitude != 0)
                         {
                             location.Latitude = Math.Round((decimal)location.Latitude, 9);
                             location.Longitude = Math.Round((decimal)location.Longitude, 9);
@@ -1058,10 +1180,12 @@ namespace Washouse.Web.Controllers
                             return BadRequest(new ResponseModel
                             {
                                 StatusCode = StatusCodes.Status400BadRequest,
-                                Message = "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
+                                Message =
+                                    "Location of center(latitude and longitude) not recognized or not in Ho Chi Minh city.",
                                 Data = null
                             });
                         }
+
                         var locationAdded = await _locationService.Add(location);
 
                         checkLocationExistCenter = await _locationService.GetById(locationAdded.Id);
@@ -1080,22 +1204,37 @@ namespace Washouse.Web.Controllers
                                     });
                                 }
                             }
-                        } 
+                        }
                     }
+
                     var centerRequestModel = new CenterRequest();
                     if (center != null)
                     {
                         centerRequestModel.CenterRequesting = centerRequesting.Id;
                         centerRequestModel.RequestStatus = true;
-                        centerRequestModel.CenterName = string.IsNullOrWhiteSpace(center.CenterName) ? centerRequesting.CenterName : center.CenterName.Trim();
-                        centerRequestModel.Alias = string.IsNullOrWhiteSpace(center.Alias) ? centerRequesting.Alias : center.Alias.Trim();
-                        centerRequestModel.LocationId = (checkLocationExistCenter.Id == 0) ? centerRequesting.LocationId : checkLocationExistCenter.Id;
-                        centerRequestModel.Phone = string.IsNullOrWhiteSpace(center.Phone) ? centerRequesting.Phone : center.Phone.Trim();
-                        centerRequestModel.Description = string.IsNullOrWhiteSpace(center.Description) ? centerRequesting.Description : center.Description.Trim();
-                        centerRequestModel.MonthOff = string.IsNullOrWhiteSpace(center.MonthOff) ? centerRequesting.MonthOff : center.MonthOff.Trim();
+                        centerRequestModel.CenterName = string.IsNullOrWhiteSpace(center.CenterName)
+                            ? centerRequesting.CenterName
+                            : center.CenterName.Trim();
+                        centerRequestModel.Alias = string.IsNullOrWhiteSpace(center.Alias)
+                            ? centerRequesting.Alias
+                            : center.Alias.Trim();
+                        centerRequestModel.LocationId = (checkLocationExistCenter.Id == 0)
+                            ? centerRequesting.LocationId
+                            : checkLocationExistCenter.Id;
+                        centerRequestModel.Phone = string.IsNullOrWhiteSpace(center.Phone)
+                            ? centerRequesting.Phone
+                            : center.Phone.Trim();
+                        centerRequestModel.Description = string.IsNullOrWhiteSpace(center.Description)
+                            ? centerRequesting.Description
+                            : center.Description.Trim();
+                        centerRequestModel.MonthOff = string.IsNullOrWhiteSpace(center.MonthOff)
+                            ? centerRequesting.MonthOff
+                            : center.MonthOff.Trim();
                         centerRequestModel.IsAvailable = centerRequesting.IsAvailable;
                         centerRequestModel.Status = centerRequesting.Status;
-                        centerRequestModel.Image = string.IsNullOrWhiteSpace(center.SavedFileName) ? centerRequesting.Image : center.SavedFileName.Trim();
+                        centerRequestModel.Image = string.IsNullOrWhiteSpace(center.SavedFileName)
+                            ? centerRequesting.Image
+                            : center.SavedFileName.Trim();
                         centerRequestModel.HotFlag = centerRequesting.HotFlag;
                         centerRequestModel.Rating = centerRequesting.Rating;
                         centerRequestModel.NumOfRating = centerRequesting.NumOfRating;
@@ -1104,6 +1243,7 @@ namespace Washouse.Web.Controllers
                         centerRequestModel.UpdatedDate = DateTime.Now;
                         centerRequestModel.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     }
+
                     await _centerRequestService.Add(centerRequestModel);
                     centerRequesting.Status = "Updating";
                     // Update
@@ -1125,7 +1265,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                
             }
             catch (Exception ex)
             {
@@ -1160,23 +1299,45 @@ namespace Washouse.Web.Controllers
                             };
                             servicePriceViewModels.Add(sp);
                         }
+
                         var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
                         int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                         foreach (var feedback in feedbackList)
                         {
-                            if (feedback.Rating == 1) { st1++; }
-                            if (feedback.Rating == 2) { st2++; }
-                            if (feedback.Rating == 3) { st3++; }
-                            if (feedback.Rating == 4) { st4++; }
-                            if (feedback.Rating == 5) { st5++; }
+                            if (feedback.Rating == 1)
+                            {
+                                st1++;
+                            }
+
+                            if (feedback.Rating == 2)
+                            {
+                                st2++;
+                            }
+
+                            if (feedback.Rating == 3)
+                            {
+                                st3++;
+                            }
+
+                            if (feedback.Rating == 4)
+                            {
+                                st4++;
+                            }
+
+                            if (feedback.Rating == 5)
+                            {
+                                st5++;
+                            }
                         }
+
                         var itemResponse = new ServicesOfCenterResponseModel
                         {
                             ServiceId = item.Id,
                             CategoryId = item.CategoryId,
                             ServiceName = item.ServiceName,
                             Description = item.Description,
-                            Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                            Image =
+                                item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
                             PriceType = item.PriceType,
                             Price = item.Price,
                             MinPrice = item.MinPrice,
@@ -1226,5 +1387,33 @@ namespace Washouse.Web.Controllers
             }
         }
 
+
+        [HttpPut("{centerId:int}/deactivate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeactivateCenter(int centerId)
+        {
+            var center = await _centerService.GetById(centerId);
+            if (center == null)
+            {
+                return NotFound();
+            }
+
+            _centerService.DeactivateCenter(center.Id);
+            return Ok();
+        }
+
+        [HttpPut("{centerId:int}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateCenter(int centerId)
+        {
+            var center = await _centerService.GetById(centerId);
+            if (center == null)
+            {
+                return NotFound();
+            }
+
+            _centerService.ActivateCenter(center.Id);
+            return Ok();
+        }
     }
 }

@@ -18,7 +18,8 @@ namespace Washouse.Service.Implement
         ICenterRequestRepository _centerRequestRepository;
         IUnitOfWork _unitOfWork;
 
-        public CenterService(ICenterRepository centerRepository, IUnitOfWork unitOfWork, ICenterRequestRepository centerRequestRepository)
+        public CenterService(ICenterRepository centerRepository, IUnitOfWork unitOfWork,
+            ICenterRequestRepository centerRequestRepository)
         {
             this._centerRepository = centerRepository;
             this._unitOfWork = unitOfWork;
@@ -34,13 +35,16 @@ namespace Washouse.Service.Implement
         {
             throw new NotImplementedException();
         }
+
         public IEnumerable<Center> GetAllBySearchKeyPaging(string searchKey, int page, int pageSize, out int totalRow)
         {
-            var query = _centerRepository.GetMulti(x => (x.Status == "Active") && (x.CenterName.Contains(searchKey) || x.Alias.Contains(searchKey)));
+            var query = _centerRepository.GetMulti(x =>
+                (x.Status == "Active") && (x.CenterName.Contains(searchKey) || x.Alias.Contains(searchKey)));
             totalRow = query.Count();
 
             return query.Skip((page - 1) * pageSize).Take(pageSize);
         }
+
         public IEnumerable<Center> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow)
         {
             throw new NotImplementedException();
@@ -71,17 +75,14 @@ namespace Washouse.Service.Implement
             await _centerRepository.Update(center);
         }
 
-        public Task ActivateCenter(int id)
+        public async Task ActivateCenter(int id)
         {
-            //await _centerRepository.ActivateCategory(id);
-            throw new NotImplementedException();
+            await _centerRepository.ActivateCenter(id);
         }
 
-        public Task DeactivateCenter(int id)
+        public async Task DeactivateCenter(int id)
         {
-            //await _centerRepository.DeactivateCenter(id);
-            throw new NotImplementedException();
+            await _centerRepository.DeactivateCenter(id);
         }
-
     }
 }
