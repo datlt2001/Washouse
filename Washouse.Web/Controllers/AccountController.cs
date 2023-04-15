@@ -907,6 +907,7 @@ namespace Washouse.Web.Controllers
                         RoleType = User.FindFirst(ClaimTypes.Role)?.Value,
                         LocationId = user.LocationId,
                         Name = User.FindFirst(ClaimTypes.Name)?.Value,
+                        CenterManaged = int.Parse(User.FindFirst("CenterManaged")?.Value),
                         Avatar = user.ProfilePic != null
                             ? await _cloudStorageService.GetSignedUrlAsync(user.ProfilePic)
                             : null,
