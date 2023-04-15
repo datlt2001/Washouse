@@ -60,14 +60,15 @@ namespace Washouse.Web.Controllers
         private readonly ISendMailService _sendMailService;
 
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
-                                ILocationService locationService, IWardService wardService,
-                                IOperatingHourService operatingHourService, IServiceService serviceService,
-                                IStaffService staffService, ICenterRequestService centerRequestService, 
-                                IFeedbackService feedbackService, IPromotionService promotionService,
-                                INotificationService notificationService, INotificationAccountService notificationAccountService,
-                                ICustomerService customerService, IOrderService orderService, IAccountService accountService,
-                                IWalletService walletService, IWalletTransactionService walletTransactionService, IPaymentService paymentService,
-                                IHubContext<MessageHub> _messageHub, ISendMailService sendMailService, IDeliveryService deliveryService)
+            ILocationService locationService, IWardService wardService,
+            IOperatingHourService operatingHourService, IServiceService serviceService,
+            IStaffService staffService, ICenterRequestService centerRequestService,
+            IFeedbackService feedbackService, IPromotionService promotionService,
+            INotificationService notificationService, INotificationAccountService notificationAccountService,
+            ICustomerService customerService, IOrderService orderService, IAccountService accountService,
+            IWalletService walletService, IWalletTransactionService walletTransactionService,
+            IPaymentService paymentService,
+            IHubContext<MessageHub> _messageHub, ISendMailService sendMailService, IDeliveryService deliveryService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -458,14 +459,17 @@ namespace Washouse.Web.Controllers
 
 
                     response.Id = center.Id;
-                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
+                    response.Thumbnail = center.Image != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                        : null;
                     response.Title = center.CenterName;
                     response.Alias = center.Alias;
                     response.Description = center.Description;
                     response.Rating = center.Rating;
                     response.NumOfRating = center.NumOfRating;
                     response.Phone = center.Phone;
-                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                                             ", " + center.Location.Ward.District.DistrictName;
                     //response.Distance = distance;
                     response.IsAvailable = center.IsAvailable;
                     response.Status = center.Status;
@@ -633,12 +637,32 @@ namespace Washouse.Web.Controllers
                             int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                             foreach (var feedback in feedbackList)
                             {
-                                if (feedback.Rating == 1) { st1++; }
-                                if (feedback.Rating == 2) { st2++; }
-                                if (feedback.Rating == 3) { st3++; }
-                                if (feedback.Rating == 4) { st4++; }
-                                if (feedback.Rating == 5) { st5++; }
+                                if (feedback.Rating == 1)
+                                {
+                                    st1++;
+                                }
+
+                                if (feedback.Rating == 2)
+                                {
+                                    st2++;
+                                }
+
+                                if (feedback.Rating == 3)
+                                {
+                                    st3++;
+                                }
+
+                                if (feedback.Rating == 4)
+                                {
+                                    st4++;
+                                }
+
+                                if (feedback.Rating == 5)
+                                {
+                                    st5++;
+                                }
                             }
+
                             var itemResponse = new ServiceCenterModel
                             {
                                 ServiceId = item.Id,
@@ -647,7 +671,9 @@ namespace Washouse.Web.Controllers
                                 CategoryId = item.CategoryId,
                                 CategoryName = item.Category.CategoryName,
                                 Description = item.Description,
-                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                                Image = item.Image != null
+                                    ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
+                                    : null,
                                 PriceType = item.PriceType,
                                 Price = item.Price,
                                 MinPrice = item.MinPrice,
@@ -665,6 +691,7 @@ namespace Washouse.Web.Controllers
                             };
                             servicesOfCenter.Add(itemResponse);
                         }
+
                         int totalItems = servicesOfCenter.Count();
                         if (filter.PageSize == -1)
                         {
@@ -682,7 +709,7 @@ namespace Washouse.Web.Controllers
                                 }
                             });
                         }
-                     
+
 
                         int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
                         servicesOfCenter = servicesOfCenter
@@ -756,7 +783,8 @@ namespace Washouse.Web.Controllers
                 if (center != null)
                 {
                     var promotion = _promotionService.GetAllByCenterId((int)managerInfo.CenterId);
-                    if (promotion == null) {
+                    if (promotion == null)
+                    {
                         return NotFound(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status404NotFound,
@@ -849,17 +877,17 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
                     DateTime StartDate;
                     DateTime ExpireDate;
                     if (!string.IsNullOrEmpty(Input.StartDate) && DateTime.TryParseExact(Input.StartDate, "dd-MM-yyyy",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out StartDate))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out StartDate))
                     {
                         try
                         {
-                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy",
+                                CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -876,12 +904,14 @@ namespace Washouse.Web.Controllers
                         StartDate = DateTime.Now;
                     }
 
-                    if (!string.IsNullOrEmpty(Input.ExpireDate) && DateTime.TryParseExact(Input.ExpireDate, "dd-MM-yyyy",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpireDate))
+                    if (!string.IsNullOrEmpty(Input.ExpireDate) && DateTime.TryParseExact(Input.ExpireDate,
+                            "dd-MM-yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpireDate))
                     {
                         try
                         {
-                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy",
+                                CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -931,7 +961,8 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -949,10 +980,8 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
-
                     var promotion = await _promotionService.GetById(PromotionId);
                     if (promotion == null)
                     {
@@ -963,13 +992,15 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     DateTime StartDate;
                     DateTime ExpireDate;
                     if (Input.StartDate != null)
                     {
                         try
                         {
-                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                            StartDate = DateTime.ParseExact(Input.StartDate, "dd-MM-yyyy",
+                                CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -980,14 +1011,16 @@ namespace Washouse.Web.Controllers
                                 Data = null
                             });
                         }
+
                         promotion.StartDate = StartDate;
                     }
-                    
+
                     if (Input.ExpireDate != null)
                     {
                         try
                         {
-                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                            ExpireDate = DateTime.ParseExact(Input.ExpireDate, "dd-MM-yyyy",
+                                CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -998,8 +1031,10 @@ namespace Washouse.Web.Controllers
                                 Data = ""
                             });
                         }
+
                         promotion.ExpireDate = ExpireDate.AddDays(1).AddSeconds(-1);
                     }
+
                     if (Input.UseTimes != null)
                     {
                         if ((int)Input.UseTimes < 1)
@@ -1011,8 +1046,10 @@ namespace Washouse.Web.Controllers
                                 Data = ""
                             });
                         }
+
                         promotion.UseTimes = Input.UseTimes;
                     }
+
                     if (Input.StartDate != null && Input.ExpireDate != null)
                     {
                         if (promotion.ExpireDate <= promotion.StartDate)
@@ -1025,6 +1062,7 @@ namespace Washouse.Web.Controllers
                             });
                         }
                     }
+
                     promotion.UpdatedDate = DateTime.Now;
                     promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     await _promotionService.Update(promotion);
@@ -1038,7 +1076,6 @@ namespace Washouse.Web.Controllers
                             PromotionCode = promotion.Code
                         }
                     });
-                    
                 }
                 else
                 {
@@ -1068,10 +1105,8 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
-
                     var promotion = await _promotionService.GetById(PromotionId);
                     if (promotion == null)
                     {
@@ -1082,9 +1117,10 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     DateTime ExpiredDate = DateTime.Now;
                     if (!string.IsNullOrEmpty(ExpireDate) && DateTime.TryParseExact(ExpireDate, "dd-MM-yyyy",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpiredDate))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpiredDate))
                     {
                         try
                         {
@@ -1102,8 +1138,10 @@ namespace Washouse.Web.Controllers
                     }
 
                     promotion.Status = true;
-                    promotion.ExpireDate = string.IsNullOrEmpty(ExpireDate) ? promotion.ExpireDate : ExpiredDate.AddDays(1).AddSeconds(-1);
-                    promotion.UseTimes = UseTimes == null ? promotion.UseTimes : UseTimes ;
+                    promotion.ExpireDate = string.IsNullOrEmpty(ExpireDate)
+                        ? promotion.ExpireDate
+                        : ExpiredDate.AddDays(1).AddSeconds(-1);
+                    promotion.UseTimes = UseTimes == null ? promotion.UseTimes : UseTimes;
                     promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     promotion.UpdatedDate = DateTime.Now;
                     await _promotionService.Update(promotion);
@@ -1117,7 +1155,6 @@ namespace Washouse.Web.Controllers
                             PromotionCode = promotion.Code
                         }
                     });
-
                 }
                 else
                 {
@@ -1147,10 +1184,8 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
-
                     var promotion = await _promotionService.GetById(PromotionId);
                     if (promotion == null)
                     {
@@ -1176,7 +1211,6 @@ namespace Washouse.Web.Controllers
                             PromotionCode = promotion.Code
                         }
                     });
-
                 }
                 else
                 {
@@ -1491,6 +1525,8 @@ namespace Washouse.Web.Controllers
                             Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                             TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
                             Status = order.Status,
+                            CenterId = center.Id,
+                            CenterName = center.CenterName,
                             Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
                             {
                                 DeliveryStatus = delivery.Status,
@@ -1620,7 +1656,9 @@ namespace Washouse.Web.Controllers
                     response.Id = id;
                     response.CustomerName = order.CustomerName;
                     response.LocationId = order.LocationId;
-                    response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName + ", " + order.Location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName +
+                                               ", " + order.Location.Ward.District.DistrictName +
+                                               ", Thành phố Hồ Chí Minh";
                     response.CustomerEmail = order.CustomerEmail;
                     response.CustomerMobile = order.CustomerMobile;
                     response.CustomerMessage = order.CustomerMessage;
@@ -1685,12 +1723,15 @@ namespace Washouse.Web.Controllers
                             CustomerNote = item.CustomerNote,
                             StaffNote = item.StaffNote,
                             Status = item.Status,
-                            Image = item.Service.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image) : null,
+                            Image = item.Service.Image != null
+                                ? await _cloudStorageService.GetSignedUrlAsync(item.Service.Image)
+                                : null,
                             Price = item.Price,
                             UnitPrice = item.Price / item.Measurement,
                             OrderDetailTrackings = _orderDetailTrackingModel
                         });
                     }
+
                     response.TotalOrderValue = TotalOrderValue;
                     response.OrderedDetails = OrderedDetails;
                     foreach (var tracking in order.OrderTrackings)
@@ -1698,10 +1739,15 @@ namespace Washouse.Web.Controllers
                         OrderTrackings.Add(new OrderTrackingModel
                         {
                             Status = tracking.Status,
-                            CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
-                            UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            CreatedDate = tracking.CreatedDate.HasValue
+                                ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                                : null,
+                            UpdatedDate = tracking.UpdatedDate.HasValue
+                                ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                                : null,
                         });
                     }
+
                     response.OrderTrackings = OrderTrackings;
                     foreach (var delivery in order.Deliveries)
                     {
@@ -1713,7 +1759,9 @@ namespace Washouse.Web.Controllers
                             DeliveryType = delivery.DeliveryType,
                             EstimatedTime = delivery.EstimatedTime,
                             Status = delivery.Status,
-                            DeliveryDate = delivery.DeliveryDate.HasValue ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                            DeliveryDate = delivery.DeliveryDate.HasValue
+                                ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
                         });
                     }
 
@@ -1971,7 +2019,6 @@ namespace Washouse.Web.Controllers
         /// <response code="200">Success create a ceter</response>     
         /// <response code="400">One or more error occurs</response>   
         // POST: api/centers
-
         [Authorize(Roles = "Manager")]
         [HttpPost("services")]
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestModel serviceRequestmodel)
@@ -1983,10 +2030,12 @@ namespace Washouse.Web.Controllers
                 List<ServiceGallery> galleries = new List<ServiceGallery>();
                 if (ModelState.IsValid)
                 {
-                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) || int.Parse(User.FindFirst("CenterManaged")?.Value) == 0)
+                    if (string.IsNullOrEmpty(User.FindFirst("CenterManaged")?.Value) ||
+                        int.Parse(User.FindFirst("CenterManaged")?.Value) == 0)
                     {
                         return BadRequest();
                     }
+
                     serviceRequest.ServiceName = serviceRequestmodel.ServiceName;
                     serviceRequest.Alias = serviceRequestmodel.Alias;
                     serviceRequest.CategoryId = serviceRequestmodel.ServiceCategory;
@@ -1998,6 +2047,7 @@ namespace Washouse.Web.Controllers
                         serviceRequestmodel.Prices = null;
                         serviceRequest.Price = serviceRequestmodel.Price;
                     }
+
                     serviceRequest.MinPrice = serviceRequestmodel.MinPrice;
                     serviceRequest.TimeEstimate = serviceRequestmodel.TimeEstimate;
                     serviceRequest.Unit = serviceRequestmodel.Unit;
@@ -2016,7 +2066,9 @@ namespace Washouse.Web.Controllers
                     //Add Prices
                     if (serviceRequest.PriceType)
                     {
-                        List<ServicePriceViewModel> servicePrices = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                        List<ServicePriceViewModel> servicePrices =
+                            JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(
+                                serviceRequestmodel.Prices.ToJson());
                         if (servicePrices.Count > 0)
                         {
                             servicePrices = servicePrices.OrderBy(sp => sp.MaxValue).ToList();
@@ -2028,6 +2080,7 @@ namespace Washouse.Web.Controllers
                                     serviceRequest.MinPrice = item.MaxValue * item.Price;
                                     firstLoop = false;
                                 }
+
                                 var servicePrice = new ServicePrice();
                                 servicePrice.MaxValue = item.MaxValue;
                                 servicePrice.Price = item.Price;
@@ -2042,7 +2095,8 @@ namespace Washouse.Web.Controllers
                     }
 
                     //Add Galleries
-                    List<string> serviceGalleries = JsonConvert.DeserializeObject<List<string>>(serviceRequestmodel.ServiceGalleries.ToJson());
+                    List<string> serviceGalleries =
+                        JsonConvert.DeserializeObject<List<string>>(serviceRequestmodel.ServiceGalleries.ToJson());
                     if (serviceGalleries.Count > 0)
                     {
                         foreach (var item in serviceGalleries)
@@ -2057,7 +2111,8 @@ namespace Washouse.Web.Controllers
                     }
 
                     var result = await _serviceService.Create(serviceRequest, prices, galleries);
-                    List<ServicePriceViewModel> servicePriceList = JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
+                    List<ServicePriceViewModel> servicePriceList =
+                        JsonConvert.DeserializeObject<List<ServicePriceViewModel>>(serviceRequestmodel.Prices.ToJson());
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
@@ -2068,7 +2123,9 @@ namespace Washouse.Web.Controllers
                             CategoryId = result.CategoryId,
                             ServiceName = result.ServiceName,
                             Description = result.Description,
-                            Image = result.Image != null ? await _cloudStorageService.GetSignedUrlAsync(result.Image) : null,
+                            Image = result.Image != null
+                                ? await _cloudStorageService.GetSignedUrlAsync(result.Image)
+                                : null,
                             PriceType = result.PriceType,
                             Price = result.Price,
                             MinPrice = result.MinPrice,
@@ -2081,7 +2138,10 @@ namespace Washouse.Web.Controllers
                         }
                     });
                 }
-                else { return BadRequest(); }
+                else
+                {
+                    return BadRequest();
+                }
             }
             catch
             {
@@ -2100,7 +2160,6 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
-
                     var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
                     var CenterId = (int)managerInfo.CenterId;
                     var center = await _centerService.GetById(CenterId);
@@ -2113,12 +2172,18 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     DateTime UserPreferredDropoffTime;
-                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) && DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out UserPreferredDropoffTime))
+                    if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) &&
+                        DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
+                            "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None,
+                            out UserPreferredDropoffTime))
                     {
                         try
                         {
-                            UserPreferredDropoffTime = DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                            UserPreferredDropoffTime = DateTime.ParseExact(
+                                createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss",
+                                CultureInfo.InvariantCulture);
                         }
                         catch (FormatException ex)
                         {
@@ -2146,9 +2211,12 @@ namespace Washouse.Web.Controllers
                     }
                     else
                     {
-                        var openTimePreferredDropoffDay = center.OperatingHours.FirstOrDefault(day => day.DaysOfWeekId == (int)UserPreferredDropoffTime.DayOfWeek);
+                        var openTimePreferredDropoffDay = center.OperatingHours.FirstOrDefault(day =>
+                            day.DaysOfWeekId == (int)UserPreferredDropoffTime.DayOfWeek);
                         //kiểm tra ngày giờ lấy hàng không là giờ hoạt động
-                        if (openTimePreferredDropoffDay == null || openTimePreferredDropoffDay.OpenTime > UserPreferredDropoffTime.TimeOfDay || openTimePreferredDropoffDay.CloseTime < UserPreferredDropoffTime.TimeOfDay)
+                        if (openTimePreferredDropoffDay == null ||
+                            openTimePreferredDropoffDay.OpenTime > UserPreferredDropoffTime.TimeOfDay ||
+                            openTimePreferredDropoffDay.CloseTime < UserPreferredDropoffTime.TimeOfDay)
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -2157,12 +2225,13 @@ namespace Washouse.Web.Controllers
                                 Data = null
                             });
                         }
-
                     }
+
                     var promotion = new Promotion();
                     if (createOrderRequestModel.PromoCode != null)
                     {
-                        var promo = await _promotionService.CheckValidPromoCode(CenterId, createOrderRequestModel.PromoCode);
+                        var promo = await _promotionService.CheckValidPromoCode(CenterId,
+                            createOrderRequestModel.PromoCode);
 
                         if (promo == null)
                         {
@@ -2180,12 +2249,14 @@ namespace Washouse.Web.Controllers
                     {
                         promotion = null;
                     }
+
                     //location
                     decimal? Latitude = null;
                     decimal? Longitude = null;
                     var ward = await _wardService.GetWardById(createOrderRequestModel.Order.CustomerWardId);
                     string AddressString = createOrderRequestModel.Order.CustomerAddressString;
-                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
+                                         ", Thành phố Hồ Chí Minh";
                     string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
                     var result = await SearchRelativeAddress(fullAddress);
                     if (result != null)
@@ -2211,6 +2282,7 @@ namespace Washouse.Web.Controllers
                             });
                         }
                     }
+
                     //add Location
                     var location = new Model.Models.Location();
                     location.AddressString = AddressString;
@@ -2219,7 +2291,8 @@ namespace Washouse.Web.Controllers
                     location.Longitude = Longitude;
                     var locationResult = await _locationService.Add(location);
 
-                    var customerByPhone = await _customerService.GetByPhone(createOrderRequestModel.Order.CustomerMobile);
+                    var customerByPhone =
+                        await _customerService.GetByPhone(createOrderRequestModel.Order.CustomerMobile);
 
                     if (customerByPhone == null)
                     {
@@ -2262,6 +2335,7 @@ namespace Washouse.Web.Controllers
                     {
                         order.DeliveryPrice = null;
                     }
+
                     if (createOrderRequestModel.Order.DeliveryPrice != null)
                     {
                         order.DeliveryPrice = createOrderRequestModel.Order.DeliveryPrice;
@@ -2271,20 +2345,29 @@ namespace Washouse.Web.Controllers
                         order.DeliveryPrice = null;
                     }
 
-                    order.PreferredDropoffTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    order.PreferredDropoffTime =
+                        string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime)
+                            ? null
+                            : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
+                                "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     //order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.Status = "Pending";
-                    order.CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail;
+                    order.CreatedBy = customer.Email != null
+                        ? customer.Email
+                        : createOrderRequestModel.Order.CustomerEmail;
                     order.CreatedDate = DateTime.Now;
 
                     //create List OrderDetails
                     var orderDetails = new List<OrderDetail>();
-                    List<OrderDetailRequestModel> orderDetailRequestModels = JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(createOrderRequestModel.OrderDetails.ToJson());
+                    List<OrderDetailRequestModel> orderDetailRequestModels =
+                        JsonConvert.DeserializeObject<List<OrderDetailRequestModel>>(createOrderRequestModel
+                            .OrderDetails.ToJson());
                     decimal totalPayment = 0;
                     foreach (var item in orderDetailRequestModels)
                     {
                         var serviceItem = await _serviceService.GetById(item.ServiceId);
-                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("Updating") || !!serviceItem.Status.ToLower().Equals("Active")))
+                        if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("Updating") ||
+                                                    !!serviceItem.Status.ToLower().Equals("Active")))
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -2318,11 +2401,13 @@ namespace Washouse.Web.Controllers
                                 {
                                     currentPrice = itemSerivePrice.Price;
                                 }
+
                                 if (currentPrice > 0)
                                 {
                                     check = true;
                                 }
                             }
+
                             if (currentPrice * item.Measurement < serviceItem.MinPrice)
                             {
                                 totalCurrentPrice = (decimal)serviceItem.MinPrice;
@@ -2346,6 +2431,7 @@ namespace Washouse.Web.Controllers
                                 Data = null
                             });
                         }
+
                         orderDetails.Add(new OrderDetail
                         {
                             OrderId = order.Id,
@@ -2362,7 +2448,9 @@ namespace Washouse.Web.Controllers
                     //create List Deliveries
 
                     var deliveries = new List<Delivery>();
-                    List<DeliveryRequestModel> deliveryRequestModels = JsonConvert.DeserializeObject<List<DeliveryRequestModel>>(createOrderRequestModel.Deliveries.ToJson());
+                    List<DeliveryRequestModel> deliveryRequestModels =
+                        JsonConvert.DeserializeObject<List<DeliveryRequestModel>>(createOrderRequestModel.Deliveries
+                            .ToJson());
 
                     foreach (var item in deliveryRequestModels)
                     {
@@ -2371,8 +2459,10 @@ namespace Washouse.Web.Controllers
                         decimal? deliveryLongitude = null;
                         var deliveryWard = await _wardService.GetWardById(item.WardId);
                         string deliveryAddressString = item.AddressString;
-                        string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                        string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " +
+                                                     deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                        string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName +
+                                                     ", Thành phố Hồ Chí Minh";
                         var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
                         if (resultDelivery != null)
                         {
@@ -2397,6 +2487,7 @@ namespace Washouse.Web.Controllers
                                 });
                             }
                         }
+
                         //add Location
                         var deliveryLocation = new Model.Models.Location();
                         deliveryLocation.AddressString = deliveryAddressString;
@@ -2404,19 +2495,25 @@ namespace Washouse.Web.Controllers
                         deliveryLocation.Latitude = deliveryLatitude;
                         deliveryLocation.Longitude = deliveryLongitude;
                         var deliveryLocationResult = await _locationService.Add(deliveryLocation);
-                        var estimatedTime = await Utilities.CalculateDeliveryEstimatedTime(Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
-                                                                Math.Round((decimal)center.Location.Latitude, 6), Math.Round((decimal)center.Location.Longitude, 6));
+                        var estimatedTime = await Utilities.CalculateDeliveryEstimatedTime(
+                            Math.Round((decimal)deliveryLatitude, 6), Math.Round((decimal)deliveryLongitude, 6),
+                            Math.Round((decimal)center.Location.Latitude, 6),
+                            Math.Round((decimal)center.Location.Longitude, 6));
                         DateTime? deliveryDate = null;
                         // Dropoff = false, Deliver = true
                         if (!item.DeliveryType)
                         {
-                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                            deliveryDate = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime)
+                                ? null
+                                : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
+                                    "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
                             if (deliveryDate == null)
                             {
                                 deliveryDate = DateTime.Now;
                             }
                         }
+
                         deliveries.Add(new Delivery
                         {
                             OrderId = order.Id,
@@ -2427,7 +2524,9 @@ namespace Washouse.Web.Controllers
                             DeliveryType = item.DeliveryType,
                             DeliveryDate = deliveryDate,
                             Status = "Waiting",
-                            CreatedBy = customer.Email != null ? customer.Email : createOrderRequestModel.Order.CustomerEmail,
+                            CreatedBy = customer.Email != null
+                                ? customer.Email
+                                : createOrderRequestModel.Order.CustomerEmail,
                             CreatedDate = DateTime.Now
                         });
                     }
@@ -2437,6 +2536,7 @@ namespace Washouse.Web.Controllers
                     {
                         paymentDelivery = (decimal)order.DeliveryPrice;
                     }
+
                     //create Payment
                     var payment = new Payment();
                     payment.OrderId = order.Id;
@@ -2446,7 +2546,9 @@ namespace Washouse.Web.Controllers
                     payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
                     payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
                     payment.Discount = promotion != null ? promotion.Discount : 0;
-                    payment.Total = payment.PromoCode != null ? (totalPayment * (1 - promotion.Discount) + paymentDelivery) : (totalPayment + paymentDelivery);
+                    payment.Total = payment.PromoCode != null
+                        ? (totalPayment * (1 - promotion.Discount) + paymentDelivery)
+                        : (totalPayment + paymentDelivery);
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
@@ -2458,9 +2560,9 @@ namespace Washouse.Web.Controllers
                     orderTracking.CreatedBy = "AutoInsert";
 
 
-
                     //
-                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
+                    var orderAdded =
+                        await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
 
                     //Update Promotion UseTimes
                     if (promotion != null)
@@ -2481,7 +2583,8 @@ namespace Washouse.Web.Controllers
                     notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
                     await _notificationService.Add(notification);
                     //await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
-                    if (customer.AccountId != null)                     {
+                    if (customer.AccountId != null)
+                    {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
                         //var accId = cusinfo.Result.AccountId ?? 0;
                         notificationAccount.AccountId = (int)customer.AccountId;
@@ -2491,6 +2594,7 @@ namespace Washouse.Web.Controllers
                         //await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                         //await _messageHub(notificationAccount.AccountId, "NotificationAdded");
                     }
+
                     var staff = _staffService.GetAllByCenterId(CenterId);
                     if (staff != null)
                     {
@@ -2509,6 +2613,7 @@ namespace Washouse.Web.Controllers
                     {
                         sendEmail = createOrderRequestModel.Order.CustomerEmail;
                     }
+
                     string path = "./Templates_email/CreateOrder.txt";
                     string content = System.IO.File.ReadAllText(path);
                     content = content.Replace("{recipient}", customer.Fullname);
@@ -2535,7 +2640,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -2550,10 +2654,10 @@ namespace Washouse.Web.Controllers
 
         private static async Task<dynamic> SearchRelativeAddress(string query)
         {
-            string url = $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={query}&format=json&limit=1";
+            string url =
+                $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={query}&format=json&limit=1";
             try
             {
-
                 using (HttpClient client = new HttpClient())
                 {
                     var response = await client.GetAsync(url);
@@ -2597,7 +2701,8 @@ namespace Washouse.Web.Controllers
         // GET: api/manager/my-center/orders/{orderId}/deliveries/{type}/assign
         [HttpPut("my-center/orders/{orderId}/deliveries/{type}/assign")]
         [Produces("application/json")]
-        public async Task<IActionResult> AssignStaffToDelivery(string orderId, string type, [FromBody] DriverInformationRequestModel updateModel)
+        public async Task<IActionResult> AssignStaffToDelivery(string orderId, string type,
+            [FromBody] DriverInformationRequestModel updateModel)
         {
             try
             {
@@ -2610,6 +2715,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
                 var center = await _centerService.GetById((int)managerInfo.CenterId);
                 if (center == null)
@@ -2633,6 +2739,7 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     if (order.Deliveries.Count == 0)
                     {
                         return NotFound(new ResponseModel
@@ -2642,14 +2749,17 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     var deliveryItem = new Delivery();
                     if (type.ToLower().Trim().Equals("dropoff"))
                     {
                         deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false);
-                    } else if (type.ToLower().Trim().Equals("deliver"))
+                    }
+                    else if (type.ToLower().Trim().Equals("deliver"))
                     {
                         deliveryItem = order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == true);
-                    } else
+                    }
+                    else
                     {
                         return BadRequest(new ResponseModel
                         {
@@ -2658,6 +2768,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     deliveryItem.ShipperName = updateModel.ShipperName;
                     deliveryItem.ShipperPhone = updateModel.ShipperPhone;
                     deliveryItem.UpdatedDate = DateTime.Now;
@@ -2753,6 +2864,7 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     if (order.Deliveries.Count == 0)
                     {
                         return NotFound(new ResponseModel
@@ -2762,6 +2874,7 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     var deliveryItem = new Delivery();
                     if (type.ToLower().Trim().Equals("dropoff"))
                     {
@@ -2769,11 +2882,12 @@ namespace Washouse.Web.Controllers
                         if (deliveryItem.Status.Trim().ToLower().Equals("pending"))
                         {
                             deliveryItem.Status = "Delivering";
-
-                        } else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
+                        }
+                        else if (deliveryItem.Status.Trim().ToLower().Equals("delivering"))
                         {
                             deliveryItem.Status = "Completed";
-                        } else
+                        }
+                        else
                         {
                             return BadRequest(new ResponseModel
                             {
@@ -2796,7 +2910,9 @@ namespace Washouse.Web.Controllers
                                     Message = "Order is not ready",
                                     Data = null
                                 });
-                            } else if (order.Payments.LastOrDefault().PaymentMethod != 0 && !order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))
+                            }
+                            else if (order.Payments.LastOrDefault().PaymentMethod != 0 &&
+                                     !order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))
                             {
                                 return BadRequest(new ResponseModel
                                 {
@@ -2805,13 +2921,14 @@ namespace Washouse.Web.Controllers
                                     Data = null
                                 });
                             }
-                            else if (order.Status.Trim().ToLower().Equals("ready") && 
-                                (order.Payments.LastOrDefault().PaymentMethod == 0 || 
-                                (order.Payments.LastOrDefault().PaymentMethod != 0 && 
-                                        order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))))
+                            else if (order.Status.Trim().ToLower().Equals("ready") &&
+                                     (order.Payments.LastOrDefault().PaymentMethod == 0 ||
+                                      (order.Payments.LastOrDefault().PaymentMethod != 0 &&
+                                       order.Payments.LastOrDefault().Status.Trim().ToLower().Equals("paid"))))
                             {
                                 deliveryItem.Status = "Delivering";
-                            } else
+                            }
+                            else
                             {
                                 return BadRequest(new ResponseModel
                                 {
@@ -2826,15 +2943,18 @@ namespace Washouse.Web.Controllers
                             deliveryItem.Status = "Completed";
                             deliveryItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                             var payment = order.Payments.LastOrDefault();
-                            if (payment.PaymentMethod == 1) {
+                            if (payment.PaymentMethod == 1)
+                            {
                                 var walletTransaction = payment.WalletTransactions.FirstOrDefault();
-                                if (walletTransaction != null && walletTransaction.Status.Trim().ToLower().Equals("paid"))
+                                if (walletTransaction != null &&
+                                    walletTransaction.Status.Trim().ToLower().Equals("paid"))
                                 {
                                     walletTransaction.Status = "Received";
                                     walletTransaction.UpdateTimeStamp = DateTime.Now;
                                     await _walletTransactionService.Update(walletTransaction);
                                     var wallet = await _walletService.GetById(walletTransaction.ToWalletId);
-                                    wallet.Balance = wallet.Balance + order.Payments.LastOrDefault().Total - order.Payments.LastOrDefault().PlatformFee;
+                                    wallet.Balance = wallet.Balance + order.Payments.LastOrDefault().Total -
+                                                     order.Payments.LastOrDefault().PlatformFee;
                                     wallet.UpdatedDate = DateTime.Now;
                                     wallet.UpdatedBy = "Payment_Order_" + orderId;
                                     await _walletService.Update(wallet);
@@ -2872,7 +2992,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
-                    
+
                     await _deliveryService.Update(deliveryItem);
 
                     return Ok(new ResponseModel
@@ -2897,7 +3017,5 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
-
-
     }
 }
