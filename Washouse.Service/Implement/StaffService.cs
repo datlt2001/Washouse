@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
@@ -23,7 +22,7 @@ namespace Washouse.Service.Implement
 
         public async Task ActivateStaff(int id)
         {
-           await _staffReposity.ActivateStaff(id);
+            await _staffReposity.ActivateStaff(id);
         }
 
         public async Task Add(Staff staff)
@@ -38,12 +37,12 @@ namespace Washouse.Service.Implement
 
         public IEnumerable<Staff> GetAll()
         {
-            return _staffReposity.Get();
+            return _staffReposity.Get().Include(staff => staff.Account);
         }
 
         public async Task<Staff> GetById(int id)
         {
-           return await _staffReposity.GetById(id);
+            return await _staffReposity.GetById(id);
         }
 
         public async Task Update(Staff staff)
@@ -56,7 +55,6 @@ namespace Washouse.Service.Implement
             var staffs = await _staffReposity.GetAll();
             return staffs.FirstOrDefault(staff => staff.AccountId == accountId);
         }
-
 
 
         public IEnumerable<Staff> GetAllByCenterId(int centerid)
@@ -73,5 +71,6 @@ namespace Washouse.Service.Implement
         {
             return _staffReposity.GetStaffByCenterId(centerid);
         }
+        
     }
 }
