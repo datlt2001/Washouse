@@ -8,6 +8,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
 {
     public class OrderedServiceModel
     {
+        public int ServiceId { get; set; }
         public string ServiceName { get; set; }
         public string ServiceCategory { get; set; }
         public decimal? Measurement { get; set; }

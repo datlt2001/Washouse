@@ -878,6 +878,7 @@ namespace Washouse.Web.Controllers
                         TotalOrderValue += item.Price;
                         orderedServices.Add(new OrderedServiceModel
                         {
+                            ServiceId = item.ServiceId,
                             ServiceName = item.Service.ServiceName,
                             Measurement = item.Measurement,
                             Unit = item.Service.Unit,
