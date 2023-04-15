@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
 
 namespace Washouse.Service.Interface
@@ -30,5 +26,7 @@ namespace Washouse.Service.Interface
         void SaveChanges();
         Task DeactivateCenter(int id);
         Task ActivateCenter(int id);
+
+        Task<Center> GetByIdLightWeight(int id);
     }
 }

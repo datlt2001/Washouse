@@ -59,6 +59,12 @@ namespace Washouse.Service.Implement
         {
             return await _centerRepository.GetById(id);
         }
+        
+        public async Task<Center> GetByIdLightWeight(int id)
+        {
+            return await _centerRepository.GetByIdLightWeight(id);
+        }
+
 
         public async Task Add(Center center)
         {

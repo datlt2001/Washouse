@@ -57,7 +57,7 @@ namespace Washouse.Web.Controllers
         private readonly IWalletService _walletService;
         private readonly IPaymentService _paymentService;
         private readonly IHubContext<MessageHub> messageHub;
-        private ISendMailService _sendMailService;
+        private readonly ISendMailService _sendMailService;
 
         public ManagerController(ICenterService centerService, ICloudStorageService cloudStorageService,
                                 ILocationService locationService, IWardService wardService,
@@ -1381,7 +1381,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
                 if (center == null)
                 {
                     return NotFound(new ResponseModel
@@ -1394,16 +1394,6 @@ namespace Washouse.Web.Controllers
                 else
                 {
                     var orders = await _orderService.GetOrdersOfCenter(center.Id);
-                    if (orders.Count() == 0)
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Not found orders of center.",
-                            Data = null
-                        });
-                    }
-
                     if (filterOrdersRequestModel.SearchString != null)
                     {
                         orders = orders.Where(order => (order.OrderDetails.Any(orderDetail =>
@@ -1449,10 +1439,10 @@ namespace Washouse.Web.Controllers
                         orders = orders.Where(order => (order.CreatedDate <= dateValue.AddDays(1)));
                     }
 
-                    if (filterOrdersRequestModel.DeliveryType != null)
+                    if (filterOrdersRequestModel.DeliveryType == true)
                     {
                         orders = orders.Where(
-                            order => Equals(order.DeliveryType, filterOrdersRequestModel.DeliveryType));
+                            order => order.DeliveryType != 0);
                     }
 
                     if (filterOrdersRequestModel.DeliveryStatus != null)
@@ -1503,7 +1493,10 @@ namespace Washouse.Web.Controllers
                             Status = order.Status,
                             Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
                             {
-                                DeliveryStatus = delivery.Status
+                                DeliveryStatus = delivery.Status,
+                                AddressString = delivery.Location?.AddressString,
+                                DistrictName = delivery.Location?.Ward?.District?.DistrictName,
+                                WardName = delivery.Location?.Ward?.WardName
                             }),
                             OrderedServices = orderedServices
                         });

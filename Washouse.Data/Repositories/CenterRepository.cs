@@ -92,5 +92,13 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+
+
+        public async Task<Center> GetByIdLightWeight(int id)
+        {
+            var data = await _dbContext.Centers
+                .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
     }
 }
