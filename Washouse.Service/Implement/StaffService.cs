@@ -42,7 +42,8 @@ namespace Washouse.Service.Implement
 
         public async Task<Staff> GetById(int id)
         {
-            return await _staffReposity.GetById(id);
+            return await _staffReposity.Get()
+                .Include(s => s.Account).FirstOrDefaultAsync(s => Equals(s.Id, id));
         }
 
         public async Task Update(Staff staff)
@@ -71,6 +72,5 @@ namespace Washouse.Service.Implement
         {
             return _staffReposity.GetStaffByCenterId(centerid);
         }
-        
     }
 }

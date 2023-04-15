@@ -114,12 +114,18 @@ namespace Washouse.Web.Controllers
                         Status = staff.Account.Status,
                         FullName = staff.Account.FullName,
                         IsManager = staff.IsManager,
-                        ProfilePic = "",
+                        ProfilePic = staff.Account.ProfilePic != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.Account.ProfilePic)
+                            : null,
                         CenterId = staff.CenterId,
                         AccountId = staff.AccountId,
                         IdNumber = staff.IdNumber,
-                        IdBackImg = "",
-                        IdFrontImg = ""
+                        IdBackImg = staff.IdBackImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.IdBackImg)
+                            : null,
+                        IdFrontImg = staff.IdFrontImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.IdFrontImg)
+                            : null
                     });
                 }
 
@@ -153,7 +159,6 @@ namespace Washouse.Web.Controllers
         {
             var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
             var staff = await _staffService.GetById(id);
-            
 
             if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
@@ -164,7 +169,29 @@ namespace Washouse.Web.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Success",
-                Data = staff
+                Data = new StaffResponseModel
+                {
+                    Id = staff.Id,
+                    Dob = staff.Account.Dob,
+                    Email = staff.Account.Email,
+                    Gender = staff.Account.Gender,
+                    Phone = staff.Account.Phone,
+                    Status = staff.Account.Status,
+                    FullName = staff.Account.FullName,
+                    IsManager = staff.IsManager,
+                    ProfilePic = staff.Account.ProfilePic != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.Account.ProfilePic)
+                        : null,
+                    CenterId = staff.CenterId,
+                    AccountId = staff.AccountId,
+                    IdNumber = staff.IdNumber,
+                    IdBackImg = staff.IdBackImg != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.IdBackImg)
+                        : null,
+                    IdFrontImg = staff.IdFrontImg != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.IdFrontImg)
+                        : null
+                }
             });
         }
 
@@ -188,8 +215,10 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ActivateStaff(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+
             var staff = await _staffService.GetById(id);
-            if (staff == null)
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
                 return NotFound();
             }
