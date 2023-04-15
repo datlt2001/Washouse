@@ -151,8 +151,11 @@ namespace Washouse.Web.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStaffById(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
             var staff = await _staffService.GetById(id);
-            if (staff == null)
+            
+
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
                 return NotFound();
             }
@@ -166,10 +169,13 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/deactivate")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeactivateStaff(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+
             var staff = await _staffService.GetById(id);
-            if (staff == null)
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
                 return NotFound();
             }
@@ -179,6 +185,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("{id}/activate")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ActivateStaff(int id)
         {
             var staff = await _staffService.GetById(id);
