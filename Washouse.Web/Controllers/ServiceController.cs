@@ -52,7 +52,7 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var center = await _centerService.GetById(id);
+                var center = await _centerService.GetByIdLightWeight(id);
                 if (center != null)
                 {
                     var services = _serviceService.GetAll().Result.Where(a => a.CenterId == id);

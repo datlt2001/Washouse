@@ -1542,6 +1542,7 @@ namespace Washouse.Web.Controllers
                             Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
                             {
                                 DeliveryStatus = delivery.Status,
+                                DeliveryType = delivery.DeliveryType,
                                 AddressString = delivery.Location?.AddressString,
                                 DistrictName = delivery.Location?.Ward?.District?.DistrictName,
                                 WardName = delivery.Location?.Ward?.WardName
