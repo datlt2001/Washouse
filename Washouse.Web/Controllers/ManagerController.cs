@@ -769,7 +769,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
                 if (center == null)
                 {
                     return NotFound(new ResponseModel
@@ -1137,11 +1137,23 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
+                    if (ExpiredDate.AddDays(1).AddSeconds(-1)
+                            .CompareTo(DateTime.Today) < 0)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Expired date must after today",
+                            Data = null
+                        });
+                    }
+
                     promotion.Status = true;
                     promotion.ExpireDate = string.IsNullOrEmpty(ExpireDate)
                         ? promotion.ExpireDate
                         : ExpiredDate.AddDays(1).AddSeconds(-1);
-                    promotion.UseTimes = UseTimes == null ? promotion.UseTimes : UseTimes;
+                    promotion.StartDate = DateTime.Now;
+                    promotion.UseTimes = UseTimes ?? promotion.UseTimes;
                     promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     promotion.UpdatedDate = DateTime.Now;
                     await _promotionService.Update(promotion);
