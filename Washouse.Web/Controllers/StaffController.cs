@@ -1,25 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Washouse.Common.Helpers;
+using Washouse.Common.Mails;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
-using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Model.ResponseModels;
-using Washouse.Service.Implement;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
+using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
-using System.Linq;
-using Washouse.Model.ViewModel;
-using Microsoft.AspNetCore.Authorization;
-using System.Data;
-using Washouse.Common.Helpers;
-using Microsoft.Extensions.Caching.Distributed;
-using static System.Net.WebRequestMethods;
-using System.Text;
-using System.Text.Json;
-using Washouse.Common.Mails;
 
 namespace Washouse.Web.Controllers
 {
@@ -42,12 +37,12 @@ namespace Washouse.Web.Controllers
         private ISendMailService _sendMailService;
 
         public StaffController(IStaffService staffService, IAccountService accountService,
-                                ICenterService centerService, ICloudStorageService cloudStorageService,
-                                ILocationService locationService, IWardService wardService,
-                                IOperatingHourService operatingHourService, IServiceService serviceService,
-                                ICenterRequestService centerRequestService,
-                                IFeedbackService feedbackService, IPromotionService promotionService, 
-                                IDistributedCache cache, ISendMailService sendMailService)
+            ICenterService centerService, ICloudStorageService cloudStorageService,
+            ILocationService locationService, IWardService wardService,
+            IOperatingHourService operatingHourService, IServiceService serviceService,
+            ICenterRequestService centerRequestService,
+            IFeedbackService feedbackService, IPromotionService promotionService,
+            IDistributedCache cache, ISendMailService sendMailService)
         {
             this._staffService = staffService;
             this._accountService = accountService;
@@ -65,51 +60,169 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetStaffList()
+        [Authorize(Roles = "Manager,Staff")]
+        public async Task<IActionResult> GetStaffList([FromQuery] GetAllStaffsRequestModel requestModel)
         {
-            var staff = _staffService.GetAll();
-            if (staff == null) { return NotFound(); }
-            return Ok(new ResponseModel
+            try
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Success",
-                Data = staff
-            });
+                var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetById((int)staffInfo.CenterId);
+
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Center not found",
+                        Data = null
+                    });
+                }
+
+                var staffs = _staffService.GetAll().Where(staff => Equals(staff.CenterId, center.Id));
+                if (staffs == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Staff list not found",
+                        Data = null
+                    });
+                }
+
+                if (!string.IsNullOrEmpty(requestModel.SearchString))
+                {
+                    staffs = staffs.Where(account => account.Account == null || (
+                        account.Account.FullName.ToLower().Contains(requestModel.SearchString.ToLower())
+                        || account.Account.Email.ToLower().Contains(requestModel.SearchString.ToLower())
+                        || account.Account.Phone.ToLower().Contains(requestModel.SearchString.ToLower())));
+                }
+
+                var totalItems = staffs.Count();
+                var totalPages = (int)Math.Ceiling((double)totalItems / requestModel.PageSize);
+                staffs = staffs.Skip((requestModel.Page - 1) * requestModel.PageSize).Take(requestModel.PageSize);
+
+                var staffResponses = new List<StaffResponseModel>();
+                foreach (var staff in staffs)
+                {
+                    staffResponses.Add(new StaffResponseModel
+                    {
+                        Id = staff.Id,
+                        Dob = staff.Account.Dob,
+                        Email = staff.Account.Email,
+                        Gender = staff.Account.Gender,
+                        Phone = staff.Account.Phone,
+                        Status = staff.Account.Status,
+                        FullName = staff.Account.FullName,
+                        IsManager = staff.IsManager,
+                        ProfilePic = staff.Account.ProfilePic != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.Account.ProfilePic)
+                            : null,
+                        CenterId = staff.CenterId,
+                        AccountId = staff.AccountId,
+                        IdNumber = staff.IdNumber,
+                        IdBackImg = staff.IdBackImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.IdBackImg)
+                            : null,
+                        IdFrontImg = staff.IdFrontImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(staff.IdFrontImg)
+                            : null
+                    });
+                }
+
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
+                    {
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = requestModel.PageSize,
+                        PageNumber = requestModel.Page,
+                        Items = staffResponses
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Error occurs",
+                    Data = null
+                });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetStaffrById(int id)
+        public async Task<IActionResult> GetStaffById(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
             var staff = await _staffService.GetById(id);
-            if (staff == null) { return NotFound(); }
+
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
+            {
+                return NotFound();
+            }
+
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Success",
-                Data = staff
+                Data = new StaffResponseModel
+                {
+                    Id = staff.Id,
+                    Dob = staff.Account.Dob,
+                    Email = staff.Account.Email,
+                    Gender = staff.Account.Gender,
+                    Phone = staff.Account.Phone,
+                    Status = staff.Account.Status,
+                    FullName = staff.Account.FullName,
+                    IsManager = staff.IsManager,
+                    ProfilePic = staff.Account.ProfilePic != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.Account.ProfilePic)
+                        : null,
+                    CenterId = staff.CenterId,
+                    AccountId = staff.AccountId,
+                    IdNumber = staff.IdNumber,
+                    IdBackImg = staff.IdBackImg != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.IdBackImg)
+                        : null,
+                    IdFrontImg = staff.IdFrontImg != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(staff.IdFrontImg)
+                        : null
+                }
             });
         }
 
         [HttpPut("{id}/deactivate")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeactivateStaff(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+
             var staff = await _staffService.GetById(id);
-            if (staff == null)
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
                 return NotFound();
             }
-            await   _staffService.DeactivateStaff(id);
+
+            await _staffService.DeactivateStaff(id);
             return Ok();
         }
 
         [HttpPut("{id}/activate")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ActivateStaff(int id)
         {
+            var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+
             var staff = await _staffService.GetById(id);
-            if (staff == null)
+            if (staff == null || !Equals(staffInfo.CenterId, staff.CenterId))
             {
                 return NotFound();
             }
+
             await _staffService.ActivateStaff(id);
             return Ok();
         }
@@ -117,7 +230,10 @@ namespace Washouse.Web.Controllers
         [HttpPut("{staffId}")]
         public async Task<IActionResult> UpdateProfile([FromBody] StaffRequestModel input, int staffId)
         {
-            if (!ModelState.IsValid) { return BadRequest(); }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
             else
             {
                 Staff existingStaff = await _staffService.GetById(staffId);
@@ -125,10 +241,12 @@ namespace Washouse.Web.Controllers
                 //int userId = accountId ?? 0;
                 Account user = await _accountService.GetById(accountId);
 
-                if (existingStaff == null) { return NotFound(); }
+                if (existingStaff == null)
+                {
+                    return NotFound();
+                }
                 else
                 {
-                                     
                     existingStaff.UpdatedDate = DateTime.Now;
                     existingStaff.UpdatedBy = input.FullName;
                     //existingCustomer.Address = input.LocationId;
@@ -155,11 +273,7 @@ namespace Washouse.Web.Controllers
                         Data = existingStaff
                     });
                 }
-
-
             }
-
-            
         }
 
         [Authorize(Roles = "Manager,Staff")]
@@ -180,6 +294,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 if (center != null)
                 {
                     var response = new CenterManagerResponseModel();
@@ -277,6 +392,7 @@ namespace Washouse.Web.Controllers
                     {
                         dayOffs.Add(i);
                     }
+
                     foreach (var item in center.OperatingHours)
                     {
                         dayOffs.Remove(item.DaysOfWeek.Id);
@@ -327,14 +443,17 @@ namespace Washouse.Web.Controllers
 
 
                     response.Id = center.Id;
-                    response.Thumbnail = center.Image != null ? await _cloudStorageService.GetSignedUrlAsync(center.Image) : null;
+                    response.Thumbnail = center.Image != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                        : null;
                     response.Title = center.CenterName;
                     response.Alias = center.Alias;
                     response.Description = center.Description;
                     response.Rating = center.Rating;
                     response.NumOfRating = center.NumOfRating;
                     response.Phone = center.Phone;
-                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName + ", " + center.Location.Ward.District.DistrictName;
+                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                                             ", " + center.Location.Ward.District.DistrictName;
                     //response.Distance = distance;
                     response.IsAvailable = center.IsAvailable;
                     //response.Status = center.Status;
@@ -361,6 +480,7 @@ namespace Washouse.Web.Controllers
                         };
                         centerAdditionServices.Add(additionService);
                     }
+
                     response.AdditionServices = centerAdditionServices;
                     foreach (var item in center.CenterGalleries)
                     {
@@ -371,6 +491,7 @@ namespace Washouse.Web.Controllers
                         };
                         centerGalleries.Add(centerGallery);
                     }
+
                     response.CenterGalleries = centerGalleries;
                     //feedback
                     foreach (var item in center.Feedbacks)
@@ -388,6 +509,7 @@ namespace Washouse.Web.Controllers
                         };
                         centerFeedbacks.Add(centerFeedback);
                     }
+
                     response.CenterFeedbacks = centerFeedbacks;
                     //resource
                     foreach (var item in center.Resourses)
@@ -406,6 +528,7 @@ namespace Washouse.Web.Controllers
                         };
                         centerResourses.Add(centerResourse);
                     }
+
                     response.CenterResourses = centerResourses;
                     return Ok(new ResponseModel
                     {
@@ -423,7 +546,6 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -454,6 +576,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
                 if (center != null)
                 {
                     var services = center.Services.ToList();
@@ -466,6 +589,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     if (services != null)
                     {
                         var servicesOfCenter = new List<ServiceCenterModel>();
@@ -481,16 +605,37 @@ namespace Washouse.Web.Controllers
                                 };
                                 servicePriceViewModels.Add(sp);
                             }
+
                             var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
                             int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
                             foreach (var feedback in feedbackList)
                             {
-                                if (feedback.Rating == 1) { st1++; }
-                                if (feedback.Rating == 2) { st2++; }
-                                if (feedback.Rating == 3) { st3++; }
-                                if (feedback.Rating == 4) { st4++; }
-                                if (feedback.Rating == 5) { st5++; }
+                                if (feedback.Rating == 1)
+                                {
+                                    st1++;
+                                }
+
+                                if (feedback.Rating == 2)
+                                {
+                                    st2++;
+                                }
+
+                                if (feedback.Rating == 3)
+                                {
+                                    st3++;
+                                }
+
+                                if (feedback.Rating == 4)
+                                {
+                                    st4++;
+                                }
+
+                                if (feedback.Rating == 5)
+                                {
+                                    st5++;
+                                }
                             }
+
                             var itemResponse = new ServiceCenterModel
                             {
                                 ServiceId = item.Id,
@@ -498,7 +643,9 @@ namespace Washouse.Web.Controllers
                                 Alias = item.Alias,
                                 CategoryId = item.CategoryId,
                                 Description = item.Description,
-                                Image = item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                                Image = item.Image != null
+                                    ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
+                                    : null,
                                 PriceType = item.PriceType,
                                 Price = item.Price,
                                 MinPrice = item.MinPrice,
@@ -516,6 +663,7 @@ namespace Washouse.Web.Controllers
                             };
                             servicesOfCenter.Add(itemResponse);
                         }
+
                         return Ok(new ResponseModel
                         {
                             StatusCode = StatusCodes.Status200OK,
@@ -561,7 +709,7 @@ namespace Washouse.Web.Controllers
             int id = int.Parse(User.FindFirst("Id")?.Value);
             var user = _accountService.GetAccountByEmailAndPhone(email, phone);
             var staff = _staffService.GetStaffByAccountId(user.Id);
-            if(staff != null)
+            if (staff != null)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -570,8 +718,9 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             var manager = _staffService.GetStaffByAccountId(id);
-            if(user == null)
+            if (user == null)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -580,11 +729,12 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             string veirfycode = Utilities.GenerateRandomString(15);
             DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
-            .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
-            .SetSlidingExpiration(TimeSpan.FromMinutes(3));
-           
+                .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                .SetSlidingExpiration(TimeSpan.FromMinutes(3));
+
             string key = phone;
             _cache.SetString(key, veirfycode, options);
             string centerid = manager.CenterId.ToString();
@@ -597,7 +747,7 @@ namespace Washouse.Web.Controllers
             string content = System.IO.File.ReadAllText(path);
             content = content.Replace("{recipient}", email);
             content = content.Replace("{name}", centername);
-            string link = "http://localhost:3000/provider/staff/verify?code=" + veirfycode; 
+            string link = "http://localhost:3000/provider/staff/verify?code=" + veirfycode;
             content = content.Replace("{link}", link);
             await _sendMailService.SendEmailAsync(email, "Xác nhận nhân viên", content);
 
@@ -625,6 +775,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             if (res.Equals(code))
             {
                 var user = _accountService.GetAccountByPhone(phone);
@@ -632,11 +783,11 @@ namespace Washouse.Web.Controllers
                 var email = _accountService.GetById(manager.AccountId);
                 var staff = new Staff()
                 {
-                    AccountId= user.Id,
+                    AccountId = user.Id,
                     Status = true,
                     IsManager = false,
                     CenterId = int.Parse(centerId),
-                    CreatedDate= DateTime.Now,
+                    CreatedDate = DateTime.Now,
                     CreatedBy = email.Result.Email
                 };
                 await _staffService.Add(staff);

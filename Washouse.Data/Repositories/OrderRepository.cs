@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-//using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
@@ -40,14 +37,17 @@ namespace Washouse.Data.Repositories
         public async Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId)
         {
             var ordersAtCenter = await this._dbContext.Orders
-                                .Include(order => order.Payments)
-                                .Include(order => order.Deliveries)
-                                .Include(order => order.OrderDetails)
-                                    .ThenInclude(od => od.Service)
-                                        .ThenInclude(service => service.Category)
-                                    .Where(o => o.OrderDetails
-                                    .Any(od => od.Service.Center.Id == centerId))
-                                .ToListAsync();
+                .Include(order => order.Deliveries)
+                .ThenInclude(delivery => delivery.Location)
+                .ThenInclude(location => location.Ward)
+                .ThenInclude(ward => ward.District)
+                .Include(order => order.Payments)
+                .Include(order => order.OrderDetails)
+                .ThenInclude(od => od.Service)
+                .ThenInclude(service => service.Category)
+                .Where(o => o.OrderDetails
+                    .Any(od => od.Service.Center.Id == centerId))
+                .ToListAsync();
             return ordersAtCenter;
         }
 
