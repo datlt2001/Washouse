@@ -666,7 +666,7 @@ namespace Washouse.Web.Controllers
                             servicesOfCenter.Add(itemResponse);
                         }
                         int totalItems = servicesOfCenter.Count();
-                        if (filter.Pagination != null && filter.Pagination.PageSize == -1)
+                        if (filter.PageSize == -1)
                         {
                             return Ok(new ResponseModel
                             {
@@ -682,15 +682,12 @@ namespace Washouse.Web.Controllers
                                 }
                             });
                         }
-                        else if (filter.Pagination == null)
-                        {
-                            filter.Pagination = new PaginationViewModel { Page = 1, PageSize = 10 };
-                        }
+                     
 
-                        int totalPages = (int)Math.Ceiling((double)totalItems / filter.Pagination.PageSize);
+                        int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
                         servicesOfCenter = servicesOfCenter
-                            .Skip((filter.Pagination.Page - 1) * filter.Pagination.PageSize)
-                            .Take(filter.Pagination.PageSize).ToList();
+                            .Skip((filter.Page - 1) * filter.PageSize)
+                            .Take(filter.PageSize).ToList();
 
                         return Ok(new ResponseModel
                         {
@@ -700,8 +697,8 @@ namespace Washouse.Web.Controllers
                             {
                                 TotalItems = totalItems,
                                 TotalPages = totalPages,
-                                ItemsPerPage = filter.Pagination.PageSize,
-                                PageNumber = filter.Pagination.Page,
+                                ItemsPerPage = filter.PageSize,
+                                PageNumber = filter.Page,
                                 Items = servicesOfCenter
                             }
                         });
