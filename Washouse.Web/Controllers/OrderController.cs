@@ -1300,7 +1300,7 @@ namespace Washouse.Web.Controllers
                 }
                 var userId = int.Parse(User.FindFirst("Id")?.Value);
                 var customer = await _customerService.GetCustomerByAccID(userId);
-                if (order != null && (order.CustomerId != userId))
+                if (order != null && (order.CustomerId != customer.Id))
                 {
                     return BadRequest(new ResponseModel
                     {
