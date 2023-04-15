@@ -1067,7 +1067,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager")]
         // PUT: api/manager/promotions
         [HttpPut("promotions/activate")]
-        public async Task<IActionResult> ActivatePromotion(int PromotionId)
+        public async Task<IActionResult> ActivatePromotion(int PromotionId, string ExpireDate, int? UseTimes)
         {
             try
             {
@@ -1085,8 +1085,28 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
-                    
+                    DateTime ExpiredDate = DateTime.Now;
+                    if (!string.IsNullOrEmpty(ExpireDate) && DateTime.TryParseExact(ExpireDate, "dd-MM-yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out ExpiredDate))
+                    {
+                        try
+                        {
+                            ExpiredDate = DateTime.ParseExact(ExpireDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException ex)
+                        {
+                            return BadRequest(new ResponseModel
+                            {
+                                StatusCode = StatusCodes.Status400BadRequest,
+                                Message = "ExpireDate: " + ex.Message,
+                                Data = null
+                            });
+                        }
+                    }
+
                     promotion.Status = true;
+                    promotion.ExpireDate = string.IsNullOrEmpty(ExpireDate) ? promotion.ExpireDate : ExpiredDate.AddDays(1).AddSeconds(-1);
+                    promotion.UseTimes = UseTimes == null ? promotion.UseTimes : UseTimes ;
                     promotion.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     promotion.UpdatedDate = DateTime.Now;
                     await _promotionService.Update(promotion);
