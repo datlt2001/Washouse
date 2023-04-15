@@ -205,7 +205,7 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-                if (!order.Status.ToLower().Trim().Equals("pending") || !order.Status.ToLower().Trim().Equals("confirmed"))
+                if (!order.Status.ToLower().Trim().Equals("pending") && !order.Status.ToLower().Trim().Equals("confirmed"))
                 {
                     return BadRequest(new ResponseModel
                     {
