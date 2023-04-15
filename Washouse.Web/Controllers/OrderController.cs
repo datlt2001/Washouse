@@ -901,6 +901,7 @@ namespace Washouse.Web.Controllers
                         Status = order.Status,
                         CenterId = CenterId,
                         CenterName = CenterName,
+                        IsFeedback = order.IsFeedback,
                         OrderedServices = orderedServices
                     });
                 }

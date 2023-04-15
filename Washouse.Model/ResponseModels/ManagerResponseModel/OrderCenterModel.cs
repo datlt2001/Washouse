@@ -18,6 +18,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public int DeliveryType { get; set; }
         public int? CenterId { get; set; }
         public string CenterName { get; set; }
+        public bool IsFeedback { get; set; }
         public List<OrderedDeliveryModel> Deliveries { get; set; }
         public List<OrderedServiceModel> OrderedServices { get; set; }
     }

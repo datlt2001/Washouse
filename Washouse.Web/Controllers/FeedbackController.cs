@@ -177,6 +177,7 @@ namespace Washouse.Web.Controllers
                     service.Rating = (service.Rating * service.NumOfRating + model.Rating) / (service.NumOfRating + 1);
                     service.NumOfRating = service.NumOfRating + 1;
                     await _serviceService.Update(service);
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
