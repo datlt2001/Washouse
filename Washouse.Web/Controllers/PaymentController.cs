@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Twilio.Http;
 using Washouse.Common.Utils;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
@@ -40,6 +41,7 @@ namespace Washouse.Web.Controllers
         [HttpGet]
         public IActionResult GetPayment(int moneytowallet)
         {
+            string userId = User.FindFirst("Id")?.Value;
             string url = vnPaySettings.VNP_Url;
             string returnUrl = vnPaySettings.VNP_ReturnUrl;
             string tmnCode = vnPaySettings.VNP_TmnCode;
@@ -60,7 +62,7 @@ namespace Washouse.Web.Controllers
             pay.AddRequestData("vnp_OrderInfo", "Pay order"); //Thông tin mô tả nội dung thanh toán
             pay.AddRequestData("vnp_OrderType", "other"); //topup: Nạp tiền điện thoại - billpayment: Thanh toán hóa đơn - fashion: Thời trang - other: Thanh toán trực tuyến
             pay.AddRequestData("vnp_ReturnUrl", returnUrl); //URL thông báo kết quả giao dịch khi Khách hàng kết thúc thanh toán
-            pay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString()); //mã hóa đơn
+            pay.AddRequestData("vnp_TxnRef", DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + userId); //mã hóa đơn
 
             string paymentUrl = pay.CreateRequestUrl(url, hashSecret);
 
@@ -128,33 +130,56 @@ namespace Washouse.Web.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> ReturnUrl([FromQuery] VNPayTransactionResult result)
         {
-
-            // Get the query parameters from the request
-            var queryString = Request.Query;
-            var user = await _accountService.GetById(3);
-            var transaction = new Transaction();
-
-            transaction.TimeStamp = DateTime.Now;
-            transaction.WalletId = user.WalletId ?? 0;
-            if(result.vnp_ResponseCode == "00")
+            if (result.vnp_ResponseCode != "00")
             {
-                transaction.Status = "success";
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Lỗi giao dịch",
+                    Data = null
+                });
             }
-            
-            transaction.Type = "deposit";
-            transaction.Amount = decimal.Parse(result.vnp_Amount)/100;
-
-            await _transactionService.Add(transaction);
-            
-
-
-            // Return a response to VNPay
-            return Ok(new ResponseModel
+            else
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Transaction completed successfully.",
-                Data = transaction
-            });
+                // Get the query parameters from the request
+                var queryString = Request.Query;
+                var userId = result.vnp_TxnRef.Split('_')[1];
+                //kiểm tra userId.. quăng 400
+                var user = await _accountService.GetById(int.Parse(userId));
+                if (user.WalletId == null)
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Tài khoản chưa có ví thanh toán",
+                        Data = null
+                    });
+                }
+                //var user = await _accountService.GetById(3);
+                var transaction = new Transaction();
+
+                transaction.TimeStamp = DateTime.Now;
+                transaction.WalletId = user.WalletId ?? 0;
+                if (result.vnp_ResponseCode == "00")
+                {
+                    transaction.Status = "success";
+                }
+
+                transaction.Type = "deposit";
+                transaction.Amount = decimal.Parse(result.vnp_Amount) / 100;
+
+                await _transactionService.Add(transaction);
+
+
+
+                // Return a response to VNPay
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Transaction completed successfully.",
+                    Data = transaction
+                });
+            }
         }
 
     }

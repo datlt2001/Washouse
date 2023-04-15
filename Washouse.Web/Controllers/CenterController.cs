@@ -655,7 +655,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [Authorize(Roles = ("Manager,User"))]
+        [Authorize(Roles = ("Manager,User,Staff"))]
         /// <summary>
         /// Create a center.
         /// </summary>
