@@ -842,7 +842,7 @@ namespace Washouse.Web.Controllers
                 {
                     AccountId = accounts.Id,
                     Status = false,
-                    IsManager = true,
+                    IsManager = false,
                     CenterId = null,
                     //IdFrontImg = await Utilities.UploadFile(Input.IdFrontImg, @"images\accounts\managers", Input.profilePic.FileName),
                     //IdBackImg = await Utilities.UploadFile(Input.IdBackImg, @"images\accounts\managers", Input.profilePic.FileName),
