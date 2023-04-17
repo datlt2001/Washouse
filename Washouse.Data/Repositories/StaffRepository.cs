@@ -21,7 +21,7 @@ namespace Washouse.Data.Repositories
 
                 var staff = this.DbContext.Staffs.SingleOrDefault(c => c.Id.Equals(id));
                 DbContext.Staffs.Attach(staff);
-                staff.Status = false;
+                staff.Status = true;
                 await DbContext.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -37,7 +37,7 @@ namespace Washouse.Data.Repositories
 
                 var staff = this.DbContext.Staffs.SingleOrDefault(c => c.Id.Equals(id));
                 DbContext.Staffs.Attach(staff);
-                staff.Status = true;
+                staff.Status = false;
                 await DbContext.SaveChangesAsync();
             }
             catch (Exception ex)
