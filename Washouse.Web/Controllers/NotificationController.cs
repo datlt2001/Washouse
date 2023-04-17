@@ -101,7 +101,9 @@ namespace Washouse.Web.Controllers
             if (!ModelState.IsValid) { return BadRequest(); }
             else
             {
-                NotificationAccount noti = _notificationAccountService.GetNotiAccbyNotiId(notiId);
+                int accountId = int.Parse(User.FindFirst("Id").Value);
+
+                NotificationAccount noti = _notificationAccountService.GetNotiAccbyNotiId(notiId, accountId);
                 if (noti == null) { return NotFound(); }
                 noti.ReadDate = DateTime.Now;
                 await _notificationAccountService.Update(noti);
