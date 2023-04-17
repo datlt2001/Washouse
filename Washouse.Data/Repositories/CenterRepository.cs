@@ -89,6 +89,7 @@ namespace Washouse.Data.Repositories
                     .Include(center => center.Feedbacks)
                     //.ThenInclude(service => service.OrderDetail)
                     .Include(center => center.Resourses)
+                    .Include(center => center.Promotions)
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }

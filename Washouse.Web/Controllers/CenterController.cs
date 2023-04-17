@@ -43,11 +43,12 @@ namespace Washouse.Web.Controllers
         private readonly IStaffService _staffService;
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
+        private readonly IPromotionService _promotionService;
 
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
             ILocationService locationService, IWardService wardService,
             IOperatingHourService operatingHourService, IServiceService serviceService,
-            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService)
+            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService, IPromotionService promotionService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -58,6 +59,7 @@ namespace Washouse.Web.Controllers
             this._staffService = staffService;
             this._centerRequestService = centerRequestService;
             this._feedbackService = feedbackService;
+            this._promotionService = promotionService;
         }
 
         #endregion
@@ -620,6 +622,8 @@ namespace Washouse.Web.Controllers
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
                     response.HasOnlinePayment = center.HasOnlinePayment;
+                    response.NumOfPromotionAvailable = center.Promotions.Where(item => (item.StartDate < DateTime.Now && DateTime.Now < item.ExpireDate &&
+                    (item.UseTimes == null || (item.UseTimes != null && item.UseTimes > 0)) && item.Status == true)).Count();
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
