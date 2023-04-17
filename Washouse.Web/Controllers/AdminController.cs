@@ -200,7 +200,8 @@ namespace Washouse.Web.Controllers
                         Id = postItem.Id,
                         Title = postItem.Title,
                         Content = postItem.Content,
-                        Thumbnail = postItem.Thumbnail,
+                        Thumbnail =
+                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
                         Type = postItem.Type,
                         Status = postItem.Status,
                         CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
@@ -239,6 +240,52 @@ namespace Washouse.Web.Controllers
                         Data = ""
                     });
                 }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpGet("posts/{PostId}")]
+        public async Task<IActionResult> GetPostDetail(int PostId)
+        {
+            try
+            {
+                var postItem = await _postService.GetById(PostId);
+                if (postItem == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = ""
+                    });
+                }
+
+                var response = new PostResponseModel
+                {
+                    Id = postItem.Id,
+                    Title = postItem.Title,
+                    Content = postItem.Content,
+                    Thumbnail =
+                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
+                    Type = postItem.Type,
+                    Status = postItem.Status,
+                    CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
+                    UpdatedDate = postItem.UpdateDate.HasValue ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = response
+                });
             }
             catch (Exception ex)
             {

@@ -20,15 +20,17 @@ namespace Washouse.Web.Controllers
     [ApiController]
     public class PostController : ControllerBase
     {
-        private IPostService _postService;
+        private IPostService _postService; 
+        private readonly ICloudStorageService _cloudStorageService;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, ICloudStorageService cloudStorageService)
         {
             this._postService = postService;
+            this._cloudStorageService = cloudStorageService;
         }
 
         [HttpGet]
-        public IActionResult GetPostList(FilterPostRequestModel filterPostModel)
+        public async Task<IActionResult> GetPostList([FromQuery] FilterPostRequestModel filterPostModel)
         {
             try { 
             var post = _postService.GetAll();
@@ -46,7 +48,8 @@ namespace Washouse.Web.Controllers
                     Id = postItem.Id,
                     Title = postItem.Title,
                     Content = postItem.Content,
-                    Thumbnail = postItem.Thumbnail,
+                    Thumbnail = 
+                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
                     Type = postItem.Type,
                     Status = postItem.Status,
                     CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
@@ -121,7 +124,8 @@ namespace Washouse.Web.Controllers
                     Id = postItem.Id,
                     Title = postItem.Title,
                     Content = postItem.Content,
-                    Thumbnail = postItem.Thumbnail,
+                    Thumbnail =
+                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
                     Type = postItem.Type,
                     Status = postItem.Status,
                     CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
