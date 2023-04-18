@@ -10,6 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface INotificationAccountRepository : IRepository<NotificationAccount>
     {
-        public NotificationAccount GetNotiAccbyNotiId(int notiId);
+        public NotificationAccount GetNotiAccbyNotiId(int notiId, int accountId);
     }
 }

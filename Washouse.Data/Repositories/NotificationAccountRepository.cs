@@ -14,9 +14,10 @@ namespace Washouse.Data.Repositories
         {
         }
 
-        public NotificationAccount GetNotiAccbyNotiId(int notiId)
+        public NotificationAccount GetNotiAccbyNotiId(int notiId, int accountId)
         {
-            return this.DbContext.NotificationAccounts.SingleOrDefault(n => n.NotificationId == notiId);
+            return this.DbContext.NotificationAccounts.FirstOrDefault(n =>
+                n.NotificationId == notiId && n.AccountId == accountId);
         }
     }
 }
