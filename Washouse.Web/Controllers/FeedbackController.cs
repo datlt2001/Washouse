@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.Runtime.ConstrainedExecution;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections.Generic;
+using Washouse.Model.ResponseModels;
+using Washouse.Model.ViewModel;
 
 namespace Washouse.Web.Controllers
 {
@@ -258,29 +261,155 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("centers/{centerId}")]
-        public IActionResult GetFeedbackByCenterId(int centerId)
+        public async Task<IActionResult> GetFeedbackByCenterId(int centerId, [FromQuery] PaginationViewModel filter)
         {
-            var feedbacks = _feedbackService.GetAllByCenterId(centerId);
-            if (feedbacks == null) return NotFound();
-            return Ok(new ResponseModel
+            var center = await _centerService.GetById(centerId);
+            if (center == null)
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = feedbacks
-            });
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found center",
+                    Data = ""
+                });
+            }
+            var feedbacks = _feedbackService.GetAllByCenterId(centerId);
+            if (feedbacks == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Center not have any feedback",
+                    Data = null
+                });
+            }
+            else
+            {
+                var feedbackResponses = new List<FeedbackResponseModel>();
+                foreach (var item in feedbacks)
+                {
+                    string centerName, serviceName;
+                    if (item.CenterId != null)
+                    {
+                        centerName = item.Center.CenterName;
+                    }
+                    else centerName = null;
+                    if (item.ServiceId != null)
+                    {
+                        serviceName = item.Service.ServiceName;
+                    }
+                    else serviceName = null;
+                    feedbackResponses.Add(new FeedbackResponseModel
+                    {
+                        Id = item.Id,
+                        Content = item.Content,
+                        Rating = item.Rating,
+                        OrderId = item.OrderId,
+                        CenterId = item.CenterId,
+                        CenterName = centerName,
+                        ServiceId = item.ServiceId,
+                        ServiceName = serviceName,
+                        CreatedBy = item.CreatedBy,
+                        CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                        ReplyMessage = item.ReplyMessage,
+                        ReplyBy = item.ReplyBy,
+                        ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                    });
+                }
+                int totalItems = feedbackResponses.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+                feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
+                    .Take(filter.PageSize).ToList();
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new
+                    {
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filter.PageSize,
+                        PageNumber = filter.Page,
+                        Items = feedbackResponses
+                    }
+                });
+            }
         }
 
-        [HttpGet("order-details/{orderDetailId}")]
-        public IActionResult GetAllByOrderDetailId(int orderDetailId)
+        [HttpGet("services/{serviceId}")]
+        public async Task<IActionResult> GetAllByServiceId(int serviceId, [FromQuery] PaginationViewModel filter)
         {
-            var feedbacks = _feedbackService.GetAllByOrderDetailId(orderDetailId);
-            if (feedbacks == null) return NotFound();
-            return Ok(new ResponseModel
+            var service = await _serviceService.GetById(serviceId);
+            if (service == null)
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "success",
-                Data = feedbacks
-            });
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found service",
+                    Data = null
+                });
+            }
+            var feedbacks = _feedbackService.GetAllByServiceId(serviceId);
+            if (feedbacks == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Service not have any feedback",
+                    Data = null
+                });
+            }
+            else
+            {
+                var feedbackResponses = new List<FeedbackResponseModel>();
+                foreach (var item in feedbacks)
+                {
+                    string centerName, serviceName;
+                    if (item.CenterId != null)
+                    {
+                        centerName = item.Center.CenterName;
+                    }
+                    else centerName = null;
+                    if (item.ServiceId != null)
+                    {
+                        serviceName = item.Service.ServiceName;
+                    }
+                    else serviceName = null;
+                    feedbackResponses.Add(new FeedbackResponseModel
+                    {
+                        Id = item.Id,
+                        Content = item.Content,
+                        Rating = item.Rating,
+                        OrderId = item.OrderId,
+                        CenterId = item.CenterId,
+                        CenterName = centerName,
+                        ServiceId = item.ServiceId,
+                        ServiceName = serviceName,
+                        CreatedBy = item.CreatedBy,
+                        CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                        ReplyMessage = item.ReplyMessage,
+                        ReplyBy = item.ReplyBy,
+                        ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                    });
+                }
+                int totalItems = feedbackResponses.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+                feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
+                    .Take(filter.PageSize).ToList();
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new
+                    {
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filter.PageSize,
+                        PageNumber = filter.Page,
+                        Items = feedbackResponses
+                    }
+                });
+            }
         }
     }
 }

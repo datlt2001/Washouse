@@ -51,14 +51,19 @@ namespace Washouse.Service.Implement
             return  _feedbackRepository.GetAllByCenterId(id);
         }
 
-        public IEnumerable<Feedback> GetAllByOrderDetailId(int orderdetailId)
+        public IEnumerable<Feedback> GetAllByOrderId(string orderId)
         {
-            return _feedbackRepository.GetAllByOrderDetailId(orderdetailId);
+            return _feedbackRepository.GetAllByOrderId(orderId);
         }
 
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId)
         {
             return _feedbackRepository.GetAllByServiceId(serviceId);
+        }
+
+        public async Task<IEnumerable<Feedback>> GetMyFeedback(string Email)
+        {
+            return await _feedbackRepository.GetMyFeedback(Email);
         }
     }
 }

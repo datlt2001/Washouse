@@ -21,6 +21,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.Http;
 using Washouse.Common.Helpers;
 using Washouse.Common.Mails;
 using Washouse.Data;
@@ -32,6 +33,7 @@ using Washouse.Service;
 using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace Washouse.Web.Controllers
 {
@@ -49,11 +51,12 @@ namespace Washouse.Web.Controllers
         public IWalletService _walletService;
         public IWardService _wardService;
         public ILocationService _locationService;
+        public IFeedbackService _feedbackService;
 
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor,
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
             IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService,
-            IWardService wardService, ILocationService locationService)
+            IWardService wardService, ILocationService locationService, IFeedbackService feedbackService)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -65,6 +68,7 @@ namespace Washouse.Web.Controllers
             this._walletService = walletService;
             _wardService = wardService;
             _locationService = locationService;
+            _feedbackService = feedbackService;
         }
 
         [HttpPost("login")]
@@ -1092,7 +1096,7 @@ namespace Washouse.Web.Controllers
                                      ", Thành phố Hồ Chí Minh";
                 string url =
                     $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
-                using (HttpClient client = new HttpClient())
+                using (System.Net.Http.HttpClient client = new System.Net.Http.HttpClient())
                 {
                     var response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)
@@ -1259,5 +1263,103 @@ namespace Washouse.Web.Controllers
                 }
             }
         }
+
+        /// <summary>
+        ///   -GET: 
+        /// type: center, service
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-feedback")]
+        public async Task<IActionResult> GetMyFeedback([FromQuery] FilterFeedbackModel filter)
+        {
+            int id = int.Parse(User.FindFirst("Id")?.Value);
+            var account = await _accountService.GetById(id);
+            if (account == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Account not found",
+                    Data = null
+                });
+            }
+            else
+            {
+                string email = User.FindFirst(ClaimTypes.Email)?.Value;
+                var feedbacks = await _feedbackService.GetMyFeedback(email);
+                if (feedbacks == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Account not have any feedback",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(filter.Type))
+                    {
+                        if (filter.Type.Trim().ToLower().Equals("center"))
+                        {
+                            feedbacks = feedbacks.Where(feedback => !string.IsNullOrEmpty(feedback.OrderId));
+                        }
+                        if (filter.Type.Trim().ToLower().Equals("service"))
+                        {
+                            feedbacks = feedbacks.Where(feedback => feedback.ServiceId != null);
+                        }
+                    }
+                    var feedbackResponses = new List<FeedbackResponseModel>();
+                    foreach (var item in feedbacks)
+                    {
+                        string centerName, serviceName;
+                        if (item.CenterId != null)
+                        {
+                            centerName = item.Center.CenterName;
+                        }
+                        else centerName = null;
+                        if (item.ServiceId != null)
+                        {
+                            serviceName = item.Service.ServiceName;
+                        }
+                        else serviceName = null;
+                        feedbackResponses.Add(new FeedbackResponseModel
+                        {
+                            Id = item.Id,
+                            Content = item.Content,
+                            Rating = item.Rating,
+                            OrderId = item.OrderId,
+                            CenterId = item.CenterId,
+                            CenterName = centerName,
+                            ServiceId = item.ServiceId,
+                            ServiceName = serviceName,
+                            CreatedBy = item.CreatedBy,
+                            CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                            ReplyMessage = item.ReplyMessage,
+                            ReplyBy = item.ReplyBy,
+                            ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                        });
+                    }
+                    int totalItems = feedbackResponses.Count();
+                    int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+                    feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
+                        .Take(filter.PageSize).ToList();
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new
+                        {
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
+                            ItemsPerPage = filter.PageSize,
+                            PageNumber = filter.Page,
+                            Items = feedbackResponses
+                        }
+                    });
+                }
+            }
+        }
+
     }
 }

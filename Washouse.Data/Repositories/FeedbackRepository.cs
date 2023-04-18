@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+//using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,15 +26,17 @@ namespace Washouse.Data.Repositories
         public  IEnumerable<Feedback> GetAllByCenterId(int centerid)
         {
             var data =  this._dbContext.Feedbacks
-                        .Where(fb => fb.CenterId == centerid)
+                        .Include(feedback => feedback.Service)
+                        .Include(feedback => feedback.Center)
+                            .Where(o => o.CenterId == centerid && !string.IsNullOrEmpty(o.OrderId))
                         .ToList();
             return data;
         }
 
-        public IEnumerable<Feedback> GetAllByOrderDetailId(int orderdetailId)
+        public IEnumerable<Feedback> GetAllByOrderId(string orderId)
         {
             var data = this._dbContext.Feedbacks
-                        .Where(fb => fb.Order.OrderDetails.FirstOrDefault().Id == orderdetailId)
+                        .Where(fb => fb.OrderId.Trim().ToLower().Equals(orderId.ToLower().Trim()))
                         .ToList();
             return data;
         }
@@ -41,10 +44,21 @@ namespace Washouse.Data.Repositories
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId)
         {
             var feedbackList = this._dbContext.Feedbacks
-            .Where(o => o.ServiceId == serviceId) // filter OrderDetails based on serviceId and non-null feedback
-            //.Select(o => o.Feedbacks.FirstOrDefault()) // retrieve the feedback for each OrderDetail
-                   .ToList();
+                        .Include(feedback => feedback.Service)
+                        .Include(feedback => feedback.Center)
+                            .Where(o => o.ServiceId == serviceId) 
+                                .ToList();
             return feedbackList;
+        }
+
+        public async Task<IEnumerable<Feedback>> GetMyFeedback(string Email)
+        {
+            var data = this._dbContext.Feedbacks
+                        .Include(feedback => feedback.Service)
+                        .Include(feedback => feedback.Center)
+                        .Where(feedback => feedback.CreatedBy.ToLower().Trim().Equals(Email))
+                        .ToList();
+            return data;
         }
     }
 }
