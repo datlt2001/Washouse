@@ -1744,11 +1744,14 @@ namespace Washouse.Web.Controllers
                     response.OrderTrackings = OrderTrackings;
                     foreach (var delivery in order.Deliveries)
                     {
+                        var location = await _locationService.GetById(delivery.LocationId);
                         OrderDeliveries.Add(new OrderDeliveryModel
                         {
                             ShipperName = delivery.ShipperName,
                             ShipperPhone = delivery.ShipperPhone,
                             LocationId = delivery.LocationId,
+                            AddressString = location.AddressString + ", " + location.Ward.WardName + ", " +
+                                         location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh",
                             DeliveryType = delivery.DeliveryType,
                             EstimatedTime = delivery.EstimatedTime,
                             Status = delivery.Status,
