@@ -232,8 +232,13 @@ namespace Washouse.Common.Helpers
                 return "Confirmed";
             }else if (status.ToLower().Trim().Equals("confirmed"))
             {
+                return "Received";
+            }
+            else if (status.ToLower().Trim().Equals("received"))
+            {
                 return "Processing";
-            }else if (status.ToLower().Trim().Equals("ready"))
+            }
+            else if (status.ToLower().Trim().Equals("ready"))
             {
                 return "Completed";
             } else return "Status not valid";

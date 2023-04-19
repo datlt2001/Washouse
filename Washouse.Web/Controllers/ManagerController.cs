@@ -1822,6 +1822,16 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
+                    if (order.Status.Trim().ToLower().Equals("completed"))
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Order has been already completed",
+                            Data = null
+                        });
+                    }
+
                     var orderDetail = order.OrderDetails.FirstOrDefault(orderDetail => orderDetail.Id == orderDetailId);
                     if (orderDetail == null)
                     {
@@ -1830,16 +1840,6 @@ namespace Washouse.Web.Controllers
                             StatusCode = StatusCodes.Status404NotFound,
                             Message = "Not found order detail",
                             Data = ""
-                        });
-                    }
-
-                    if (orderDetail.Status != null && orderDetail.Status.Trim().ToLower().Equals("completed"))
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status400BadRequest,
-                            Message = "Order detail has been already completed",
-                            Data = null
                         });
                     }
 

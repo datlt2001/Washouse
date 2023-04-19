@@ -98,7 +98,7 @@ namespace Washouse.Web.Controllers
                     });
                 }
                 if (order.Status.ToLower().Trim().Equals("confirmed") && (order.DeliveryType == 1 || order.DeliveryType == 3)
-                    && (order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false).Status.Trim().ToLower().Equals("completed")))
+                    && !(order.Deliveries.FirstOrDefault(deliver => deliver.DeliveryType == false).Status.Trim().ToLower().Equals("completed")))
                 {
                     return BadRequest(new ResponseModel
                     {
