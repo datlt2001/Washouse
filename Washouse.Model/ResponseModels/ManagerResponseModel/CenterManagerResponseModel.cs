@@ -16,7 +16,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
             CenterDeliveryPrices = new HashSet<CenterDeliveryPriceChartResponseModel>();
             AdditionServices = new HashSet<AdditionServiceCenterModel>();
             CenterGalleries = new HashSet<CenterGalleryModel>();
-            CenterFeedbacks = new HashSet<FeedbackCenterModel>();
+            //CenterFeedbacks = new HashSet<FeedbackCenterModel>();
             CenterResourses = new HashSet<ResourseCenterModel>();
         }
         public int Id { get; set; }
@@ -41,7 +41,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public virtual ICollection<CenterOperatingHoursResponseModel> CenterOperatingHours { get; set; }
         public virtual ICollection<AdditionServiceCenterModel> AdditionServices { get; set; }
         public virtual ICollection<CenterGalleryModel> CenterGalleries { get; set; }
-        public virtual ICollection<FeedbackCenterModel> CenterFeedbacks { get; set; }
+        //public virtual ICollection<FeedbackCenterModel> CenterFeedbacks { get; set; }
         public virtual ICollection<ResourseCenterModel> CenterResourses { get; set; }
     }
 }

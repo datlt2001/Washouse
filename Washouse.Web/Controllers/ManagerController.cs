@@ -301,7 +301,7 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
-                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                var center = await _centerService.GetMyCenter((int)managerInfo.CenterId);
                 if (center == null)
                 {
                     return NotFound(new ResponseModel
@@ -511,7 +511,7 @@ namespace Washouse.Web.Controllers
 
                     response.CenterGalleries = centerGalleries;
                     //feedback
-                    foreach (var item in center.Feedbacks)
+                    /*foreach (var item in center.Feedbacks)
                     {
                         var centerFeedback = new FeedbackCenterModel
                         {
@@ -527,7 +527,7 @@ namespace Washouse.Web.Controllers
                         centerFeedbacks.Add(centerFeedback);
                     }
 
-                    response.CenterFeedbacks = centerFeedbacks;
+                    response.CenterFeedbacks = centerFeedbacks;*/
                     //resource
                     foreach (var item in center.Resourses)
                     {

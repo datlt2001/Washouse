@@ -94,6 +94,28 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
+        public async Task<Center> GetMyCenter(int id)
+        {
+            var data = await this._dbContext.Centers
+                    .Include(center => center.Location)
+                        .ThenInclude(location => location.Ward)
+                        .ThenInclude(ward => ward.District)
+                    .Include(center => center.OperatingHours)
+                        .ThenInclude(oh => oh.DaysOfWeek)
+                    //.Include(center => center.Services)
+                     //   .ThenInclude(service => service.Category)
+                    //.Include(center => center.Services)
+                    //    .ThenInclude(service => service.ServicePrices)
+                    .Include(center => center.DeliveryPriceCharts)
+                    .Include(center => center.AdditionServices)
+                    .Include(center => center.CenterGalleries)
+                    .Include(center => center.Feedbacks)
+                    //.ThenInclude(service => service.OrderDetail)
+                    .Include(center => center.Resourses)
+                    //.Include(center => center.Promotions)
+                    .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
 
         public async Task<Center> GetByIdLightWeight(int id)
         {

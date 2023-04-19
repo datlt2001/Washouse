@@ -510,7 +510,7 @@ namespace Washouse.Web.Controllers
                         centerFeedbacks.Add(centerFeedback);
                     }
 
-                    response.CenterFeedbacks = centerFeedbacks;
+                    //response.CenterFeedbacks = centerFeedbacks;
                     //resource
                     foreach (var item in center.Resourses)
                     {

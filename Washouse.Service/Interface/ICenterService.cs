@@ -20,6 +20,7 @@ namespace Washouse.Service.Interface
         IEnumerable<Center> GetAllBySearchKeyPaging(string searchKey, int page, int pageSize, out int totalRow);
 
         Task<Center> GetById(int id);
+        Task<Center> GetMyCenter(int id);
 
         IEnumerable<Center> GetAllByTagPaging(string tag, int page, int pageSize, out int totalRow);
 
