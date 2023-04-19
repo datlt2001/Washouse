@@ -1497,9 +1497,20 @@ namespace Washouse.Web.Controllers
                             Equals(delivery.Status.ToLower(), filterOrdersRequestModel.DeliveryStatus.ToLower())));
                     }
 
-                    var response = new List<OrderCenterModel>();
 
                     orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
+                    int totalItems = orders.Count();
+
+                    int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
+
+                    if (filterOrdersRequestModel.PageSize != -1)
+                    {
+                        orders = orders.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize)
+                            .Take(filterOrdersRequestModel.PageSize).ToList();
+                    }
+
+                    var response = new List<OrderCenterModel>();
+
                     foreach (var order in orders)
                     {
                         decimal TotalOrderValue = 0;
@@ -1551,52 +1562,19 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
-                    int totalItems = response.Count();
-                    if (filterOrdersRequestModel.PageSize == -1)
+                    return Ok(new ResponseModel
                     {
-                        return Ok(new ResponseModel
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
                         {
-                            StatusCode = StatusCodes.Status200OK,
-                            Message = "success",
-                            Data = new
-                            {
-                                TotalItems = totalItems,
-                                TotalPages = 0,
-                                ItemsPerPage = -1,
-                                PageNumber = 0,
-                                Items = response
-                            }
-                        });
-                    }
-
-                    int totalPages = (int)Math.Ceiling((double)totalItems / filterOrdersRequestModel.PageSize);
-                    response = response.Skip((filterOrdersRequestModel.Page - 1) * filterOrdersRequestModel.PageSize)
-                        .Take(filterOrdersRequestModel.PageSize).ToList();
-                    if (response.Count > 0)
-                    {
-                        return Ok(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status200OK,
-                            Message = "success",
-                            Data = new
-                            {
-                                TotalItems = totalItems,
-                                TotalPages = totalPages,
-                                ItemsPerPage = filterOrdersRequestModel.PageSize,
-                                PageNumber = filterOrdersRequestModel.Page,
-                                Items = response
-                            }
-                        });
-                    }
-                    else
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Not found",
-                            Data = null
-                        });
-                    }
+                            TotalItems = totalItems,
+                            TotalPages = totalPages,
+                            ItemsPerPage = filterOrdersRequestModel.PageSize,
+                            PageNumber = filterOrdersRequestModel.Page,
+                            Items = response
+                        }
+                    });
                 }
             }
             catch (Exception ex)
