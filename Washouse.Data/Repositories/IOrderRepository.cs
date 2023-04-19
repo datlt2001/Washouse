@@ -12,5 +12,6 @@ namespace Washouse.Data.Repositories
     {
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
         Task<Order> GetOrderById(string orderId);
+        Task<IEnumerable<Order>> GetOrdersOfCustomer(int customerId, string customerMobile);
     }
 }

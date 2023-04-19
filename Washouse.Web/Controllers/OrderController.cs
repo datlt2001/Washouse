@@ -805,31 +805,33 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var orders = await _orderService.GetAll();
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                var userId = User.FindFirst("Id")?.Value;
+                var userPhone = User.FindFirst("Phone")?.Value;
+                var customerCreateOrder = await _customerService.GetCustomerByAccID(int.Parse(userId));
+                var customerByPhone = await _customerService.GetByPhone(userPhone);
+                var orders = await _orderService.GetOrdersOfCustomer(customerCreateOrder.Id, userPhone);
                 if (orders.Count() == 0)
                 {
-                    return BadRequest();
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = ""
+                    });
                 }
 
-                var role = User.FindFirst(ClaimTypes.Role)?.Value;
-                if (role != null && role.Trim().ToLower().Equals("customer"))
+                if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyme"))
                 {
-                    var userId = User.FindFirst("Id")?.Value;
-                    var userPhone = User.FindFirst("Phone")?.Value;
-                    var customerCreateOrder = await _customerService.GetCustomerByAccID(int.Parse(userId));
-                    var customerByPhone = await _customerService.GetByPhone(userPhone);
-                    
-                    if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyme"))
-                    {
-                        orders = orders.Where(order => order.CustomerId == customerCreateOrder.Id);
-                    }
-                    else if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyanother"))
-                    {
-                        orders = orders.Where(order => (order.CustomerMobile.Trim().Equals(userPhone) && order.CustomerId != customerCreateOrder.Id));
-                    } else
-                    {
-                        orders = orders.Where(order => (order.CustomerId == customerCreateOrder.Id || order.CustomerMobile.Trim().Equals(userPhone)));
-                    }
+                    orders = orders.Where(order => order.CustomerId == customerCreateOrder.Id);
+                }
+                else if (filterOrdersRequestModel.OrderType != null && filterOrdersRequestModel.OrderType.Trim().ToLower().Equals("orderbyanother"))
+                {
+                    orders = orders.Where(order => (order.CustomerMobile.Trim().Equals(userPhone) && order.CustomerId != customerCreateOrder.Id));
+                }
+                else
+                {
+                    orders = orders.Where(order => (order.CustomerId == customerCreateOrder.Id || order.CustomerMobile.Trim().Equals(userPhone)));
                 }
                 if (filterOrdersRequestModel.SearchString != null)
                 {
@@ -870,7 +872,8 @@ namespace Washouse.Web.Controllers
                     {
                         if (checkFirst)
                         {
-                            var center = await _centerService.GetById(item.Service.CenterId);
+                            //var center = await _centerService.GetById(item.Service.CenterId);
+                            var center = item.Service.Center;
                             CenterId = center.Id;
                             CenterName = center.CenterName;
                             checkFirst = false;

@@ -75,5 +75,26 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(order => order.Id == id);
             return data;
         }
+
+        public async Task<IEnumerable<Order>> GetOrdersOfCustomer(int customerId, string customerMobile)
+        {
+            var data = await this._dbContext.Orders
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Category)
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Center)
+                    .Include(order => order.Payments)
+                                    .ThenInclude(od => od.PromoCodeNavigation)
+                    .Include(order => order.Deliveries)
+                    .Include(order => order.OrderTrackings)
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.OrderDetailTrackings)
+                    .Include(order => order.Customer)
+                    .Where(order => order.CustomerId == customerId || order.CustomerMobile.Trim().Equals(customerMobile))
+                    .ToListAsync();
+            return data;
+        }
     }
 }
