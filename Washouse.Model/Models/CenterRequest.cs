@@ -27,6 +27,7 @@ namespace Washouse.Model.Models
         public decimal? Rating { get; set; }
         public int NumOfRating { get; set; }
         public bool HasDelivery { get; set; }
+        public DateTime? LastDeactivate { get; set; }
 
         public virtual Center CenterRequestingNavigation { get; set; }
     }

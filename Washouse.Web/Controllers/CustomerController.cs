@@ -292,7 +292,7 @@ namespace Washouse.Web.Controllers
             response.WalletId = user.WalletId;
             if (user.Dob != null)
             {
-                string dob = user.Dob.Value.ToString("dd-MM-yyyy HH-mm-ss");
+                string dob = user.Dob.Value.ToString("dd-MM-yyyy");
                 response.Dob = dob;
             }
             else

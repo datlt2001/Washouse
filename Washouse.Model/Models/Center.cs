@@ -40,6 +40,7 @@ namespace Washouse.Model.Models
         public int NumOfRating { get; set; }
         public bool HasDelivery { get; set; }
         public bool HasOnlinePayment { get; set; }
+        public DateTime? LastDeactivate { get; set; }
 
         public virtual Location Location { get; set; }
         public virtual Wallet Wallet { get; set; }

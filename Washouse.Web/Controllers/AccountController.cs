@@ -1162,6 +1162,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("my-wallet")]
         public async Task<IActionResult> GetMyWallet()
         {

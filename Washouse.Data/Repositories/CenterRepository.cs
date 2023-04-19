@@ -39,6 +39,7 @@ namespace Washouse.Data.Repositories
                 var center = this.DbContext.Centers.SingleOrDefault(c => c.Id.Equals(id));
                 DbContext.Centers.Attach(center);
                 center.Status = "Inactive";
+                center.LastDeactivate = DateTime.Now;
                 await DbContext.SaveChangesAsync();
             }
             catch (Exception ex)

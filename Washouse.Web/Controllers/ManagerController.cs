@@ -3013,5 +3013,79 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+
+        [HttpPut("my-center/deactivate")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> DeactivateCenter()
+        {
+            var center = await _centerService.GetByIdLightWeight(int.Parse(User.FindFirst("CenterManaged")?.Value));
+            if (center == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found center",
+                    Data = ""
+                });
+            }
+            if (!center.Status.Trim().ToLower().Equals("active"))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Do not accept deactivate",
+                    Data = null
+                });
+            }
+            await _centerService.DeactivateCenter(center.Id);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = center
+            });
+        }
+
+        [HttpPut("my-center/activate")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> ActivateCenter()
+        {
+            var center = await _centerService.GetByIdLightWeight(int.Parse(User.FindFirst("CenterManaged")?.Value));
+            if (center == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found center",
+                    Data = ""
+                });
+            }
+            if (!center.Status.Trim().ToLower().Equals("inactive"))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Do not accept activate",
+                    Data = null
+                });
+            }
+            if (center.LastDeactivate != null && center.LastDeactivate > DateTime.Now.AddHours(-3))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Only accept activate after 3 hours from last deactivated",
+                    Data = null
+                });
+            }
+            await _centerService.ActivateCenter(center.Id);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = center
+            });
+        }
+
     }
 }

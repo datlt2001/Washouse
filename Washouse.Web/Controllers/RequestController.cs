@@ -160,6 +160,7 @@ namespace Washouse.Web.Controllers
                         MinPrice = minPrice,
                         MaxPrice = maxPrice,
                         HasDelivery = center.HasDelivery,
+                        LastDeactivate = center.LastDeactivate,
                         CenterLocation = new CenterLocationResponseModel
                         {
                             Latitude = center.Location.Latitude,
@@ -393,6 +394,7 @@ namespace Washouse.Web.Controllers
                     //response.Distance = distance;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.LastDeactivate = center.LastDeactivate;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
@@ -548,6 +550,7 @@ namespace Washouse.Web.Controllers
                     //response.Distance = distance;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.LastDeactivate = center.LastDeactivate;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
@@ -705,6 +708,7 @@ namespace Washouse.Web.Controllers
                     //response.Distance = distance;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
+                    response.LastDeactivate = center.LastDeactivate;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {

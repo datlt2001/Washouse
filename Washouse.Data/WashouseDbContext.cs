@@ -253,6 +253,8 @@ namespace Washouse.Data
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
+                entity.Property(e => e.LastDeactivate).HasColumnType("datetime");
+
                 entity.HasOne(d => d.Location)
                     .WithMany(p => p.Centers)
                     .HasForeignKey(d => d.LocationId);
@@ -339,6 +341,8 @@ namespace Washouse.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+                
+                entity.Property(e => e.LastDeactivate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.CenterRequestingNavigation)
                     .WithMany(p => p.CenterRequests)
