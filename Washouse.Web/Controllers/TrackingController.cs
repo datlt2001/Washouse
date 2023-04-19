@@ -179,9 +179,10 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize (Roles = "Customer,Staff,Manager")]
         [HttpPut]
         [Route("orders/{orderId}/cancelled")]
-        public async Task<IActionResult> CancelOrder(string orderId)
+        public async Task<IActionResult> CancelOrder(string orderId, string Reason)
         {
 
             var order = await _orderService.GetOrderById(orderId);
@@ -213,6 +214,14 @@ namespace Washouse.Web.Controllers
                         Message = "order have status that can not cancel",
                         Data = null
                     });
+                }
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role.Trim().ToLower().Equals("customer"))
+                {
+                    order.CancelReasonByCustomer = Reason;
+                } else
+                {
+                    order.CancelReasonByStaff = Reason;
                 }
                 order.Status = "Cancelled";
                 order.UpdatedDate = DateTime.Now;

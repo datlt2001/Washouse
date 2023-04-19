@@ -21,6 +21,8 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public decimal? DeliveryPrice { get; set; }
         public string PreferredDropoffTime { get; set; }
         public string PreferredDeliverTime { get; set; }
+        public string CancelReasonByStaff { get; set; }
+        public string CancelReasonByCustomer { get; set; }
         public string Status { get; set; }
         public List<OrderDetailInfomationModel> OrderedDetails { get; set; }
         public List<OrderTrackingModel> OrderTrackings { get; set; }

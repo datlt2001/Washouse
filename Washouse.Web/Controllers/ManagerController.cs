@@ -1678,6 +1678,8 @@ namespace Washouse.Web.Controllers
                     response.CustomerOrdered = order.CustomerId;
                     response.DeliveryType = order.DeliveryType;
                     response.DeliveryPrice = order.DeliveryPrice;
+                    response.CancelReasonByCustomer = order.CancelReasonByCustomer;
+                    response.CancelReasonByStaff = order.CancelReasonByStaff;
                     response.PreferredDropoffTime = order.PreferredDropoffTime.HasValue
                         ? (order.PreferredDropoffTime.Value).ToString("dd-MM-yyyy HH:mm:ss")
                         : null;
