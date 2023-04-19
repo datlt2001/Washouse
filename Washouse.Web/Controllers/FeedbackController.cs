@@ -96,11 +96,16 @@ namespace Washouse.Web.Controllers
                         OrderId = model.OrderId,
                         CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
                         CreatedDate = DateTime.Now
-
                     };
                     await _feedbackService.Add(feedback);
-                    var center = await _centerService.GetById(model.CenterId);
-                    center.Rating = (center.Rating * center.NumOfRating + model.Rating) / (center.NumOfRating + 1);
+                    var center = await _centerService.GetByIdLightWeight(model.CenterId);
+                    if (center.Rating == null)
+                    {
+                        center.Rating = model.Rating;
+                    } else
+                    {
+                        center.Rating = (center.Rating * center.NumOfRating + model.Rating) / (center.NumOfRating + 1);
+                    }
                     center.NumOfRating = center.NumOfRating + 1;
                     await _centerService.Update(center);
                     order.IsFeedback = true;
@@ -173,7 +178,7 @@ namespace Washouse.Web.Controllers
 
                     };
                     await _feedbackService.Add(feedback);
-                    var center = await _centerService.GetById(model.CenterId);
+                    var center = await _centerService.GetByIdLightWeight(model.CenterId);
                     center.Rating = (center.Rating * center.NumOfRating + model.Rating) / (center.NumOfRating + 1);
                     center.NumOfRating = center.NumOfRating + 1;
                     await _centerService.Update(center);
@@ -263,7 +268,7 @@ namespace Washouse.Web.Controllers
         [HttpGet("centers/{centerId}")]
         public async Task<IActionResult> GetFeedbackByCenterId(int centerId, [FromQuery] PaginationViewModel filter)
         {
-            var center = await _centerService.GetById(centerId);
+            var center = await _centerService.GetByIdLightWeight(centerId);
             if (center == null)
             {
                 return NotFound(new ResponseModel
