@@ -1855,7 +1855,7 @@ namespace Washouse.Web.Controllers
                         });
                     }
 
-                    if (orderDetail.Status.Trim().ToLower().Equals("completed"))
+                    if (orderDetail.Status != null && orderDetail.Status.Trim().ToLower().Equals("completed"))
                     {
                         return NotFound(new ResponseModel
                         {
