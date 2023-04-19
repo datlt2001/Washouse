@@ -606,39 +606,37 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [HttpPut("{id}/change-password")]
-        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordViewModel changePasswordModel)
+        [HttpPut("me/change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel changePasswordModel)
         {
-            var account = await _accountService.GetById(id);
+            var id = User.FindFirst("Id")?.Value;
+            var account = await _accountService.GetById(int.Parse(id));
             if (account == null)
             {
                 return NotFound();
             }
-            else
+
+            if (!Equals(account.Password, changePasswordModel.oldPass))
             {
-                if (account.Password != changePasswordModel.oldPass)
+                return Ok(new ResponseModel
                 {
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = 200,
-                        Message = "Wrong password",
-                        Data = null
-                    });
-                }
-                else
-                {
-                    await _accountService.ChangePassword(id, changePasswordModel.newPass);
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = 0,
-                        Message = "success",
-                        Data = new
-                        {
-                            AccountId = id
-                        }
-                    });
-                }
+                    StatusCode = 200,
+                    Message = "Wrong password",
+                    Data = null
+                });
             }
+
+            account.Password = changePasswordModel.newPass;
+            await _accountService.Update(account);
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "success",
+                Data = new
+                {
+                    AccountId = id
+                }
+            });
         }
 
         [HttpPut("{email}/change-password-by-email")]
@@ -1304,11 +1302,13 @@ namespace Washouse.Web.Controllers
                         {
                             feedbacks = feedbacks.Where(feedback => !string.IsNullOrEmpty(feedback.OrderId));
                         }
+
                         if (filter.Type.Trim().ToLower().Equals("service"))
                         {
                             feedbacks = feedbacks.Where(feedback => feedback.ServiceId != null);
                         }
                     }
+
                     var feedbackResponses = new List<FeedbackResponseModel>();
                     foreach (var item in feedbacks)
                     {
@@ -1318,11 +1318,13 @@ namespace Washouse.Web.Controllers
                             centerName = item.Center.CenterName;
                         }
                         else centerName = null;
+
                         if (item.ServiceId != null)
                         {
                             serviceName = item.Service.ServiceName;
                         }
                         else serviceName = null;
+
                         feedbackResponses.Add(new FeedbackResponseModel
                         {
                             Id = item.Id,
@@ -1337,9 +1339,12 @@ namespace Washouse.Web.Controllers
                             CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                             ReplyMessage = item.ReplyMessage,
                             ReplyBy = item.ReplyBy,
-                            ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                            ReplyDate = item.ReplyDate.HasValue
+                                ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
                         });
                     }
+
                     int totalItems = feedbackResponses.Count();
                     int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
                     feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
@@ -1360,6 +1365,5 @@ namespace Washouse.Web.Controllers
                 }
             }
         }
-
     }
 }
