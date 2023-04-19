@@ -1642,7 +1642,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                var center = await _centerService.GetById((int)managerInfo.CenterId);
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
                 if (center == null)
                 {
                     return NotFound(new ResponseModel
