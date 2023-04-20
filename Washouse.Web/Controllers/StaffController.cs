@@ -778,7 +778,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Staff")]
         [HttpPut("verify")]
         public async Task<IActionResult> VerifyStaff(string code)
         {
