@@ -125,11 +125,28 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
-        public new async Task<Center> GetByIdToCreateOrder(int id)
+        public async Task<Center> GetByIdToCreateOrder(int id)
         {
             var data = await this._dbContext.Centers
                     .Include(center => center.Location)
                     .Include(center => center.OperatingHours)
+                    .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
+
+        public async Task<Center> GetByIdAdminDetail(int id)
+        {
+            var data = await this._dbContext.Centers
+                    .Include(center => center.Location)
+                        .ThenInclude(location => location.Ward)
+                            .ThenInclude(ward => ward.District)
+                    .Include(center => center.staff)
+                        .ThenInclude(staff => staff.Account)
+                    .Include(center => center.Feedbacks)
+                    .Include(center => center.Services)
+                        .ThenInclude(service => service.ServicePrices)
+                    .Include(center => center.Services)
+                        .ThenInclude(service => service.Category)
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }

@@ -73,7 +73,11 @@ namespace Washouse.Service.Implement
         {
             return await _centerRepository.GetByIdToCreateOrder(id);
         }
-
+        
+        public async Task<Center> GetByIdAdminDetail(int id)
+        {
+            return await _centerRepository.GetByIdAdminDetail(id);
+        }
 
         public async Task Add(Center center)
         {

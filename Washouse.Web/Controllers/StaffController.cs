@@ -1184,9 +1184,9 @@ namespace Washouse.Web.Controllers
                     //OrderTracking
                     var orderTracking = new OrderTracking();
                     orderTracking.OrderId = order.Id;
-                    orderTracking.Status = "Pending";
+                    orderTracking.Status = "Confirmed";
                     orderTracking.CreatedDate = DateTime.Now;
-                    orderTracking.CreatedBy = "AutoInsert";
+                    orderTracking.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
 
 
 

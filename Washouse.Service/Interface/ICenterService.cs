@@ -30,5 +30,6 @@ namespace Washouse.Service.Interface
 
         Task<Center> GetByIdLightWeight(int id);
         Task<Center> GetByIdToCreateOrder(int id);
+        Task<Center> GetByIdAdminDetail(int id);
     }
 }
