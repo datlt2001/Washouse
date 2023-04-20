@@ -20,7 +20,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 var account = this.DbContext.Accounts.SingleOrDefault(a => a.Id.Equals(id));
                 DbContext.Accounts.Attach(account);
                 account.Status = false;
@@ -36,7 +35,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 var account = this.DbContext.Accounts.SingleOrDefault(a => a.Id.Equals(id));
                 DbContext.Accounts.Attach(account);
                 account.Status = true;
@@ -48,12 +46,12 @@ namespace Washouse.Data.Repositories
             }
         }
 
-        public  Account GetLoginAccount(string phone, string password)
+        public Account GetLoginAccount(string phone, string password)
         {
             try
             {
-
-                return this.DbContext.Accounts.SingleOrDefault(a => a.Phone.Equals(phone) && a.Password.Equals(password));
+                return this.DbContext.Accounts.SingleOrDefault(
+                    a => a.Phone.Equals(phone) && a.Password.Equals(password));
             }
             catch (Exception ex)
             {
@@ -65,7 +63,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 var account = this.DbContext.Accounts.SingleOrDefault(a => a.Id.Equals(id));
                 DbContext.Accounts.Attach(account);
                 account.Password = newPass;
@@ -81,7 +78,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 return this.DbContext.Accounts.SingleOrDefault(a => a.Phone.Equals(phone));
             }
             catch (Exception ex)
@@ -94,7 +90,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 return this.DbContext.Accounts.SingleOrDefault(a => a.Email.Equals(email));
             }
             catch (Exception ex)
@@ -103,16 +98,24 @@ namespace Washouse.Data.Repositories
             }
         }
 
+        public new async Task<Account> GetAccountByEmailAsync(string email)
+        {
+            var data = await this._dbContext.Accounts
+                .Where(account => Equals(account.Email, email))
+                .FirstOrDefaultAsync();
+            return data;
+        }
+
         public new async Task<Account> GetById(int id)
         {
             var data = await this._dbContext.Accounts
-                    .Include(account => account.Wallet)
-                        .ThenInclude(wallet => wallet.Transactions)
-                    .Include(account => account.Wallet)
-                        .ThenInclude(wallet => wallet.WalletTransactionFromWallets)
-                    .Include(account => account.Wallet)
-                        .ThenInclude(wallet => wallet.WalletTransactionToWallets)
-                    .FirstOrDefaultAsync(center => center.Id == id);
+                .Include(account => account.Wallet)
+                .ThenInclude(wallet => wallet.Transactions)
+                .Include(account => account.Wallet)
+                .ThenInclude(wallet => wallet.WalletTransactionFromWallets)
+                .Include(account => account.Wallet)
+                .ThenInclude(wallet => wallet.WalletTransactionToWallets)
+                .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
 
@@ -120,7 +123,6 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
                 return this.DbContext.Accounts.SingleOrDefault(a => a.Email.Equals(email) && a.Phone.Equals(phone));
             }
             catch (Exception ex)
@@ -128,6 +130,5 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
-
     }
 }

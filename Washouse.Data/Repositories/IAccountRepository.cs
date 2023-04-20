@@ -19,6 +19,7 @@ namespace Washouse.Data.Repositories
         public Task ChangePassword(int id, string newPassword);
         public Account GetAccountByPhone(string phone);
         public Account GetAccountByEmail(string email);
+        public Task<Account> GetAccountByEmailAsync(string email);
 
         Account GetAccountByEmailAndPhone(string email, string phone);
     }
