@@ -797,19 +797,17 @@ namespace Washouse.Web.Controllers
 
             if (res.Equals(code))
             {
-                var user = _accountService.GetAccountByPhone(phone);
+                //var user = _accountService.GetAccountByPhone(phone);
                 var manager = _staffService.GetStaffByCenterId(int.Parse(centerId));
                 var email = _accountService.GetById(manager.AccountId);
-                var staff = new Staff()
-                {
-                    AccountId = user.Id,
-                    Status = true,
-                    IsManager = false,
-                    CenterId = int.Parse(centerId),
-                    CreatedDate = DateTime.Now,
-                    CreatedBy = email.Result.Email
-                };
-                await _staffService.Add(staff);
+                var staff = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                //AccountId = user.Id,
+                staff.Status = true;
+                staff.IsManager = false;
+                staff.CenterId = int.Parse(centerId);
+                staff.CreatedDate = DateTime.Now;
+                staff.CreatedBy = email.Result.Email;
+                await _staffService.Update(staff);
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
