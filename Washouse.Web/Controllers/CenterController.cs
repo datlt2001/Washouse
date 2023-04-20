@@ -1277,91 +1277,8 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var center = await _centerService.GetById(centerId);
-                if (center != null)
-                {
-                    var item = center.Services.FirstOrDefault(service => service.Id == serviceId);
-
-                    if (item != null)
-                    {
-                        var servicePriceViewModels = new List<ServicePriceViewModel>();
-                        foreach (var servicePrice in item.ServicePrices)
-                        {
-                            var sp = new ServicePriceViewModel
-                            {
-                                MaxValue = servicePrice.MaxValue,
-                                Price = servicePrice.Price
-                            };
-                            servicePriceViewModels.Add(sp);
-                        }
-
-                        var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
-                        int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
-                        foreach (var feedback in feedbackList)
-                        {
-                            if (feedback.Rating == 1)
-                            {
-                                st1++;
-                            }
-
-                            if (feedback.Rating == 2)
-                            {
-                                st2++;
-                            }
-
-                            if (feedback.Rating == 3)
-                            {
-                                st3++;
-                            }
-
-                            if (feedback.Rating == 4)
-                            {
-                                st4++;
-                            }
-
-                            if (feedback.Rating == 5)
-                            {
-                                st5++;
-                            }
-                        }
-
-                        var itemResponse = new ServicesOfCenterResponseModel
-                        {
-                            ServiceId = item.Id,
-                            CategoryId = item.CategoryId,
-                            ServiceName = item.ServiceName,
-                            Description = item.Description,
-                            Image =
-                                item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
-                            PriceType = item.PriceType,
-                            Price = item.Price,
-                            MinPrice = item.MinPrice,
-                            Unit = item.Unit,
-                            Rate = item.Rate,
-                            Prices = servicePriceViewModels,
-                            TimeEstimate = item.TimeEstimate,
-                            Rating = item.Rating,
-                            NumOfRating = item.NumOfRating,
-                            Ratings = new int[] { st1, st2, st3, st4, st5 }
-                        };
-                        return Ok(new ResponseModel
-                        {
-                            StatusCode = 0,
-                            Message = "success",
-                            Data = itemResponse
-                        });
-                    }
-                    else
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Not found services",
-                            Data = null
-                        });
-                    }
-                }
-                else
+                var center = await _centerService.GetByIdLightWeight(centerId);
+                if (center == null)
                 {
                     return NotFound(new ResponseModel
                     {
@@ -1370,6 +1287,86 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
+
+                var item = await _serviceService.GetById(serviceId);
+
+                if (item == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found services",
+                        Data = null
+                    });
+                }
+
+                var servicePriceViewModels = new List<ServicePriceViewModel>();
+                foreach (var servicePrice in item.ServicePrices)
+                {
+                    var sp = new ServicePriceViewModel
+                    {
+                        MaxValue = servicePrice.MaxValue,
+                        Price = servicePrice.Price
+                    };
+                    servicePriceViewModels.Add(sp);
+                }
+
+                var feedbackList = await _feedbackService.GetAllByServiceIdLW(item.Id);
+                int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                foreach (var feedback in feedbackList)
+                {
+                    if (feedback.Rating == 1)
+                    {
+                        st1++;
+                    }
+
+                    if (feedback.Rating == 2)
+                    {
+                        st2++;
+                    }
+
+                    if (feedback.Rating == 3)
+                    {
+                        st3++;
+                    }
+
+                    if (feedback.Rating == 4)
+                    {
+                        st4++;
+                    }
+
+                    if (feedback.Rating == 5)
+                    {
+                        st5++;
+                    }
+                }
+
+                var itemResponse = new ServicesOfCenterResponseModel
+                {
+                    ServiceId = item.Id,
+                    CategoryId = item.CategoryId,
+                    ServiceName = item.ServiceName,
+                    Description = item.Description,
+                    Image =
+                        item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                    PriceType = item.PriceType,
+                    Price = item.Price,
+                    MinPrice = item.MinPrice,
+                    Unit = item.Unit,
+                    Rate = item.Rate,
+                    Prices = servicePriceViewModels,
+                    TimeEstimate = item.TimeEstimate,
+                    Rating = item.Rating,
+                    NumOfRating = item.NumOfRating,
+                    Ratings = new int[] { st1, st2, st3, st4, st5 }
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = itemResponse
+                });
             }
             catch (Exception ex)
             {
