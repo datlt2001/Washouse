@@ -1751,7 +1751,7 @@ namespace Washouse.Web.Controllers
                             ShipperPhone = delivery.ShipperPhone,
                             LocationId = delivery.LocationId,
                             AddressString = location.AddressString + ", " + location.Ward.WardName + ", " +
-                                         location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh",
+                                            location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh",
                             DeliveryType = delivery.DeliveryType,
                             EstimatedTime = delivery.EstimatedTime,
                             Status = delivery.Status,
@@ -3028,6 +3028,7 @@ namespace Washouse.Web.Controllers
                     Data = ""
                 });
             }
+
             if (!center.Status.Trim().ToLower().Equals("active"))
             {
                 return BadRequest(new ResponseModel
@@ -3037,6 +3038,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             await _centerService.DeactivateCenter(center.Id);
             return Ok(new ResponseModel
             {
@@ -3060,6 +3062,7 @@ namespace Washouse.Web.Controllers
                     Data = ""
                 });
             }
+
             if (!center.Status.Trim().ToLower().Equals("inactive"))
             {
                 return BadRequest(new ResponseModel
@@ -3069,6 +3072,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             if (center.LastDeactivate != null && center.LastDeactivate > DateTime.Now.AddHours(-3))
             {
                 return BadRequest(new ResponseModel
@@ -3078,6 +3082,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             await _centerService.ActivateCenter(center.Id);
             return Ok(new ResponseModel
             {
@@ -3087,5 +3092,97 @@ namespace Washouse.Web.Controllers
             });
         }
 
+        [HttpGet("my-center/feedbacks")]
+        public async Task<IActionResult> GetMyCenterFeedback([FromQuery] GetCenterFeedbacksModel filter)
+        {
+            var center = await _centerService.GetByIdLightWeight(int.Parse(User.FindFirst("CenterManaged")?.Value));
+            if (center == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Not found center",
+                    Data = ""
+                });
+            }
+
+            var feedbacks = _feedbackService.GetAllByCenterId(center.Id);
+            if (feedbacks == null)
+            {
+                return NotFound(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Center not have any feedback",
+                    Data = null
+                });
+            }
+
+            if (filter.ServiceId != null)
+            {
+                feedbacks = feedbacks.Where(fb => Equals(fb.ServiceId, filter.ServiceId));
+            }
+
+            if (!string.IsNullOrEmpty(filter.OrderId))
+            {
+                feedbacks = feedbacks.Where(fb => Equals(fb.OrderId, filter.OrderId));
+            }
+
+            int totalItems = feedbacks.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+            feedbacks = feedbacks.Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize).ToList();
+
+
+            var feedbackResponses = new List<FeedbackResponseModel>();
+            foreach (var item in feedbacks)
+            {
+                string centerName, serviceName;
+                if (item.CenterId != null)
+                {
+                    centerName = item.Center.CenterName;
+                }
+                else centerName = null;
+
+                if (item.ServiceId != null)
+                {
+                    serviceName = item.Service.ServiceName;
+                }
+                else serviceName = null;
+
+                feedbackResponses.Add(new FeedbackResponseModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Rating = item.Rating,
+                    OrderId = item.OrderId,
+                    CenterId = item.CenterId,
+                    CenterName = centerName,
+                    ServiceId = item.ServiceId,
+                    ServiceName = serviceName,
+                    CreatedBy = item.CreatedBy,
+                    CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                    ReplyMessage = item.ReplyMessage,
+                    ReplyBy = item.ReplyBy,
+                    ReplyDate = item.ReplyDate.HasValue
+                        ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                        : null
+                });
+            }
+
+
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "success",
+                Data = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    ItemsPerPage = filter.PageSize,
+                    PageNumber = filter.Page,
+                    Items = feedbackResponses
+                }
+            });
+        }
     }
 }

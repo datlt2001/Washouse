@@ -124,5 +124,14 @@ namespace Washouse.Data.Repositories
                 .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+
+        public new async Task<Center> GetByIdToCreateOrder(int id)
+        {
+            var data = await this._dbContext.Centers
+                    .Include(center => center.Location)
+                    .Include(center => center.OperatingHours)
+                    .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
     }
 }

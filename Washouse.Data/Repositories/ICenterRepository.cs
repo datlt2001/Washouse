@@ -14,5 +14,6 @@ namespace Washouse.Data.Repositories
 
         Task<Center> GetByIdLightWeight(int id);
         Task<Center> GetMyCenter(int id);
+        Task<Center> GetByIdToCreateOrder(int id);
     }
 }
