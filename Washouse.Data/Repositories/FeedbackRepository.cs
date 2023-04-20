@@ -50,6 +50,14 @@ namespace Washouse.Data.Repositories
                                 .ToList();
             return feedbackList;
         }
+        
+        public async Task<IEnumerable<Feedback>> GetAllByServiceIdLW(int serviceId)
+        {
+            var feedbackList =  await _dbContext.Feedbacks
+                .Where(o => o.ServiceId == serviceId) 
+                .ToListAsync();
+            return feedbackList;
+        }
 
         public async Task<IEnumerable<Feedback>> GetMyFeedback(string Email)
         {
