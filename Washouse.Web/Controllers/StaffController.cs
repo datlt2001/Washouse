@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using NuGet.Protocol;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Washouse.Common.Helpers;
 using Washouse.Common.Mails;
 using Washouse.Model.Models;
@@ -19,7 +19,6 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Model.ViewModel;
-using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Hubs;
 using Washouse.Web.Models;
@@ -729,7 +728,7 @@ namespace Washouse.Web.Controllers
             int id = int.Parse(User.FindFirst("Id")?.Value);
             var user = _accountService.GetAccountByEmailAndPhone(email, phone);
             var staff = _staffService.GetStaffByAccountId(user.Id);
-            if (staff != null)
+            if (staff != null && staff.CenterId != null)
             {
                 return BadRequest(new ResponseModel
                 {
