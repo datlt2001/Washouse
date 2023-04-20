@@ -401,7 +401,7 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var center = await _centerService.GetById(id);
+                var center = await _centerService.GetDetailByIdLightWeight(id);
                 var role = User.FindFirst(ClaimTypes.Role)?.Value;
                 if (role == null || role.Trim().ToLower().Equals("customer"))
                 {
@@ -417,232 +417,7 @@ namespace Washouse.Web.Controllers
                     }
                 }
 
-                if (center != null)
-                {
-                    var response = new CenterResponseModel();
-                    var centerServices = new List<CenterServiceResponseModel>();
-                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
-                    var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
-                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
-                    decimal minPrice = 0, maxPrice = 0;
-                    foreach (var item in center.Services)
-                    {
-                        var servicePriceViewModels = new List<ServicePriceViewModel>();
-                        foreach (var servicePrice in item.ServicePrices)
-                        {
-                            var sp = new ServicePriceViewModel
-                            {
-                                MaxValue = servicePrice.MaxValue,
-                                Price = servicePrice.Price
-                            };
-                            servicePriceViewModels.Add(sp);
-                        }
-
-                        var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
-                        int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
-                        foreach (var feedback in feedbackList)
-                        {
-                            if (feedback.Rating == 1)
-                            {
-                                st1++;
-                            }
-
-                            if (feedback.Rating == 2)
-                            {
-                                st2++;
-                            }
-
-                            if (feedback.Rating == 3)
-                            {
-                                st3++;
-                            }
-
-                            if (feedback.Rating == 4)
-                            {
-                                st4++;
-                            }
-
-                            if (feedback.Rating == 5)
-                            {
-                                st5++;
-                            }
-                        }
-
-                        var service = new ServicesOfCenterResponseModel
-                        {
-                            ServiceId = item.Id,
-                            CategoryId = item.CategoryId,
-                            ServiceName = item.ServiceName,
-                            Description = item.Description,
-                            Image =
-                                item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
-                            PriceType = item.PriceType,
-                            Price = item.Price,
-                            MinPrice = item.MinPrice,
-                            Unit = item.Unit,
-                            Rate = item.Rate,
-                            Prices = servicePriceViewModels.OrderByDescending(a => a.Price).ToList(),
-                            TimeEstimate = item.TimeEstimate,
-                            Rating = item.Rating,
-                            NumOfRating = item.NumOfRating,
-                            Ratings = new int[] { st1, st2, st3, st4, st5 }
-                        };
-                        servicesOfCenter.Add(service);
-                    }
-
-                    foreach (var service in center.Services)
-                    {
-                        if (service.PriceType)
-                        {
-                            foreach (var servicePrice in service.ServicePrices)
-                            {
-                                if (minPrice > service.MinPrice || minPrice == 0)
-                                {
-                                    minPrice = (decimal)service.MinPrice;
-                                }
-
-                                if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
-                                {
-                                    maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (minPrice > service.Price || minPrice == 0)
-                            {
-                                minPrice = (decimal)service.Price;
-                            }
-
-                            if (maxPrice < service.Price || maxPrice == 0)
-                            {
-                                maxPrice = (decimal)service.Price;
-                            }
-                        }
-
-                        var centerService = new CenterServiceResponseModel
-                        {
-                            ServiceCategoryID = service.CategoryId,
-                            ServiceCategoryName = service.Category.CategoryName,
-                            Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
-                        };
-                        if (centerServices.FirstOrDefault(cs =>
-                                cs.ServiceCategoryID == centerService.ServiceCategoryID) ==
-                            null) centerServices.Add(centerService);
-                    }
-
-                    //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
-                    //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
-                    //{
-                    List<int> dayOffs = new List<int>();
-                    for (int i = 0; i < 7; i++)
-                    {
-                        dayOffs.Add(i);
-                    }
-
-                    foreach (var item in center.OperatingHours)
-                    {
-                        dayOffs.Remove(item.DaysOfWeek.Id);
-                        var centerOperatingHour = new CenterOperatingHoursResponseModel
-                        {
-                            Day = item.DaysOfWeek.Id,
-                            OpenTime = item.OpenTime,
-                            CloseTime = item.CloseTime
-                        };
-                        centerOperatingHours.Add(centerOperatingHour);
-                    }
-
-                    foreach (var item in dayOffs)
-                    {
-                        var dayOff = new CenterOperatingHoursResponseModel
-                        {
-                            Day = item,
-                            OpenTime = null,
-                            CloseTime = null
-                        };
-                        centerOperatingHours.Add(dayOff);
-                    }
-
-                    double distance = 0;
-                    if (center.Location.Latitude == null || center.Location.Longitude == null ||
-                        CurrentUserLatitude == null || CurrentUserLongitude == null)
-                    {
-                        distance = 0;
-                    }
-                    else
-                    {
-                        distance = Utilities.CalculateDistance(Math.Round((decimal)CurrentUserLatitude, 6),
-                            Math.Round((decimal)CurrentUserLongitude, 6),
-                            Math.Round((decimal)center.Location.Latitude, 6),
-                            Math.Round((decimal)center.Location.Longitude, 6));
-                    }
-
-                    //}
-                    bool MonthOff = false;
-                    if (center.MonthOff != null)
-                    {
-                        string[] offs = center.MonthOff.Split('-');
-                        for (int i = 0; i < offs.Length; i++)
-                        {
-                            if (DateTime.Now.Day == (int.Parse(offs[i])))
-                            {
-                                MonthOff = true;
-                            }
-                        }
-                    }
-
-                    foreach (var item in center.DeliveryPriceCharts)
-                    {
-                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
-                        {
-                            Id = item.Id,
-                            MaxDistance = item.MaxDistance,
-                            MaxWeight = item.MaxWeight,
-                            Price = item.Price
-                        };
-                        centerDeliveryPrices.Add(centerDeliveryPrice);
-                    }
-
-
-                    response.Id = center.Id;
-                    response.Thumbnail = center.Image != null
-                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
-                        : null;
-                    response.Title = center.CenterName;
-                    response.Alias = center.Alias;
-                    response.Description = center.Description;
-                    response.CenterServices = centerServices;
-                    response.Rating = center.Rating;
-                    response.NumOfRating = center.NumOfRating;
-                    response.Phone = center.Phone;
-                    response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
-                                             ", " + center.Location.Ward.District.DistrictName;
-                    response.Distance = distance;
-                    response.MinPrice = minPrice;
-                    response.MaxPrice = maxPrice;
-                    response.MonthOff = MonthOff;
-                    response.HasDelivery = center.HasDelivery;
-                    response.HasOnlinePayment = center.HasOnlinePayment;
-                    response.NumOfPromotionAvailable = center.Promotions.Where(item => (item.StartDate < DateTime.Now &&
-                            DateTime.Now < item.ExpireDate &&
-                            (item.UseTimes == null || (item.UseTimes != null && item.UseTimes > 0)) &&
-                            item.Status == true))
-                        .Count();
-                    response.CenterDeliveryPrices = centerDeliveryPrices;
-                    response.CenterLocation = new CenterLocationResponseModel
-                    {
-                        Latitude = center.Location.Latitude,
-                        Longitude = center.Location.Longitude
-                    };
-                    response.CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList();
-                    return Ok(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "success",
-                        Data = response
-                    });
-                }
-                else
+                if (center == null)
                 {
                     return NotFound(new ResponseModel
                     {
@@ -651,6 +426,229 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
+                var response = new CenterResponseModel();
+                var centerServices = new List<CenterServiceResponseModel>();
+                var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
+                decimal minPrice = 0, maxPrice = 0;
+                foreach (var item in center.Services)
+                {
+                    var servicePriceViewModels = new List<ServicePriceViewModel>();
+                    foreach (var servicePrice in item.ServicePrices)
+                    {
+                        var sp = new ServicePriceViewModel
+                        {
+                            MaxValue = servicePrice.MaxValue,
+                            Price = servicePrice.Price
+                        };
+                        servicePriceViewModels.Add(sp);
+                    }
+
+                    var feedbackList = await _feedbackService.GetAllByServiceIdLW(item.Id);
+                    int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                    foreach (var feedback in feedbackList)
+                    {
+                        if (feedback.Rating == 1)
+                        {
+                            st1++;
+                        }
+
+                        if (feedback.Rating == 2)
+                        {
+                            st2++;
+                        }
+
+                        if (feedback.Rating == 3)
+                        {
+                            st3++;
+                        }
+
+                        if (feedback.Rating == 4)
+                        {
+                            st4++;
+                        }
+
+                        if (feedback.Rating == 5)
+                        {
+                            st5++;
+                        }
+                    }
+
+                    var service = new ServicesOfCenterResponseModel
+                    {
+                        ServiceId = item.Id,
+                        CategoryId = item.CategoryId,
+                        ServiceName = item.ServiceName,
+                        Description = item.Description,
+                        Image =
+                            item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                        PriceType = item.PriceType,
+                        Price = item.Price,
+                        MinPrice = item.MinPrice,
+                        Unit = item.Unit,
+                        Rate = item.Rate,
+                        Prices = servicePriceViewModels.OrderByDescending(a => a.Price).ToList(),
+                        TimeEstimate = item.TimeEstimate,
+                        Rating = item.Rating,
+                        NumOfRating = item.NumOfRating,
+                        Ratings = new int[] { st1, st2, st3, st4, st5 }
+                    };
+                    servicesOfCenter.Add(service);
+                }
+
+                foreach (var service in center.Services)
+                {
+                    if (service.PriceType)
+                    {
+                        foreach (var servicePrice in service.ServicePrices)
+                        {
+                            if (minPrice > service.MinPrice || minPrice == 0)
+                            {
+                                minPrice = (decimal)service.MinPrice;
+                            }
+
+                            if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
+                            {
+                                maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (minPrice > service.Price || minPrice == 0)
+                        {
+                            minPrice = (decimal)service.Price;
+                        }
+
+                        if (maxPrice < service.Price || maxPrice == 0)
+                        {
+                            maxPrice = (decimal)service.Price;
+                        }
+                    }
+
+                    var centerService = new CenterServiceResponseModel
+                    {
+                        ServiceCategoryID = service.CategoryId,
+                        ServiceCategoryName = service.Category.CategoryName,
+                        Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
+                    };
+                    if (centerServices.FirstOrDefault(cs =>
+                            cs.ServiceCategoryID == centerService.ServiceCategoryID) ==
+                        null) centerServices.Add(centerService);
+                }
+
+                //int nowDayOfWeek = ((int)DateTime.Today.DayOfWeek != 0) ? (int)DateTime.Today.DayOfWeek : 8;
+                //if (center.OperatingHours.FirstOrDefault(a => a.DaysOfWeekId == nowDayOfWeek) != null)
+                //{
+                List<int> dayOffs = new List<int>();
+                for (int i = 0; i < 7; i++)
+                {
+                    dayOffs.Add(i);
+                }
+
+                foreach (var item in center.OperatingHours)
+                {
+                    dayOffs.Remove(item.DaysOfWeek.Id);
+                    var centerOperatingHour = new CenterOperatingHoursResponseModel
+                    {
+                        Day = item.DaysOfWeek.Id,
+                        OpenTime = item.OpenTime,
+                        CloseTime = item.CloseTime
+                    };
+                    centerOperatingHours.Add(centerOperatingHour);
+                }
+
+                foreach (var item in dayOffs)
+                {
+                    var dayOff = new CenterOperatingHoursResponseModel
+                    {
+                        Day = item,
+                        OpenTime = null,
+                        CloseTime = null
+                    };
+                    centerOperatingHours.Add(dayOff);
+                }
+
+                double distance = 0;
+                if (center.Location.Latitude == null || center.Location.Longitude == null ||
+                    CurrentUserLatitude == null || CurrentUserLongitude == null)
+                {
+                    distance = 0;
+                }
+                else
+                {
+                    distance = Utilities.CalculateDistance(Math.Round((decimal)CurrentUserLatitude, 6),
+                        Math.Round((decimal)CurrentUserLongitude, 6),
+                        Math.Round((decimal)center.Location.Latitude, 6),
+                        Math.Round((decimal)center.Location.Longitude, 6));
+                }
+
+                //}
+                bool MonthOff = false;
+                if (center.MonthOff != null)
+                {
+                    string[] offs = center.MonthOff.Split('-');
+                    for (int i = 0; i < offs.Length; i++)
+                    {
+                        if (DateTime.Now.Day == (int.Parse(offs[i])))
+                        {
+                            MonthOff = true;
+                        }
+                    }
+                }
+
+                foreach (var item in center.DeliveryPriceCharts)
+                {
+                    var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
+                    {
+                        Id = item.Id,
+                        MaxDistance = item.MaxDistance,
+                        MaxWeight = item.MaxWeight,
+                        Price = item.Price
+                    };
+                    centerDeliveryPrices.Add(centerDeliveryPrice);
+                }
+
+
+                response.Id = center.Id;
+                response.Thumbnail = center.Image != null
+                    ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                    : null;
+                response.Title = center.CenterName;
+                response.Alias = center.Alias;
+                response.Description = center.Description;
+                response.CenterServices = centerServices;
+                response.Rating = center.Rating;
+                response.NumOfRating = center.NumOfRating;
+                response.Phone = center.Phone;
+                response.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                                         ", " + center.Location.Ward.District.DistrictName;
+                response.Distance = distance;
+                response.MinPrice = minPrice;
+                response.MaxPrice = maxPrice;
+                response.MonthOff = MonthOff;
+                response.HasDelivery = center.HasDelivery;
+                response.HasOnlinePayment = center.HasOnlinePayment;
+                response.NumOfPromotionAvailable = center.Promotions.Where(item => (item.StartDate < DateTime.Now &&
+                        DateTime.Now < item.ExpireDate &&
+                        (item.UseTimes == null || (item.UseTimes != null && item.UseTimes > 0)) &&
+                        item.Status == true))
+                    .Count();
+                response.CenterDeliveryPrices = centerDeliveryPrices;
+                response.CenterLocation = new CenterLocationResponseModel
+                {
+                    Latitude = center.Location.Latitude,
+                    Longitude = center.Location.Longitude
+                };
+                response.CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList();
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = response
+                });
             }
             catch (Exception ex)
             {
