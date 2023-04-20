@@ -48,7 +48,8 @@ namespace Washouse.Web.Controllers
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
             ILocationService locationService, IWardService wardService,
             IOperatingHourService operatingHourService, IServiceService serviceService,
-            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService, IPromotionService promotionService)
+            IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
+            IPromotionService promotionService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -622,8 +623,11 @@ namespace Washouse.Web.Controllers
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
                     response.HasOnlinePayment = center.HasOnlinePayment;
-                    response.NumOfPromotionAvailable = center.Promotions.Where(item => (item.StartDate < DateTime.Now && DateTime.Now < item.ExpireDate &&
-                    (item.UseTimes == null || (item.UseTimes != null && item.UseTimes > 0)) && item.Status == true)).Count();
+                    response.NumOfPromotionAvailable = center.Promotions.Where(item => (item.StartDate < DateTime.Now &&
+                            DateTime.Now < item.ExpireDate &&
+                            (item.UseTimes == null || (item.UseTimes != null && item.UseTimes > 0)) &&
+                            item.Status == true))
+                        .Count();
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
@@ -963,97 +967,8 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var center = await _centerService.GetById(id);
-                if (center != null)
-                {
-                    var services = center.Services.ToList();
-                    if (services != null)
-                    {
-                        var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
-                        foreach (var item in services)
-                        {
-                            var servicePriceViewModels = new List<ServicePriceViewModel>();
-                            foreach (var servicePrice in item.ServicePrices)
-                            {
-                                var sp = new ServicePriceViewModel
-                                {
-                                    MaxValue = servicePrice.MaxValue,
-                                    Price = servicePrice.Price
-                                };
-                                servicePriceViewModels.Add(sp);
-                            }
-
-                            var feedbackList = _feedbackService.GetAllByServiceId(item.Id);
-                            int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
-                            foreach (var feedback in feedbackList)
-                            {
-                                if (feedback.Rating == 1)
-                                {
-                                    st1++;
-                                }
-
-                                if (feedback.Rating == 2)
-                                {
-                                    st2++;
-                                }
-
-                                if (feedback.Rating == 3)
-                                {
-                                    st3++;
-                                }
-
-                                if (feedback.Rating == 4)
-                                {
-                                    st4++;
-                                }
-
-                                if (feedback.Rating == 5)
-                                {
-                                    st5++;
-                                }
-                            }
-
-                            var itemResponse = new ServicesOfCenterResponseModel
-                            {
-                                ServiceId = item.Id,
-                                CategoryId = item.CategoryId,
-                                ServiceName = item.ServiceName,
-                                Description = item.Description,
-                                Image = item.Image != null
-                                    ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
-                                    : null,
-                                PriceType = item.PriceType,
-                                Price = item.Price,
-                                MinPrice = item.MinPrice,
-                                Unit = item.Unit,
-                                Rate = item.Rate,
-                                Prices = servicePriceViewModels,
-                                TimeEstimate = item.TimeEstimate,
-                                Rating = item.Rating,
-                                NumOfRating = item.NumOfRating,
-                                Ratings = new int[] { st1, st2, st3, st4, st5 }
-                            };
-                            servicesOfCenter.Add(itemResponse);
-                        }
-
-                        return Ok(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status200OK,
-                            Message = "success",
-                            Data = servicesOfCenter
-                        });
-                    }
-                    else
-                    {
-                        return NotFound(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status404NotFound,
-                            Message = "Not found services",
-                            Data = null
-                        });
-                    }
-                }
-                else
+                var center = await _centerService.GetByIdLightWeight(id);
+                if (center == null)
                 {
                     return NotFound(new ResponseModel
                     {
@@ -1062,6 +977,82 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
+
+                var services = await _serviceService.GetAllByCenterId(center.Id);
+
+                var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
+                foreach (var item in services)
+                {
+                    var servicePriceViewModels = new List<ServicePriceViewModel>();
+                    foreach (var servicePrice in item.ServicePrices)
+                    {
+                        var sp = new ServicePriceViewModel
+                        {
+                            MaxValue = servicePrice.MaxValue,
+                            Price = servicePrice.Price
+                        };
+                        servicePriceViewModels.Add(sp);
+                    }
+
+                    var feedbackList = await _feedbackService.GetAllByServiceIdLW(item.Id);
+                    int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                    foreach (var feedback in feedbackList)
+                    {
+                        if (feedback.Rating == 1)
+                        {
+                            st1++;
+                        }
+
+                        if (feedback.Rating == 2)
+                        {
+                            st2++;
+                        }
+
+                        if (feedback.Rating == 3)
+                        {
+                            st3++;
+                        }
+
+                        if (feedback.Rating == 4)
+                        {
+                            st4++;
+                        }
+
+                        if (feedback.Rating == 5)
+                        {
+                            st5++;
+                        }
+                    }
+
+                    var itemResponse = new ServicesOfCenterResponseModel
+                    {
+                        ServiceId = item.Id,
+                        CategoryId = item.CategoryId,
+                        ServiceName = item.ServiceName,
+                        Description = item.Description,
+                        Image = item.Image != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(item.Image)
+                            : null,
+                        PriceType = item.PriceType,
+                        Price = item.Price,
+                        MinPrice = item.MinPrice,
+                        Unit = item.Unit,
+                        Rate = item.Rate,
+                        Prices = servicePriceViewModels,
+                        TimeEstimate = item.TimeEstimate,
+                        Rating = item.Rating,
+                        NumOfRating = item.NumOfRating,
+                        Ratings = new int[] { st1, st2, st3, st4, st5 }
+                    };
+                    servicesOfCenter.Add(itemResponse);
+                }
+
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = servicesOfCenter
+                });
             }
             catch (Exception ex)
             {

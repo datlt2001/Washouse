@@ -23,6 +23,7 @@ namespace Washouse.Service.Interface
 
         public IEnumerable<Feedback> GetAllByOrderId(string orderId);
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId);
+        public Task<IEnumerable<Feedback>> GetAllByServiceIdLW(int serviceId);
 
         public Task<IEnumerable<Feedback>> GetMyFeedback(string email);
     }
