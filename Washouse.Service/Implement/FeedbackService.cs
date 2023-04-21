@@ -48,7 +48,7 @@ namespace Washouse.Service.Implement
 
         public IEnumerable<Feedback> GetAllByCenterId(int id)
         {
-            return  _feedbackRepository.GetAllByCenterId(id);
+            return _feedbackRepository.GetAllByCenterId(id);
         }
 
         public IEnumerable<Feedback> GetAllByOrderId(string orderId)
@@ -59,6 +59,11 @@ namespace Washouse.Service.Implement
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId)
         {
             return _feedbackRepository.GetAllByServiceId(serviceId);
+        }
+
+        public async Task<IEnumerable<Feedback>> GetAllByServiceIdLW(int serviceId)
+        {
+            return await _feedbackRepository.GetAllByServiceIdLW(serviceId);
         }
 
         public async Task<IEnumerable<Feedback>> GetMyFeedback(string Email)

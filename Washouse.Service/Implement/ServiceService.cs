@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
@@ -24,6 +22,11 @@ namespace Washouse.Service.Implement
             this._unitOfWork = unitOfWork;
             this._servicePriceRepository = servicePriceRepository;
             this._serviceGalleryRepository = serviceGalleryRepository;
+        }
+
+        public async Task<IEnumerable<Model.Models.Service>> GetAllByCenterId(int centerId)
+        {
+            return await _serviceRepository.GetAllByCenterId(centerId);
         }
 
         public async Task Add(Model.Models.Service service)

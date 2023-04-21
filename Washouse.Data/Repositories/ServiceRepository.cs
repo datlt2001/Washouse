@@ -33,20 +33,30 @@ namespace Washouse.Data.Repositories
         public new async Task<Service> GetById(int id)
         {
             var data = await this._dbContext.Services
-                    .Include(service => service.OrderDetails)
-                    .Include(service => service.ServiceGalleries)
-                    .Include(service => service.ServicePrices)
-                    .Include(service => service.Center)
-                    .Include(service => service.Category)
-                    .FirstOrDefaultAsync(service => service.Id == id);
+                .Include(service => service.OrderDetails)
+                .Include(service => service.ServiceGalleries)
+                .Include(service => service.ServicePrices)
+                .Include(service => service.Center)
+                .Include(service => service.Category)
+                .FirstOrDefaultAsync(service => service.Id == id);
             return data;
         }
 
         public IEnumerable<Service> GetServicesByCategory(int cateID)
         {
-            var data =  this._dbContext.Services
-                        .Where(s => s.CategoryId == cateID)
-                        .ToList();
+            var data = this._dbContext.Services
+                .Where(s => s.CategoryId == cateID)
+                .ToList();
+            return data;
+        }
+
+        public async Task<IEnumerable<Service>> GetAllByCenterId(int centerId)
+        {
+            var data = await this._dbContext.Services
+                .Include(service => service.ServicePrices)
+                .Include(service => service.Category)
+                .Where(s => s.CenterId == centerId)
+                .ToListAsync();
             return data;
         }
     }

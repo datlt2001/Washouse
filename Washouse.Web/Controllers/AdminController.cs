@@ -17,6 +17,9 @@ using Washouse.Service.Implement;
 using Washouse.Model.Models;
 using System.Globalization;
 using static Google.Apis.Requests.BatchRequest;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
+using System.Security.Principal;
+using Washouse.Model.ViewModel;
 
 namespace Washouse.Web.Controllers
 {
@@ -153,6 +156,156 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        // GET: api/admin/centers/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpGet("centers/{centerId}")]
+        public async Task<IActionResult> GetCenterDetail(int centerId)
+        {
+            try
+            {
+                var center = await _centerService.GetByIdAdminDetail(centerId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
+
+                if (center != null)
+                {
+                    var response = new AdminCenterDetailResponseModel();
+                    var centerResponse = new AdminCenterBasicResponseModel();
+                    var feedbacksResponse = new List<AdminFeedbackCenterModel>();
+                    var servicesResponse = new List<AdminServiceCenterModel>();
+                    var staffsResponse = new List<AdminStaffCenterResponseModel>();
+
+                    foreach (var item in center.Services)
+                    {
+                        var serviceResponse = new AdminServiceCenterModel();
+                        serviceResponse.ServiceId = item.Id;
+                        serviceResponse.ServiceName = item.ServiceName;
+                        serviceResponse.Alias = item.Alias;
+                        serviceResponse.CategoryId = item.CategoryId;
+                        serviceResponse.CategoryName = item.Category.CategoryName;
+                        serviceResponse.PriceType = item.PriceType;
+                        serviceResponse.Price = item.Price;
+                        serviceResponse.MinPrice = item.MinPrice;
+                        serviceResponse.Unit = item.Unit;
+                        serviceResponse.Rate = item.Rate;
+                        serviceResponse.IsAvailable = item.IsAvailable;
+                        serviceResponse.Status = item.Status;
+                        serviceResponse.Rating = item.Rating;
+                        serviceResponse.NumOfRating = item.NumOfRating;
+
+                        if (item.PriceType)
+                        {
+                            foreach (var servicePrice in item.ServicePrices)
+                            {
+                                var sp = new ServicePriceViewModel
+                                {
+                                    MaxValue = servicePrice.MaxValue,
+                                    Price = servicePrice.Price
+                                };
+                                serviceResponse.Prices.Add(sp);
+                            }
+                        }
+                        servicesResponse.Add(serviceResponse);
+                     }
+
+                    foreach (var item in center.staff)
+                    {
+                        var staffResponse = new AdminStaffCenterResponseModel();
+                        staffResponse.Id = item.Id;
+                        staffResponse.AccountId = item.AccountId;
+                        staffResponse.FullName = item.Account.FullName;
+                        staffResponse.Email = item.Account.Email;
+                        staffResponse.Phone = item.Account.Phone;
+                        staffResponse.Gender = item.Account.Gender;
+                        staffResponse.Status = item.Status;
+                        staffResponse.IdNumber = item.IdNumber;
+                        staffResponse.IdFrontImg = item.IdFrontImg != null ? await _cloudStorageService.GetSignedUrlAsync(item.IdFrontImg) : null;
+                        staffResponse.IdBackImg = item.IdBackImg != null ? await _cloudStorageService.GetSignedUrlAsync(item.IdBackImg) : null;
+
+                        staffsResponse.Add(staffResponse);
+                    }
+
+                    foreach (var item in center.Feedbacks)
+                    {
+                        var feedbackResponse = new AdminFeedbackCenterModel();
+                        feedbackResponse.Id = item.Id;
+                        feedbackResponse.Rating = item.Rating;
+                        feedbackResponse.Content = item.Content;
+                        feedbackResponse.CreatedBy = item.CreatedBy;
+                        feedbackResponse.CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss");
+                        feedbackResponse.ReplyMessage = item.ReplyMessage;
+                        feedbackResponse.ReplyBy = item.ReplyBy;
+                        feedbackResponse.ReplyDate = item.ReplyDate.HasValue ? (item.ReplyDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+
+                        feedbacksResponse.Add(feedbackResponse);
+                    }
+
+                    centerResponse.Id = center.Id;
+                    centerResponse.Thumbnail = center.Image != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                        : null;
+                    centerResponse.Title = center.CenterName;
+                    centerResponse.Alias = center.Alias;
+                    centerResponse.Description = center.Description;
+                    centerResponse.LocationId = center.LocationId;
+                    centerResponse.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                                             ", " + center.Location.Ward.District.DistrictName;
+                    var manager = center.staff.FirstOrDefault(staff => (staff.IsManager != null && staff.IsManager == true));
+                    centerResponse.ManagerId = manager != null ? manager.Id : null;
+                    centerResponse.ManagerName = manager != null ? manager.Account.FullName : null;
+                    centerResponse.ManagerPhone = manager != null ? manager.Account.Phone : null;
+                    centerResponse.ManagerEmail = manager != null ? manager.Account.Email : null;
+                    centerResponse.CenterPhone = center.Phone;
+                    centerResponse.IsAvailable = center.IsAvailable;
+                    centerResponse.HasDelivery = center.HasDelivery;
+                    centerResponse.HasOnlinePayment = center.HasOnlinePayment;
+                    centerResponse.LastDeactivate = center.LastDeactivate.HasValue ? center.LastDeactivate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null;
+                    centerResponse.Rating = center.Rating;
+                    centerResponse.NumOfRating = center.NumOfRating;
+                    centerResponse.Status = center.Status;
+                    centerResponse.TaxCode = center.TaxCode.Trim();
+                    centerResponse.TaxRegistrationImage = center.TaxRegistrationImage != null ? await _cloudStorageService.GetSignedUrlAsync(center.TaxRegistrationImage) : null;
+
+                    response.Center = centerResponse;
+                    response.Services = servicesResponse;
+                    response.Staffs = staffsResponse;
+                    response.Feedbacks = feedbacksResponse;
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
         /// <summary>
         ///   -POST: 
         /// type: ServiceCategory, Promotion, Event, System
@@ -252,6 +405,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
+       
         [HttpGet("posts/{PostId}")]
         public async Task<IActionResult> GetPostDetail(int PostId)
         {
@@ -396,7 +550,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpPut("posts")]
-        public async Task<IActionResult> Update(int Id, [FromBody] UpdatePostRequestModel updatePost)
+        public async Task<IActionResult> UpdatePost(int Id, [FromBody] UpdatePostRequestModel updatePost)
         {
             if (!ModelState.IsValid)
             {

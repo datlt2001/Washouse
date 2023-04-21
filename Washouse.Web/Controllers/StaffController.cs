@@ -778,7 +778,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Staff")]
         [HttpPut("verify")]
         public async Task<IActionResult> VerifyStaff(string code)
         {
@@ -797,19 +797,17 @@ namespace Washouse.Web.Controllers
 
             if (res.Equals(code))
             {
-                var user = _accountService.GetAccountByPhone(phone);
+                //var user = _accountService.GetAccountByPhone(phone);
                 var manager = _staffService.GetStaffByCenterId(int.Parse(centerId));
                 var email = _accountService.GetById(manager.AccountId);
-                var staff = new Staff()
-                {
-                    AccountId = user.Id,
-                    Status = true,
-                    IsManager = false,
-                    CenterId = int.Parse(centerId),
-                    CreatedDate = DateTime.Now,
-                    CreatedBy = email.Result.Email
-                };
-                await _staffService.Add(staff);
+                var staff = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                //AccountId = user.Id,
+                staff.Status = true;
+                staff.IsManager = false;
+                staff.CenterId = int.Parse(centerId);
+                staff.CreatedDate = DateTime.Now;
+                staff.CreatedBy = email.Result.Email;
+                await _staffService.Update(staff);
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
@@ -1184,9 +1182,9 @@ namespace Washouse.Web.Controllers
                     //OrderTracking
                     var orderTracking = new OrderTracking();
                     orderTracking.OrderId = order.Id;
-                    orderTracking.Status = "Pending";
+                    orderTracking.Status = "Confirmed";
                     orderTracking.CreatedDate = DateTime.Now;
-                    orderTracking.CreatedBy = "AutoInsert";
+                    orderTracking.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
 
 
 

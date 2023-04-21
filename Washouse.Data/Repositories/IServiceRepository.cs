@@ -13,5 +13,6 @@ namespace Washouse.Data.Repositories
         Task DeactivateService(int id);
 
         public IEnumerable<Service> GetServicesByCategory(int cateID);
+        public Task<IEnumerable<Service>> GetAllByCenterId(int centerId);
     }
 }
