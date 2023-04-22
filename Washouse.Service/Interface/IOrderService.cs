@@ -12,6 +12,7 @@ namespace Washouse.Service.Interface
         Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, OrderTracking orderTracking);
         //void UpdateStatus(string orderId);
         Task Update(Order order);
+        Task Cancel(Order order);
         void Save();
         Task<IEnumerable<Order>> GetAll();
         Task<IEnumerable<Order>> GetOrdersOfCustomer(int customerId, string customerMobile);

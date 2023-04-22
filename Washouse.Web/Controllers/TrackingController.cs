@@ -226,7 +226,7 @@ namespace Washouse.Web.Controllers
                 order.Status = "Cancelled";
                 order.UpdatedDate = DateTime.Now;
                 order.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
-                await _orderService.Update(order);
+                await _orderService.Cancel(order);
                 return Ok(new ResponseModel
                 {
                     StatusCode = 0,
