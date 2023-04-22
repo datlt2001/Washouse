@@ -21,5 +21,7 @@ namespace Washouse.Model.ResponseModels
         public string ReplyMessage { get; set; }
         public string ReplyBy { get; set; }
         public string ReplyDate { get; set; }
+        public string AccountName { get; set; }
+        public string AccountAvatar { get; set; }
     }
 }

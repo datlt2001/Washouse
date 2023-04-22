@@ -71,6 +71,12 @@ namespace Washouse.Service.Implement
             return _AccountRepository.GetAccountByEmail(email);
         }
 
+        public async Task<Account> GetAccountByEmailAsync(string email)
+        {
+            return await _AccountRepository.GetAccountByEmailAsync(email);
+        }
+
+
         public Account GetAccountByEmailAndPhone(string email, string phone)
         {
             return _AccountRepository.GetAccountByEmailAndPhone(email, phone);

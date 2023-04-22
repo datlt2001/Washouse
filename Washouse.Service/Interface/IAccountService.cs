@@ -28,6 +28,7 @@ namespace Washouse.Service.Interface
         public Account GetAccountByPhone(string phone);
 
         public Account GetAccountByEmail(string email);
+        public Task<Account> GetAccountByEmailAsync(string email);
 
         Account GetAccountByEmailAndPhone(string email, string phone);
     }

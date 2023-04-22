@@ -27,10 +27,11 @@ namespace Washouse.Web.Controllers
         public readonly IServiceService _serviceService;
         public readonly ICustomerService _customerService;
         public readonly ICenterService _centerService;
+        public readonly ICloudStorageService _cloudStorageService;
 
         public FeedbackController(IFeedbackService feedbackService, IAccountService accountService,
-             IServiceService serviceService, IOrderService orderService, ICustomerService customerService,
-            ICenterService centerService)
+            IServiceService serviceService, IOrderService orderService, ICustomerService customerService,
+            ICenterService centerService, ICloudStorageService cloudStorageService)
         {
             _feedbackService = feedbackService;
             _accountService = accountService;
@@ -38,6 +39,7 @@ namespace Washouse.Web.Controllers
             _serviceService = serviceService;
             _customerService = customerService;
             _centerService = centerService;
+            _cloudStorageService = cloudStorageService;
         }
 
         [Authorize(Roles = "Customer")]
@@ -57,6 +59,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     var order = await _orderService.GetOrderById(model.OrderId);
                     if (order == null)
                     {
@@ -67,6 +70,7 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     if (!order.Status.Trim().ToLower().Equals("completed"))
                     {
                         return BadRequest(new ResponseModel
@@ -76,6 +80,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     var customer = await _customerService.GetCustomerByAccID(int.Parse(User.FindFirst("Id")?.Value));
 
                     if (order.CustomerId != customer.Id)
@@ -87,6 +92,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     var feedback = new Feedback()
                     {
                         Content = model.Content,
@@ -102,10 +108,12 @@ namespace Washouse.Web.Controllers
                     if (center.Rating == null)
                     {
                         center.Rating = model.Rating;
-                    } else
+                    }
+                    else
                     {
                         center.Rating = (center.Rating * center.NumOfRating + model.Rating) / (center.NumOfRating + 1);
                     }
+
                     center.NumOfRating = center.NumOfRating + 1;
                     await _centerService.Update(center);
                     order.IsFeedback = true;
@@ -126,7 +134,8 @@ namespace Washouse.Web.Controllers
                         Data = null
                     });
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ResponseModel
                 {
@@ -154,6 +163,7 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+
                     var service = await _serviceService.GetById(model.ServiceId);
                     if (service == null)
                     {
@@ -164,6 +174,7 @@ namespace Washouse.Web.Controllers
                             Data = ""
                         });
                     }
+
                     var customer = await _customerService.GetCustomerByAccID(int.Parse(User.FindFirst("Id")?.Value));
 
                     var feedback = new Feedback()
@@ -175,7 +186,6 @@ namespace Washouse.Web.Controllers
                         ServiceId = model.ServiceId,
                         CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
                         CreatedDate = DateTime.Now
-
                     };
                     await _feedbackService.Add(feedback);
                     var center = await _centerService.GetByIdLightWeight(model.CenterId);
@@ -278,6 +288,7 @@ namespace Washouse.Web.Controllers
                     Data = ""
                 });
             }
+
             var feedbacks = _feedbackService.GetAllByCenterId(centerId);
             if (feedbacks == null)
             {
@@ -299,11 +310,13 @@ namespace Washouse.Web.Controllers
                         centerName = item.Center.CenterName;
                     }
                     else centerName = null;
+
                     if (item.ServiceId != null)
                     {
                         serviceName = item.Service.ServiceName;
                     }
                     else serviceName = null;
+
                     feedbackResponses.Add(new FeedbackResponseModel
                     {
                         Id = item.Id,
@@ -318,9 +331,12 @@ namespace Washouse.Web.Controllers
                         CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
                         ReplyMessage = item.ReplyMessage,
                         ReplyBy = item.ReplyBy,
-                        ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
+                        ReplyDate = item.ReplyDate.HasValue
+                            ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                            : null
                     });
                 }
+
                 int totalItems = feedbackResponses.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
                 feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
@@ -354,6 +370,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
+
             var feedbacks = _feedbackService.GetAllByServiceId(serviceId);
             if (feedbacks == null)
             {
@@ -364,57 +381,77 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-            else
+
+            int totalItems = feedbacks.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+            feedbacks = feedbacks.Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize).ToList();
+
+            var feedbackResponses = new List<FeedbackResponseModel>();
+            foreach (var item in feedbacks)
             {
-                var feedbackResponses = new List<FeedbackResponseModel>();
-                foreach (var item in feedbacks)
+                string centerName, serviceName, accountName, accountAvatar;
+                if (item.CenterId != null)
                 {
-                    string centerName, serviceName;
-                    if (item.CenterId != null)
-                    {
-                        centerName = item.Center.CenterName;
-                    }
-                    else centerName = null;
-                    if (item.ServiceId != null)
-                    {
-                        serviceName = item.Service.ServiceName;
-                    }
-                    else serviceName = null;
-                    feedbackResponses.Add(new FeedbackResponseModel
-                    {
-                        Id = item.Id,
-                        Content = item.Content,
-                        Rating = item.Rating,
-                        OrderId = item.OrderId,
-                        CenterId = item.CenterId,
-                        CenterName = centerName,
-                        ServiceId = item.ServiceId,
-                        ServiceName = serviceName,
-                        CreatedBy = item.CreatedBy,
-                        CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
-                        ReplyMessage = item.ReplyMessage,
-                        ReplyBy = item.ReplyBy,
-                        ReplyDate = item.ReplyDate.HasValue ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null
-                    });
+                    centerName = item.Center.CenterName;
                 }
-                int totalItems = feedbackResponses.Count();
-                int totalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
-                feedbackResponses = feedbackResponses.Skip((filter.Page - 1) * filter.PageSize)
-                    .Take(filter.PageSize).ToList();
-                return Ok(new ResponseModel
+                else centerName = null;
+
+                if (item.ServiceId != null)
                 {
-                    StatusCode = 0,
-                    Message = "success",
-                    Data = new
-                    {
-                        TotalItems = totalItems,
-                        TotalPages = totalPages,
-                        ItemsPerPage = filter.PageSize,
-                        PageNumber = filter.Page,
-                        Items = feedbackResponses
-                    }
+                    serviceName = item.Service.ServiceName;
+                }
+                else serviceName = null;
+
+                if (item.CreatedBy != null)
+                {
+                    var account = await _accountService.GetAccountByEmailAsync(item.CreatedBy);
+                    accountName = account.FullName;
+                    accountAvatar = account.ProfilePic != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(account.ProfilePic)
+                        : null;
+                }
+                else
+                {
+                    accountName = null;
+                    accountAvatar = null;
+                }
+
+                feedbackResponses.Add(new FeedbackResponseModel
+                {
+                    Id = item.Id,
+                    Content = item.Content,
+                    Rating = item.Rating,
+                    OrderId = item.OrderId,
+                    CenterId = item.CenterId,
+                    CenterName = centerName,
+                    ServiceId = item.ServiceId,
+                    ServiceName = serviceName,
+                    CreatedBy = item.CreatedBy,
+                    CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss"),
+                    ReplyMessage = item.ReplyMessage,
+                    ReplyBy = item.ReplyBy,
+                    AccountAvatar = accountAvatar,
+                    AccountName = accountName,
+                    ReplyDate = item.ReplyDate.HasValue
+                        ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                        : null
                 });
             }
+
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "success",
+                Data = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    ItemsPerPage = filter.PageSize,
+                    PageNumber = filter.Page,
+                    Items = feedbackResponses
+                }
+            });
         }
     }
 }
