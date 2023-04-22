@@ -17,11 +17,12 @@ namespace Washouse.Service.Implement
         IDeliveryRepository _deliveryRepository;
         IPaymentRepository _paymentRepository;
         IOrderTrackingRepository _orderTrackingRepository;
+        IOrderDetailTrackingRepository _orderDetailTrackingRepository;
         IUnitOfWork _unitOfWork;
 
         public OrderService(IOrderRepository orderRepository, IOrderDetailRepository orderDetailRepository,
             IDeliveryRepository deliveryRepository, IUnitOfWork unitOfWork, 
-            IPaymentRepository paymentRepository, IOrderTrackingRepository orderTrackingRepository)
+            IPaymentRepository paymentRepository, IOrderTrackingRepository orderTrackingRepository, IOrderDetailTrackingRepository orderDetailTrackingRepository)
         {
             this._orderRepository = orderRepository;
             this._orderDetailRepository = orderDetailRepository;
@@ -29,6 +30,7 @@ namespace Washouse.Service.Implement
             this._unitOfWork = unitOfWork;
             this._paymentRepository = paymentRepository;
             this._orderTrackingRepository = orderTrackingRepository;
+            this._orderDetailTrackingRepository = orderDetailTrackingRepository;
         }
 
         public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, OrderTracking orderTracking)
@@ -73,6 +75,44 @@ namespace Washouse.Service.Implement
             };
             await _orderTrackingRepository.Add(orderTracking);
             await _orderRepository.Update(entity);
+        }
+
+        public async Task Cancel(Order entity)
+        {
+            var orderTracking = new OrderTracking
+            {
+                OrderId = entity.Id,
+                Status = entity.Status,
+                CreatedBy = entity.UpdatedBy,
+                CreatedDate = DateTime.Now,
+            };
+            await _orderTrackingRepository.Add(orderTracking);
+            await _orderRepository.Update(entity);
+            foreach (var orderDetail in entity.OrderDetails)
+            {
+                orderDetail.Status = "Cancelled";
+                var track = new OrderDetailTracking
+                {
+                    OrderDetailId = orderDetail.Id,
+                    Status = "Cancelled",
+                    CreatedBy = entity.UpdatedBy,
+                    CreatedDate = DateTime.Now,
+                };
+                await _orderDetailTrackingRepository.Add(track);
+                await _orderDetailRepository.Update(orderDetail);
+            }
+            foreach (var delivery in entity.Deliveries)
+            {
+                delivery.Status = "Cancelled";
+                delivery.UpdatedDate = DateTime.Now;
+                delivery.UpdatedBy = entity.UpdatedBy;
+                await _deliveryRepository.Update(delivery);
+            }
+            var payment = entity.Payments.FirstOrDefault();
+            payment.Status = "Cancelled";
+            payment.UpdatedDate = DateTime.Now;
+            payment.UpdatedBy = entity.UpdatedBy;
+            await _paymentRepository.Update(payment);
         }
 
         public void Save()

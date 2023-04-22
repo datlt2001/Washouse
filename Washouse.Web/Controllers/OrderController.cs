@@ -908,6 +908,8 @@ namespace Washouse.Web.Controllers
                         CenterId = CenterId,
                         CenterName = CenterName,
                         IsFeedback = order.IsFeedback,
+                        IsPayment = (order.Payments.Count > 0 && order.Payments.First().Status.Trim().ToLower().Equals("paid") || order.Payments.First().Status.Trim().ToLower().Equals("received"))
+                                    ? true : false,
                         OrderedServices = orderedServices
                     });
                 }
