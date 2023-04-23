@@ -370,7 +370,6 @@ namespace Washouse.Data
                     .HasMaxLength(50);
 
                 entity.Property(e => e.Phone)
-                    .IsRequired()
                     .HasMaxLength(10)
                     .IsUnicode(false)
                     .IsFixedLength(true);
