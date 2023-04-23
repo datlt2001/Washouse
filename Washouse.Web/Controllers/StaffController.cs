@@ -85,7 +85,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                var center = await _centerService.GetById((int)staffInfo.CenterId);
+                var center = await _centerService.GetByIdLightWeight((int)staffInfo.CenterId);
 
                 if (center == null)
                 {
@@ -98,16 +98,6 @@ namespace Washouse.Web.Controllers
                 }
 
                 var staffs = _staffService.GetAll().Where(staff => Equals(staff.CenterId, center.Id));
-                if (staffs == null)
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Staff list not found",
-                        Data = null
-                    });
-                }
-
                 if (!string.IsNullOrEmpty(requestModel.SearchString))
                 {
                     staffs = staffs.Where(account => account.Account == null || (
