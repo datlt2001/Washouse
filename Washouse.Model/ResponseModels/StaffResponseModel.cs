@@ -8,7 +8,7 @@ namespace Washouse.Model.ResponseModels
         public int AccountId { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
-        public DateTime? Dob { get; set; }
+        public string? Dob { get; set; }
         public string Phone { get; set; }
         public int? Gender { get; set; }
         public bool Status { get; set; }
