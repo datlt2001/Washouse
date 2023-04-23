@@ -90,12 +90,10 @@ namespace Washouse.Data
                 entity.Property(e => e.LastLogin).HasColumnType("datetime");
 
                 entity.Property(e => e.Password)
-                    .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Phone)
-                    .IsRequired()
                     .HasMaxLength(10)
                     .IsUnicode(false)
                     .IsFixedLength(true);
