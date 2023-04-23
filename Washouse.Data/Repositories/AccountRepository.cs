@@ -101,7 +101,7 @@ namespace Washouse.Data.Repositories
         public new async Task<Account> GetAccountByEmailAsync(string email)
         {
             var data = await this._dbContext.Accounts
-                .Where(account => Equals(account.Email, email))
+                .Where(account => Equals(account.Email.ToLower(), email.ToLower()))
                 .FirstOrDefaultAsync();
             return data;
         }

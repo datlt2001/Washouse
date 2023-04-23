@@ -8,10 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Common.Utils;
 using Washouse.Service.Interface;
+using ContentType = Org.BouncyCastle.Tls.ContentType;
 
 namespace Washouse.Service.Implement
 {
@@ -46,6 +49,7 @@ namespace Washouse.Service.Implement
                 throw;
             }
         }
+
         public async Task DeleteFileAsync(string fileNameToDelete)
         {
             try
@@ -54,6 +58,7 @@ namespace Washouse.Service.Implement
                 {
                     await storageClient.DeleteObjectAsync(_options.GoogleCloudStorageBucketName, fileNameToDelete);
                 }
+
                 _logger.LogInformation($"File {fileNameToDelete} deleted");
             }
             catch (Exception ex)
@@ -70,7 +75,8 @@ namespace Washouse.Service.Implement
                 var sac = _googleCredential.UnderlyingCredential as ServiceAccountCredential;
                 var urlSigner = UrlSigner.FromServiceAccountCredential(sac);
                 // provides limited permission and time to make a request: time here is mentioned for 30 minutes.
-                var signedUrl = await urlSigner.SignAsync(_options.GoogleCloudStorageBucketName, fileNameToRead, TimeSpan.FromMinutes(timeOutInMinutes));
+                var signedUrl = await urlSigner.SignAsync(_options.GoogleCloudStorageBucketName, fileNameToRead,
+                    TimeSpan.FromMinutes(timeOutInMinutes));
                 _logger.LogInformation($"Signed url obtained for file {fileNameToRead}");
                 return signedUrl.ToString();
             }
@@ -85,7 +91,8 @@ namespace Washouse.Service.Implement
         {
             try
             {
-                _logger.LogInformation($"Uploading: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
+                _logger.LogInformation(
+                    $"Uploading: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
                 using (var memoryStream = new MemoryStream())
                 {
                     await fileToUpload.CopyToAsync(memoryStream);
@@ -93,10 +100,40 @@ namespace Washouse.Service.Implement
                     using (var storageClient = StorageClient.Create(_googleCredential))
                     {
                         // upload file stream
-                        var uploadedFile = await storageClient.UploadObjectAsync(_options.GoogleCloudStorageBucketName, fileNameToSave, fileToUpload.ContentType, memoryStream);
-                        _logger.LogInformation($"Uploaded: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
+                        var uploadedFile = await storageClient.UploadObjectAsync(_options.GoogleCloudStorageBucketName,
+                            fileNameToSave, fileToUpload.ContentType, memoryStream);
+                        _logger.LogInformation(
+                            $"Uploaded: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
                         return uploadedFile.MediaLink;
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while uploading file {fileNameToSave}: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<string> UploadFileAsync(string imageUrl, string fileNameToSave)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    $"Uploading: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
+                using var client = new HttpClient();
+                var response = await client.GetAsync(imageUrl);
+                response.EnsureSuccessStatusCode();
+                var stream = await response.Content.ReadAsStreamAsync();
+                // Create Storage Client from Google Credential
+                using (var storageClient = StorageClient.Create(_googleCredential))
+                {
+                    // upload file stream
+                    var uploadedFile = await storageClient.UploadObjectAsync(_options.GoogleCloudStorageBucketName,
+                        fileNameToSave, "image/png", stream);
+                    _logger.LogInformation(
+                        $"Uploaded: file {fileNameToSave} to storage {_options.GoogleCloudStorageBucketName}");
+                    return uploadedFile.MediaLink;
                 }
             }
             catch (Exception ex)

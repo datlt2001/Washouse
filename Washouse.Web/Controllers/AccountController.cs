@@ -12,15 +12,18 @@ using NuGet.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Configuration;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Twilio.Http;
 using Washouse.Common.Helpers;
 using Washouse.Common.Mails;
@@ -34,6 +37,8 @@ using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
 using static Google.Apis.Requests.BatchRequest;
+using HttpClient = System.Net.Http.HttpClient;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Washouse.Web.Controllers
 {
@@ -52,11 +57,14 @@ namespace Washouse.Web.Controllers
         public IWardService _wardService;
         public ILocationService _locationService;
         public IFeedbackService _feedbackService;
+        private readonly IConfiguration _config;
+
 
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor,
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
             IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService,
-            IWardService wardService, ILocationService locationService, IFeedbackService feedbackService)
+            IWardService wardService, ILocationService locationService, IFeedbackService feedbackService,
+            IConfiguration config)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -69,6 +77,7 @@ namespace Washouse.Web.Controllers
             _wardService = wardService;
             _locationService = locationService;
             _feedbackService = feedbackService;
+            _config = config;
         }
 
         [HttpPost("login")]
@@ -104,6 +113,105 @@ namespace Washouse.Web.Controllers
                 Message = "Success",
                 Data = token
             });
+        }
+
+        [HttpPost("login/google")]
+        public async Task<IActionResult> LoginWithGoogle(LoginGoogleModel model)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+                var googleAuthConfig = _config.GetSection("Authentication:GoogleAuth");
+
+                var data = new[]
+                {
+                    new KeyValuePair<string, string>("code", model.Code),
+                    new KeyValuePair<string, string>("redirect_uri", model.RedirectUri),
+                    new KeyValuePair<string, string>("client_id", googleAuthConfig["ClientId"]),
+                    new KeyValuePair<string, string>("client_secret", googleAuthConfig["ClientSecret"]),
+                    new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                };
+
+                var response = await client.PostAsync("https://oauth2.googleapis.com/token",
+                    new FormUrlEncodedContent(data));
+                if (!response.IsSuccessStatusCode)
+                {
+                    return BadRequest();
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var jsonResponse = JsonSerializer.Deserialize<GoogleAccessTokenResponse>(json);
+                // duration is in seconds, convert to minutes
+
+                var idTokenInfo = jsonResponse.id_token.Split(".")[1];
+                var base64 = idTokenInfo.Replace('-', '+').Replace('_', '/');
+                while (base64.Length % 4 != 0)
+                {
+                    base64 += '=';
+                }
+
+                var plainTextBytes = Convert.FromBase64String(base64);
+                var googleInfoJson = Encoding.UTF8.GetString(plainTextBytes);
+                var googleInfo = JsonSerializer.Deserialize<GoogleIdToken>(googleInfoJson);
+                var account = await _accountService.GetAccountByEmailAsync(googleInfo.email.ToLower());
+                if (account == null)
+                {
+                    Random rand = new Random();
+                    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                    string[] prefixes = new string[] { "03", "05", "07", "08", "09" }; // mobile phone prefixes
+                    string prefix = prefixes[rand.Next(prefixes.Length)]; // select a random prefix
+                    string number = "";
+                    for (int i = 0; i < 7; i++) // generate 7 random digits
+                    {
+                        number += rand.Next(10).ToString();
+                    }
+
+                    var imgPic = $"{Guid.NewGuid()}";
+                    await _cloudStorageService.UploadFileAsync(googleInfo.picture, imgPic);
+                    var acc = new Account()
+                    {
+                        Phone = prefix + number,
+                        Email = googleInfo.email,
+                        Password = new string(Enumerable.Repeat(chars, 10)
+                            .Select(s => s[rand.Next(s.Length)]).ToArray()),
+                        Status = false,
+                        FullName = googleInfo.name,
+                        ProfilePic = imgPic,
+                        CreatedDate = DateTime.Now,
+                        CreatedBy = googleInfo.email,
+                    };
+                    await _accountService.Add(acc);
+                    var customer = new Customer()
+                    {
+                        AccountId = acc.Id,
+                        Fullname = acc.FullName,
+                        Phone = acc.Phone,
+                        Email = acc.Email,
+                        Status = false,
+                        CreatedBy = acc.CreatedBy,
+                        CreatedDate = DateTime.Now,
+                    };
+                    await _customerService.Add(customer);
+
+                    var _token = await GenerateToken(acc, false);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 17,
+                        Message = "Success auth admin",
+                        Data = _token
+                    });
+                }
+
+                var token = await GenerateToken(account, false);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 17,
+                    Message = "Success auth admin",
+                    Data = token
+                });
+            }
         }
 
         [HttpPost("login-staff")]
