@@ -42,26 +42,29 @@ namespace Washouse.Web.Controllers
         private readonly IFeedbackService _feedbackService;
         private readonly IPostService _postService;
         private readonly IServiceCategoryService _serviceCategoryService;
+        private readonly IOrderDetailService _orderDetailService;
 
         public AdminController(ICenterService centerService, ICloudStorageService cloudStorageService,
             IAccountService accountService,
             ILocationService locationService, IWardService wardService,
             IOperatingHourService operatingHourService, IServiceService serviceService,
             IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
-            IPostService postService, IServiceCategoryService serviceCategoryService)
+            IPostService postService, IServiceCategoryService serviceCategoryService,
+            IOrderDetailService orderDetailService)
         {
-            this._centerService = centerService;
-            this._accountService = accountService;
-            this._locationService = locationService;
-            this._cloudStorageService = cloudStorageService;
-            this._wardService = wardService;
-            this._operatingHourService = operatingHourService;
-            this._serviceService = serviceService;
-            this._staffService = staffService;
-            this._centerRequestService = centerRequestService;
-            this._serviceCategoryService = serviceCategoryService;
-            this._feedbackService = feedbackService;
-            this._postService = postService;
+            _centerService = centerService;
+            _accountService = accountService;
+            _locationService = locationService;
+            _cloudStorageService = cloudStorageService;
+            _wardService = wardService;
+            _operatingHourService = operatingHourService;
+            _serviceService = serviceService;
+            _staffService = staffService;
+            _centerRequestService = centerRequestService;
+            _serviceCategoryService = serviceCategoryService;
+            _feedbackService = feedbackService;
+            _postService = postService;
+            _orderDetailService = orderDetailService;
         }
 
         #endregion
@@ -241,6 +244,18 @@ namespace Washouse.Web.Controllers
                     foreach (var item in center.Feedbacks)
                     {
                         var feedbackResponse = new AdminFeedbackCenterModel();
+                        var od = await _orderDetailService.GetByOrderId(item.OrderId);
+                        if (od != null)
+                        {
+                            feedbackResponse.Services = od.ToList().ConvertAll(detail =>
+                                new AdminFeedbackServiceModel
+                                {
+                                    Id = detail.Service.Id,
+                                    Name = detail.Service.ServiceName
+                                });
+                        }
+
+                        feedbackResponse.OrderId = item.OrderId;
                         feedbackResponse.Id = item.Id;
                         feedbackResponse.Rating = item.Rating;
                         feedbackResponse.Content = item.Content;
