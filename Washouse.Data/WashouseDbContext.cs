@@ -772,7 +772,7 @@ namespace Washouse.Data
             {
                 entity.HasIndex(e => e.AuthorId, "IX_Posts_AuthorId");
 
-                entity.Property(e => e.Content).HasMaxLength(500);
+                entity.Property(e => e.Content).HasColumnType("nvarchar(max)"); 
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -788,6 +788,10 @@ namespace Washouse.Data
                 entity.Property(e => e.Title)
                     .IsRequired()
                     .HasMaxLength(50);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(500);
 
                 entity.Property(e => e.Type)
                     .HasMaxLength(50)
