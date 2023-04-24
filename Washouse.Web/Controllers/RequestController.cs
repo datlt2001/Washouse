@@ -716,7 +716,7 @@ namespace Washouse.Web.Controllers
                         Longitude = center.Location.Longitude
                     };
                     response.CenterOperatingHours = centerOperatingHours;
-                    center.Status = "Reject";
+                    center.Status = "Rejected";
                     await _centerService.Update(center);
                     return Ok(new ResponseModel
                     {
