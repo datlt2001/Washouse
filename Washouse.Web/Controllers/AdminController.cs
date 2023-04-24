@@ -226,6 +226,7 @@ namespace Washouse.Web.Controllers
                         staffResponse.Phone = item.Account.Phone;
                         staffResponse.Gender = item.Account.Gender;
                         staffResponse.Status = item.Status;
+                        staffResponse.IsManager = item.IsManager;
                         staffResponse.IdNumber = item.IdNumber;
                         staffResponse.IdFrontImg = item.IdFrontImg != null
                             ? await _cloudStorageService.GetSignedUrlAsync(item.IdFrontImg)
