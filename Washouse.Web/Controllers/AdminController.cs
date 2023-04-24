@@ -212,8 +212,9 @@ namespace Washouse.Web.Controllers
                                 serviceResponse.Prices.Add(sp);
                             }
                         }
+
                         servicesResponse.Add(serviceResponse);
-                     }
+                    }
 
                     foreach (var item in center.staff)
                     {
@@ -226,8 +227,12 @@ namespace Washouse.Web.Controllers
                         staffResponse.Gender = item.Account.Gender;
                         staffResponse.Status = item.Status;
                         staffResponse.IdNumber = item.IdNumber;
-                        staffResponse.IdFrontImg = item.IdFrontImg != null ? await _cloudStorageService.GetSignedUrlAsync(item.IdFrontImg) : null;
-                        staffResponse.IdBackImg = item.IdBackImg != null ? await _cloudStorageService.GetSignedUrlAsync(item.IdBackImg) : null;
+                        staffResponse.IdFrontImg = item.IdFrontImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(item.IdFrontImg)
+                            : null;
+                        staffResponse.IdBackImg = item.IdBackImg != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(item.IdBackImg)
+                            : null;
 
                         staffsResponse.Add(staffResponse);
                     }
@@ -242,7 +247,9 @@ namespace Washouse.Web.Controllers
                         feedbackResponse.CreatedDate = item.CreatedDate.ToString("dd-MM-yyyy HH:mm:ss");
                         feedbackResponse.ReplyMessage = item.ReplyMessage;
                         feedbackResponse.ReplyBy = item.ReplyBy;
-                        feedbackResponse.ReplyDate = item.ReplyDate.HasValue ? (item.ReplyDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                        feedbackResponse.ReplyDate = item.ReplyDate.HasValue
+                            ? (item.ReplyDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                            : null;
 
                         feedbacksResponse.Add(feedbackResponse);
                     }
@@ -255,9 +262,11 @@ namespace Washouse.Web.Controllers
                     centerResponse.Alias = center.Alias;
                     centerResponse.Description = center.Description;
                     centerResponse.LocationId = center.LocationId;
-                    centerResponse.CenterAddress = center.Location.AddressString + ", " + center.Location.Ward.WardName +
-                                             ", " + center.Location.Ward.District.DistrictName;
-                    var manager = center.staff.FirstOrDefault(staff => (staff.IsManager != null && staff.IsManager == true));
+                    centerResponse.CenterAddress =
+                        center.Location.AddressString + ", " + center.Location.Ward.WardName +
+                        ", " + center.Location.Ward.District.DistrictName;
+                    var manager =
+                        center.staff.FirstOrDefault(staff => (staff.IsManager != null && staff.IsManager == true));
                     centerResponse.ManagerId = manager != null ? manager.Id : null;
                     centerResponse.ManagerName = manager != null ? manager.Account.FullName : null;
                     centerResponse.ManagerPhone = manager != null ? manager.Account.Phone : null;
@@ -266,12 +275,16 @@ namespace Washouse.Web.Controllers
                     centerResponse.IsAvailable = center.IsAvailable;
                     centerResponse.HasDelivery = center.HasDelivery;
                     centerResponse.HasOnlinePayment = center.HasOnlinePayment;
-                    centerResponse.LastDeactivate = center.LastDeactivate.HasValue ? center.LastDeactivate.Value.ToString("dd-MM-yyyy HH:mm:ss") : null;
+                    centerResponse.LastDeactivate = center.LastDeactivate.HasValue
+                        ? center.LastDeactivate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                        : null;
                     centerResponse.Rating = center.Rating;
                     centerResponse.NumOfRating = center.NumOfRating;
                     centerResponse.Status = center.Status;
                     centerResponse.TaxCode = center.TaxCode.Trim();
-                    centerResponse.TaxRegistrationImage = center.TaxRegistrationImage != null ? await _cloudStorageService.GetSignedUrlAsync(center.TaxRegistrationImage) : null;
+                    centerResponse.TaxRegistrationImage = center.TaxRegistrationImage != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.TaxRegistrationImage)
+                        : null;
 
                     response.Center = centerResponse;
                     response.Services = servicesResponse;
@@ -354,9 +367,12 @@ namespace Washouse.Web.Controllers
                         Title = postItem.Title,
                         Content = postItem.Content,
                         Thumbnail =
-                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
+                            postItem.Thumbnail != null
+                                ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail)
+                                : null,
                         Type = postItem.Type,
                         Status = postItem.Status,
+                        Description = postItem.Description,
                         CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
                         UpdatedDate = postItem.UpdateDate.HasValue
                             ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
@@ -405,7 +421,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-       
+
         [HttpGet("posts/{PostId}")]
         public async Task<IActionResult> GetPostDetail(int PostId)
         {
@@ -428,11 +444,16 @@ namespace Washouse.Web.Controllers
                     Title = postItem.Title,
                     Content = postItem.Content,
                     Thumbnail =
-                    postItem.Thumbnail != null ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail) : null,
+                        postItem.Thumbnail != null
+                            ? await _cloudStorageService.GetSignedUrlAsync(postItem.Thumbnail)
+                            : null,
                     Type = postItem.Type,
+                    Description = postItem.Description,
                     Status = postItem.Status,
                     CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
-                    UpdatedDate = postItem.UpdateDate.HasValue ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                    UpdatedDate = postItem.UpdateDate.HasValue
+                        ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                        : null
                 };
                 return Ok(new ResponseModel
                 {
@@ -511,6 +532,7 @@ namespace Washouse.Web.Controllers
                         AuthorId = int.Parse(User.FindFirst("Id")?.Value),
                         Title = Input.Title,
                         Content = Input.Content,
+                        Description = Input.Description,
                         Thumbnail = Input.SavedFileName,
                         Status = Input.Status,
                         Type = Input.Type,
@@ -607,6 +629,7 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
+                    existingPost.Description = updatePost.Description != null ? updatePost.Description : existingPost.Description;
                     existingPost.Title = updatePost.Title != null ? updatePost.Title : existingPost.Title;
                     existingPost.Content = updatePost.Content != null ? updatePost.Content : existingPost.Content;
                     existingPost.Thumbnail = updatePost.SavedFileName != null
