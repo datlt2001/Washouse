@@ -70,5 +70,10 @@ namespace Washouse.Service.Implement
         {
             return await _feedbackRepository.GetMyFeedback(Email);
         }
+
+        public async Task<IEnumerable<Feedback>> GetAllByCenterIdAsync(int centerId)
+        {
+            return await _feedbackRepository.GetAllByCenterIdAsync(centerId);
+        }
     }
 }

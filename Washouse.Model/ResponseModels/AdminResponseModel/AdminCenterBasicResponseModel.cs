@@ -21,6 +21,7 @@ namespace Washouse.Model.ResponseModels.AdminResponseModel
         public bool HasOnlinePayment { get; set; }
         public string LastDeactivate { get; set; }
         public decimal? Rating { get; set; }
+        public int[] Ratings { get; set; }
         public int NumOfRating { get; set; }
         public string Status { get; set; }
         public string TaxCode { get; set; }

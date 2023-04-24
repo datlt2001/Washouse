@@ -26,5 +26,7 @@ namespace Washouse.Service.Interface
         public Task<IEnumerable<Feedback>> GetAllByServiceIdLW(int serviceId);
 
         public Task<IEnumerable<Feedback>> GetMyFeedback(string email);
+
+        public Task<IEnumerable<Feedback>> GetAllByCenterIdAsync(int centerId);
     }
 }

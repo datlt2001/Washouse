@@ -287,6 +287,39 @@ namespace Washouse.Web.Controllers
                         ? await _cloudStorageService.GetSignedUrlAsync(center.TaxRegistrationImage)
                         : null;
 
+
+                    var ratings = await _feedbackService.GetAllByCenterIdAsync(center.Id);
+                    int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                    foreach (var feedback in ratings)
+                    {
+                        if (feedback.Rating == 1)
+                        {
+                            st1++;
+                        }
+
+                        if (feedback.Rating == 2)
+                        {
+                            st2++;
+                        }
+
+                        if (feedback.Rating == 3)
+                        {
+                            st3++;
+                        }
+
+                        if (feedback.Rating == 4)
+                        {
+                            st4++;
+                        }
+
+                        if (feedback.Rating == 5)
+                        {
+                            st5++;
+                        }
+                    }
+
+                    centerResponse.Ratings = new int[] { st1, st2, st3, st4, st5 };
+
                     response.Center = centerResponse;
                     response.Services = servicesResponse;
                     response.Staffs = staffsResponse;
@@ -630,7 +663,9 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    existingPost.Description = updatePost.Description != null ? updatePost.Description : existingPost.Description;
+                    existingPost.Description = updatePost.Description != null
+                        ? updatePost.Description
+                        : existingPost.Description;
                     existingPost.Title = updatePost.Title != null ? updatePost.Title : existingPost.Title;
                     existingPost.Content = updatePost.Content != null ? updatePost.Content : existingPost.Content;
                     existingPost.Thumbnail = updatePost.SavedFileName != null
