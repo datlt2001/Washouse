@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Washouse.Model.ResponseModels.AdminResponseModel
 {
@@ -13,5 +13,7 @@ namespace Washouse.Model.ResponseModels.AdminResponseModel
         public string ReplyMessage { get; set; }
         public string ReplyBy { get; set; }
         public string ReplyDate { get; set; }
+        public string OrderId { get; set; }
+        public IEnumerable<AdminFeedbackServiceModel> Services { get; set; }
     }
 }

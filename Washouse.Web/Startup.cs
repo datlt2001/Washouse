@@ -52,7 +52,6 @@ namespace Washouse.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -67,17 +66,21 @@ namespace Washouse.Web
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+                    Description =
+                        "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
                 });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
                     {
-                        new OpenApiSecurityScheme {
-                            Reference = new OpenApiReference {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer"
                             }
                         },
-                        new string[] {}
+                        new string[] { }
                     }
                 });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -85,8 +88,11 @@ namespace Washouse.Web
                 c.IncludeXmlComments(xmlPath);
             });
             services.AddSignalR();
-            services.AddCors(options => {
-                options.AddPolicy("CORSPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((hosts) => true));
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CORSPolicy",
+                    builder => builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+                        .SetIsOriginAllowed((hosts) => true));
             });
             services.Configure<AppSetting>(Configuration.GetSection("AppSettings"));
             services.Configure<GCSConfigOptions>(Configuration.GetSection("GCSConfigOptions"));
@@ -99,18 +105,17 @@ namespace Washouse.Web
 
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             services.AddAuthentication(options =>
-            {
-                /*options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-                //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;*/
-                //fix 06/04 by DatLT, comment and add new code
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-            })
+                {
+                    /*options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                    //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;*/
+                    //fix 06/04 by DatLT, comment and add new code
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.SaveToken = true;
@@ -148,8 +153,6 @@ namespace Washouse.Web
                     //googleOptions.CallbackPath = "/loginWithGoogle";
                     googleOptions.SaveTokens = true;
                     googleOptions.Scope.Add("https://www.googleapis.com/auth/user.phonenumbers.read");
-
-
                 })
                 .AddCookie(options =>
                 {
@@ -176,9 +179,9 @@ namespace Washouse.Web
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ICloudStorageService, CloudStorageService>();
-            services.AddTransient<IUnitOfWork, UnitOfWork>(); 
-            services.AddTransient<IDbFactory, DbFactory>(); 
-            services.AddTransient<ICenterService, CenterService>(); 
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IDbFactory, DbFactory>();
+            services.AddTransient<ICenterService, CenterService>();
             services.AddTransient<ICenterRepository, CenterRepository>();
             services.AddTransient<IServiceCategoryService, ServiceCategoryService>();
             services.AddTransient<IServiceCategoryRepository, ServiceCategoryRepository>();
@@ -219,6 +222,7 @@ namespace Washouse.Web
             services.AddTransient<IFeedbackService, FeedbackService>();
             services.AddTransient<IDeliveryPriceChartRepository, DeliveryPriceChartRepository>();
             services.AddTransient<IOrderDetailRepository, OrderDetailRepository>();
+            services.AddTransient<IOrderDetailService, OrderDetailService>();
             services.AddTransient<IOrderRepository, OrderRepository>();
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IServicePriceRepository, ServicePriceRepository>();
@@ -257,6 +261,7 @@ namespace Washouse.Web
                 //app.UseSwagger();
                 //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Washouse.Web v1"));
             }
+
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Washouse.Web v1"));
 
