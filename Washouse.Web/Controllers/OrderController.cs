@@ -1,35 +1,27 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using NuGet.Protocol;
+using Washouse.Common.Helpers;
+using Washouse.Common.Mails;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
-using Washouse.Service.Implement;
-using Washouse.Service.Interface;
-using Washouse.Web.Models;
-using Microsoft.CodeAnalysis;
-using System.Linq;
-using Washouse.Common.Helpers;
-using NuGet.Protocol;
 using Washouse.Model.ResponseModels;
-using System.Globalization;
-using Washouse.Common.Utils;
-using Microsoft.Extensions.Options;
-using Washouse.Model.ViewModel;
-using static Google.Apis.Requests.BatchRequest;
-using Org.BouncyCastle.Bcpg;
-using Washouse.Common.Mails;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
-using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using Microsoft.AspNetCore.Authorization;
-using System.Data;
-using Microsoft.AspNetCore.SignalR;
+using Washouse.Model.ViewModel;
+using Washouse.Service.Interface;
 using Washouse.Web.Hubs;
+using Washouse.Web.Models;
 
 namespace Washouse.Web.Controllers
 {
@@ -192,7 +184,7 @@ namespace Washouse.Web.Controllers
                         }
                     }
                     //add Location
-                    var location = new Model.Models.Location();
+                    var location = new Location();
                     location.AddressString = AddressString;
                     location.WardId = createOrderRequestModel.Order.CustomerWardId;
                     location.Latitude = Latitude;
@@ -397,7 +389,7 @@ namespace Washouse.Web.Controllers
                             }
                         }
                         //add Location
-                        var deliveryLocation = new Model.Models.Location();
+                        var deliveryLocation = new Location();
                         deliveryLocation.AddressString = deliveryAddressString;
                         deliveryLocation.WardId = item.WardId;
                         deliveryLocation.Latitude = deliveryLatitude;
@@ -1149,8 +1141,8 @@ namespace Washouse.Web.Controllers
                 response.DeliveryPrice = order.DeliveryPrice;
                 response.CancelReasonByStaff = order.CancelReasonByStaff;
                 response.CancelReasonByCustomer = order.CancelReasonByCustomer;
-                response.PreferredDropoffTime = order.PreferredDropoffTime.HasValue ? (order.PreferredDropoffTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
-                response.PreferredDeliverTime = order.PreferredDeliverTime.HasValue ? (order.PreferredDeliverTime.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
+                response.PreferredDropoffTime = order.PreferredDropoffTime?.ToString("dd-MM-yyyy HH:mm:ss");
+                response.PreferredDeliverTime = order.PreferredDeliverTime?.ToString("dd-MM-yyyy HH:mm:ss");
                 response.Status = order.Status;
                 var OrderedDetails = new List<OrderDetailInfomationModel>();
                 var OrderTrackings = new List<OrderTrackingModel>();
@@ -1170,12 +1162,12 @@ namespace Washouse.Web.Controllers
                 response.OrderPayment = OrderPayment;
                 
                 decimal TotalOrderValue = 0;
-                bool checkFirst = true;
+                var checkFirst = true;
                 foreach (var item in order.OrderDetails)
                 {
                     if (checkFirst)
                     {
-                        var center = await _centerService.GetById(item.Service.CenterId);
+                        var center = await _centerService.GetByIdIncludeAddress(item.Service.CenterId);
                         var Center = new CenterOfOrderModel()
                         {
                             CenterId = center.Id,
@@ -1193,8 +1185,8 @@ namespace Washouse.Web.Controllers
                         _orderDetailTrackingModel.Add(new OrderDetailTrackingModel
                         {
                             Status = tracking.Status,
-                            CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
-                            UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                            CreatedDate = tracking.CreatedDate?.ToString("dd-MM-yyyy HH:mm:ss"),
+                            UpdatedDate = tracking.UpdatedDate?.ToString("dd-MM-yyyy HH:mm:ss"),
                         });
                     }
                     OrderedDetails.Add(new OrderDetailInfomationModel
@@ -1218,8 +1210,8 @@ namespace Washouse.Web.Controllers
                     OrderTrackings.Add(new OrderTrackingModel
                     {
                         Status = tracking.Status,
-                        CreatedDate = tracking.CreatedDate.HasValue ? (tracking.CreatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
-                        UpdatedDate = tracking.UpdatedDate.HasValue ? (tracking.UpdatedDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null,
+                        CreatedDate = tracking.CreatedDate?.ToString("dd-MM-yyyy HH:mm:ss"),
+                        UpdatedDate = tracking.UpdatedDate?.ToString("dd-MM-yyyy HH:mm:ss"),
                     });
                 }
                 response.OrderTrackings = OrderTrackings;
@@ -1236,7 +1228,7 @@ namespace Washouse.Web.Controllers
                         DeliveryType = delivery.DeliveryType,
                         EstimatedTime = delivery.EstimatedTime,
                         Status = delivery.Status,
-                        DeliveryDate = delivery.DeliveryDate.HasValue ? (delivery.DeliveryDate.Value).ToString("dd-MM-yyyy HH:mm:ss") : null
+                        DeliveryDate = delivery.DeliveryDate?.ToString("dd-MM-yyyy HH:mm:ss")
                     });
                 }
                 response.OrderDeliveries = OrderDeliveries;

@@ -126,6 +126,17 @@ namespace Washouse.Data.Repositories
                 .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+        
+        public async Task<Center> GetByIdIncludeAddress(int id)
+        {
+            var data = await _dbContext.Centers
+                .Where(center => center.Id == id)
+                .Include(center => center.Location)
+                .ThenInclude(location => location.Ward)
+                .ThenInclude(ward => ward.District)
+                .FirstOrDefaultAsync();
+            return data;
+        }
 
         public async Task<Center> GetByIdToCreateOrder(int id)
         {

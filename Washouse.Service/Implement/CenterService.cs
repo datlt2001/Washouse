@@ -59,25 +59,32 @@ namespace Washouse.Service.Implement
         {
             return await _centerRepository.GetById(id);
         }
-        
+
         public async Task<Center> GetMyCenter(int id)
         {
             return await _centerRepository.GetMyCenter(id);
         }
-        
+
         public async Task<Center> GetByIdLightWeight(int id)
         {
             return await _centerRepository.GetByIdLightWeight(id);
         }
+
+        public async Task<Center> GetByIdIncludeAddress(int id)
+        {
+            return await _centerRepository.GetByIdIncludeAddress(id);
+        }
+
         public async Task<Center> GetDetailByIdLightWeight(int id)
         {
             return await _centerRepository.GetDetailByIdLightWeight(id);
         }
+
         public async Task<Center> GetByIdToCreateOrder(int id)
         {
             return await _centerRepository.GetByIdToCreateOrder(id);
         }
-        
+
         public async Task<Center> GetByIdAdminDetail(int id)
         {
             return await _centerRepository.GetByIdAdminDetail(id);

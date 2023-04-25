@@ -17,6 +17,6 @@ namespace Washouse.Data.Repositories
         Task<Center> GetMyCenter(int id);
         Task<Center> GetByIdToCreateOrder(int id);
         Task<Center> GetByIdAdminDetail(int id);
-
+        Task<Center> GetByIdIncludeAddress(int id);
     }
 }
