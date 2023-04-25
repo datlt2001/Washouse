@@ -13,6 +13,7 @@ namespace Washouse.Data.Repositories
         public IEnumerable<int> GetIDList();
         public IEnumerable<Feedback> GetAllByCenterId(int id);
         public IEnumerable<Feedback> GetAllByOrderId(string orderId);
+        public Task<Feedback> GetByOrderId(string orderId);
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId);
         public Task<IEnumerable<Feedback>> GetAllByServiceIdLW(int serviceId);
         Task<IEnumerable<Feedback>> GetMyFeedback(string Email);

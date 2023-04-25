@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
@@ -54,6 +51,11 @@ namespace Washouse.Service.Implement
         public IEnumerable<Feedback> GetAllByOrderId(string orderId)
         {
             return _feedbackRepository.GetAllByOrderId(orderId);
+        }
+
+        public async Task<Feedback> GetByOrderId(string orderId)
+        {
+            return await _feedbackRepository.GetByOrderId(orderId);
         }
 
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId)

@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-//using System.Data.Entity;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
+
+//using System.Data.Entity;
 
 namespace Washouse.Data.Repositories
 {
@@ -47,6 +46,12 @@ namespace Washouse.Data.Repositories
                 .Where(fb => fb.OrderId.Trim().ToLower().Equals(orderId.ToLower().Trim()))
                 .ToList();
             return data;
+        }
+
+        public async Task<Feedback> GetByOrderId(string orderId)
+        {
+            return await _dbContext.Feedbacks
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
         public IEnumerable<Feedback> GetAllByServiceId(int serviceId)
