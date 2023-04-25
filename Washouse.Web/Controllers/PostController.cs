@@ -21,8 +21,8 @@ namespace Washouse.Web.Controllers
 
         public PostController(IPostService postService, ICloudStorageService cloudStorageService)
         {
-            this._postService = postService;
-            this._cloudStorageService = cloudStorageService;
+            _postService = postService;
+            _cloudStorageService = cloudStorageService;
         }
 
         [HttpGet]
@@ -33,10 +33,16 @@ namespace Washouse.Web.Controllers
                 var post = _postService.GetAll();
                 post = post.Where(p => p.Status.Trim().ToLower().Equals("published"))
                     .OrderByDescending(p => p.UpdateDate ?? p.CreatedDate);
+                
                 if (filterPostModel.Type != null)
                 {
                     post = post.Where(p => p.Type.Trim().ToLower().Equals(filterPostModel.Type.ToLower().Trim()));
                 }
+
+                int totalItems = post.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
+                post = post.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize)
+                    .Take(filterPostModel.PageSize).ToList();
 
                 var response = new List<PostResponseModel>();
                 foreach (var postItem in post)
@@ -60,35 +66,19 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
-                int totalItems = response.Count();
-                int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
-                response = response.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize)
-                    .Take(filterPostModel.PageSize).ToList();
-                if (response.Count > 0)
+                return Ok(new ResponseModel
                 {
-                    return Ok(new ResponseModel
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
                     {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "success",
-                        Data = new
-                        {
-                            TotalItems = totalItems,
-                            TotalPages = totalPages,
-                            ItemsPerPage = filterPostModel.PageSize,
-                            PageNumber = filterPostModel.Page,
-                            Items = response
-                        }
-                    });
-                }
-                else
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found",
-                        Data = ""
-                    });
-                }
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filterPostModel.PageSize,
+                        PageNumber = filterPostModel.Page,
+                        Items = response
+                    }
+                });
             }
             catch (Exception ex)
             {

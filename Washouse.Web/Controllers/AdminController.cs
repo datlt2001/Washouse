@@ -1,25 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using System;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
+using Washouse.Model.ResponseModels.AdminResponseModel;
+using Washouse.Model.ViewModel;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
-using Microsoft.AspNetCore.Authorization;
-using Twilio.Http;
-using Washouse.Model.ResponseModels.AdminResponseModel;
-using Washouse.Common.Helpers;
-using Washouse.Service.Implement;
-using Washouse.Model.Models;
-using System.Globalization;
-using static Google.Apis.Requests.BatchRequest;
-using Washouse.Model.ResponseModels.ManagerResponseModel;
-using System.Security.Principal;
-using Washouse.Model.ViewModel;
 
 namespace Washouse.Web.Controllers
 {
@@ -387,15 +380,8 @@ namespace Washouse.Web.Controllers
             try
             {
                 var post = _postService.GetAll();
-                if (post.Count() == 0)
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found",
-                        Data = ""
-                    });
-                }
+                post = post
+                    .OrderByDescending(p => p.UpdateDate ?? p.CreatedDate);
 
                 if (filterPostModel.Type != null)
                 {
@@ -406,7 +392,12 @@ namespace Washouse.Web.Controllers
                 {
                     post = post.Where(p => p.Status.Trim().ToLower().Equals(filterPostModel.Status.ToLower().Trim()));
                 }
-
+                
+                int totalItems = post.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
+                post = post.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize)
+                    .Take(filterPostModel.PageSize).ToList();
+                
                 var response = new List<PostResponseModel>();
                 foreach (var postItem in post)
                 {
@@ -423,41 +414,23 @@ namespace Washouse.Web.Controllers
                         Status = postItem.Status,
                         Description = postItem.Description,
                         CreatedDate = (postItem.CreatedDate).ToString("dd-MM-yyyy HH:mm:ss"),
-                        UpdatedDate = postItem.UpdateDate.HasValue
-                            ? (postItem.UpdateDate.Value).ToString("dd-MM-yyyy HH:mm:ss")
-                            : null
+                        UpdatedDate = postItem.UpdateDate?.ToString("dd-MM-yyyy HH:mm:ss")
                     });
                 }
 
-                int totalItems = response.Count();
-                int totalPages = (int)Math.Ceiling((double)totalItems / filterPostModel.PageSize);
-                response = response.Skip((filterPostModel.Page - 1) * filterPostModel.PageSize)
-                    .Take(filterPostModel.PageSize).ToList();
-                if (response.Count > 0)
+                return Ok(new ResponseModel
                 {
-                    return Ok(new ResponseModel
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
                     {
-                        StatusCode = StatusCodes.Status200OK,
-                        Message = "success",
-                        Data = new
-                        {
-                            TotalItems = totalItems,
-                            TotalPages = totalPages,
-                            ItemsPerPage = filterPostModel.PageSize,
-                            PageNumber = filterPostModel.Page,
-                            Items = response
-                        }
-                    });
-                }
-                else
-                {
-                    return NotFound(new ResponseModel
-                    {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Not found",
-                        Data = ""
-                    });
-                }
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        ItemsPerPage = filterPostModel.PageSize,
+                        PageNumber = filterPostModel.Page,
+                        Items = response
+                    }
+                });
             }
             catch (Exception ex)
             {
