@@ -611,7 +611,37 @@ namespace Washouse.Web.Controllers
                     centerDeliveryPrices.Add(centerDeliveryPrice);
                 }
 
+                var feedbacks = await _feedbackService.GetAllByCenterIdAsync(center.Id);
+                int stc1 = 0, stc2 = 0, stc3 = 0, stc4 = 0, stc5 = 0;
+                foreach (var feedback in feedbacks)
+                {
+                    if (feedback.Rating == 1)
+                    {
+                        stc1++;
+                    }
 
+                    if (feedback.Rating == 2)
+                    {
+                        stc2++;
+                    }
+
+                    if (feedback.Rating == 3)
+                    {
+                        stc3++;
+                    }
+
+                    if (feedback.Rating == 4)
+                    {
+                        stc4++;
+                    }
+
+                    if (feedback.Rating == 5)
+                    {
+                        stc5++;
+                    }
+                }
+
+                response.Ratings = new [] { stc1, stc2, stc3, stc4, stc5 };
                 response.Id = center.Id;
                 response.Thumbnail = center.Image != null
                     ? await _cloudStorageService.GetSignedUrlAsync(center.Image)

@@ -16,6 +16,7 @@ namespace Washouse.Model.ResponseModels
             CenterOperatingHours = new HashSet<CenterOperatingHoursResponseModel>();
             CenterDeliveryPrices = new HashSet<CenterDeliveryPriceChartResponseModel>();
         }
+
         public int Id { get; set; }
         public string Thumbnail { get; set; }
         public string Title { get; set; }
@@ -34,6 +35,7 @@ namespace Washouse.Model.ResponseModels
         public bool HasDelivery { get; set; }
         public bool HasOnlinePayment { get; set; }
         public bool IsOpening { get; set; }
+        public int[] Ratings { get; set; }
         public DateTime? LastDeactivate { get; set; }
         public int NumOfPromotionAvailable { get; set; }
         public virtual ICollection<CenterDeliveryPriceChartResponseModel> CenterDeliveryPrices { get; set; }
