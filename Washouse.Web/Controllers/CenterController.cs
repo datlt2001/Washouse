@@ -115,6 +115,13 @@ namespace Washouse.Web.Controllers
                     ).ToList();
                 }
 
+                if (filterCentersRequestModel.DistrictId != null)
+                {
+                    centerList = centerList.Where(res =>
+                        res.Location.Ward.DistrictId == filterCentersRequestModel.DistrictId
+                    ).ToList();
+                }
+
                 var response = new List<CenterResponseModel>();
                 foreach (var center in centerList)
                 {

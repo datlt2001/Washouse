@@ -27,5 +27,6 @@ namespace Washouse.Model.RequestModels
         public bool HasOnlinePayment { get; set; }
         public decimal? CurrentUserLatitude { get; set; }
         public decimal? CurrentUserLongitude { get; set; }
+        public int? DistrictId { get; set; }
     }
 }
