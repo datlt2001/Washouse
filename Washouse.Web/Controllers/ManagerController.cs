@@ -1878,11 +1878,12 @@ namespace Washouse.Web.Controllers
                         //payment
                         if (payment.Discount != null)
                         {
-                            decimal total = payment.Total / (1 - (decimal)payment.Discount) - orderDetail.Price +
-                                            totalCurrentPrice;
+                            decimal total = (payment.Total / (1 - (decimal)payment.Discount) - orderDetail.Price +
+                                            totalCurrentPrice) * (1 - (decimal)payment.Discount);
+                            int roundedTotal = (int)Math.Round(total);
                             if (total > 0)
                             {
-                                payment.Total = total;
+                                payment.Total = roundedTotal;
                             }
                             else
                             {
