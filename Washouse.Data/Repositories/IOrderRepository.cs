@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 
 namespace Washouse.Data.Repositories
 {
@@ -12,6 +13,7 @@ namespace Washouse.Data.Repositories
     {
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
         Task<Order> GetOrderById(string orderId);
+        Task<StaffStatisticModel> GetStaffStatistics(int centerId);
         Task<IEnumerable<Order>> GetOrdersOfCustomer(int customerId, string customerMobile);
     }
 }

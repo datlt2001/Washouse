@@ -3093,6 +3093,7 @@ namespace Washouse.Web.Controllers
         }
 
         [HttpGet("my-center/feedbacks")]
+        [Authorize(Roles = "Manager, Staff")]
         public async Task<IActionResult> GetMyCenterFeedback([FromQuery] GetCenterFeedbacksModel filter)
         {
             var center = await _centerService.GetByIdLightWeight(int.Parse(User.FindFirst("CenterManaged")?.Value));
@@ -3184,5 +3185,47 @@ namespace Washouse.Web.Controllers
                 }
             });
         }
+
+
+        [HttpGet("my-center/staff_statistic")]
+        [Authorize(Roles = "Manager, Staff")]
+        public async Task<IActionResult> GetStaffStatistic()
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    var staffStatistic = await _orderService.GetStaffStatistics(center.Id);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = staffStatistic
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+
     }
 }

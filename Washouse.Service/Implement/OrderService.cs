@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.Models;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Service.Interface;
 
 namespace Washouse.Service.Implement
@@ -153,6 +154,18 @@ namespace Washouse.Service.Implement
             try
             {
                 return await _orderRepository.GetOrderById(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<StaffStatisticModel> GetStaffStatistics(int centerId)
+        {
+            try
+            {
+                return await _orderRepository.GetStaffStatistics(centerId);
             }
             catch (Exception ex)
             {

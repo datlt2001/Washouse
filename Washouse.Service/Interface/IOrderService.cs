@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Washouse.Model.Models;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 
 namespace Washouse.Service.Interface
 {
@@ -20,5 +21,6 @@ namespace Washouse.Service.Interface
         Task<IEnumerable<Order>> GetAllOfDay(string date);
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
         Task<Order> GetOrderById(string orderId);
+        Task<StaffStatisticModel> GetStaffStatistics(int centerId);
     }
 }
