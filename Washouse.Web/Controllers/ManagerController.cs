@@ -1632,6 +1632,15 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
+                    if (center.Id != order.OrderDetails.First().Service.CenterId)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Not have permission",
+                            Data = null
+                        });
+                    }
 
                     var response = new OrderInfomationModel();
                     response.Id = id;
