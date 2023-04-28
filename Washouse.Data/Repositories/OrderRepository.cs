@@ -109,15 +109,22 @@ namespace Washouse.Data.Repositories
             var orders = (from o in _dbContext.Orders
                                  join od in _dbContext.OrderDetails on o.Id equals od.OrderId
                                  join s in _dbContext.Services on od.ServiceId equals s.Id
-                                 where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
+                          where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
                                  select o).Distinct();
+            var orders_delivery = (from o in _dbContext.Orders
+                          join od in _dbContext.OrderDetails on o.Id equals od.OrderId
+                          join s in _dbContext.Services on od.ServiceId equals s.Id
+                          join d in _dbContext.Deliveries on o.Id equals d.OrderId
+                          where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
+                                && (d.Status.Trim().ToLower() == "pending" || d.Status.Trim().ToLower() == "delivering")
+                          select o).Distinct();
             var orderOverview = new OrderOverview
                                 {
                                     NumOfPendingOrder = orders.Count(o => o.Status.ToLower().Trim() == "pending"),
                                     NumOfProcessingOrder = orders.Count(o => o.Status.ToLower().Trim() == "processing" || o.Status.ToLower().Trim() == "received"
                                                                     || o.Status.ToLower().Trim() == "confirmed"),
                                     NumOfReadyOrder = orders.Count(o => o.Status.ToLower().Trim() == "ready"),
-                                    NumOfPendingDeliveryOrder = orders.Count(o => o.DeliveryType != 0),
+                                    NumOfPendingDeliveryOrder = orders_delivery.Count(),
                                     NumOfCompletedOrder = orders.Count(o => o.Status.ToLower().Trim() == "completed"),
                                     NumOfCancelledOrder = orders.Count(o => o.Status.ToLower().Trim() == "cancelled"),
                                 };
@@ -135,12 +142,16 @@ namespace Washouse.Data.Repositories
                           where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
                           select o
                       ).Distinct()
-                                  group o by o.CreatedDate.Value.Date into g
+                                  join p in _dbContext.Payments on o.Id equals p.OrderId into pg
+                                  from payment in pg.DefaultIfEmpty()
+                                  group new { o, payment } by o.CreatedDate.Value.Date into g
                                   select new DailyStatistic
                                   {
                                       Day = g.Key.ToString("dd-MM-yyyy"),
-                                      SuccessfulOrder = g.Count(o => o.Status.ToLower().Trim() != "cancelled"),
-                                      CancelledOrder = g.Count(o => o.Status.ToLower().Trim() == "cancelled"),
+                                      TotalOrder = g.Count(),
+                                      SuccessfulOrder = g.Count(o => o.o.Status.ToLower().Trim() == "completed"),
+                                      CancelledOrder = g.Count(o => o.o.Status.ToLower().Trim() == "cancelled"),
+                                      Revenue = g.Sum(x => x.payment != null ? x.payment.Total : 0)
                                   };
 
             // Left join the two lists on the date field to get all dates with zero successful/cancelled orders
@@ -150,8 +161,10 @@ namespace Washouse.Data.Repositories
                          select new DailyStatistic
                          {
                              Day = date,
+                             TotalOrder = subDs == null ? 0 : subDs.TotalOrder,
                              SuccessfulOrder = subDs == null ? 0 : subDs.SuccessfulOrder,
                              CancelledOrder = subDs == null ? 0 : subDs.CancelledOrder,
+                             Revenue = subDs == null ? 0 : subDs.Revenue
                          };
             return new StaffStatisticModel
             {

@@ -3187,9 +3187,9 @@ namespace Washouse.Web.Controllers
         }
 
 
-        [HttpGet("my-center/staff_statistic")]
+        [HttpGet("my-center/staff-statistics")]
         [Authorize(Roles = "Manager, Staff")]
-        public async Task<IActionResult> GetStaffStatistic()
+        public async Task<IActionResult> GetStaffStatistics()
         {
             try
             {
