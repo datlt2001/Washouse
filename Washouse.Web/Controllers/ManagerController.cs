@@ -3226,6 +3226,113 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [HttpGet("my-center/services")]
+        [Authorize(Roles = "Manager, Staff")]
+        public async Task<IActionResult> GetCenterServices()
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center",
+                        Data = null
+                    });
+                }
+                var services = await _serviceService.GetAllByCenterId(center.Id);
+                services = services.Where(ser => ser.Status.ToLower().Trim().Equals("active")).ToList();
+                var servicesOfCenter = new List<MyCenterServiceResponseModel>();
+                var centerServices = new List<ManagerCenterServiceResponseModel>();
+                foreach (var item in services)
+                {
+                    var servicePriceViewModels = new List<ServicePriceViewModel>();
+                    foreach (var servicePrice in item.ServicePrices)
+                    {
+                        var sp = new ServicePriceViewModel
+                        {
+                            MaxValue = servicePrice.MaxValue,
+                            Price = servicePrice.Price
+                        };
+                        servicePriceViewModels.Add(sp);
+                    }
+
+                    var service = new MyCenterServiceResponseModel
+                    {
+                        ServiceId = item.Id,
+                        CategoryId = item.CategoryId,
+                        ServiceName = item.ServiceName,
+                        PriceType = item.PriceType,
+                        Price = item.Price,
+                        MinPrice = item.MinPrice,
+                        Unit = item.Unit,
+                        Rate = item.Rate,
+                        Prices = servicePriceViewModels.OrderByDescending(a => a.Price).ToList(),
+                        TimeEstimate = item.TimeEstimate
+                    };
+                    servicesOfCenter.Add(service);
+                }
+                decimal minPrice = 0, maxPrice = 0;
+                foreach (var service in services)
+                {
+                    if (service.PriceType)
+                    {
+                        foreach (var servicePrice in service.ServicePrices)
+                        {
+                            if (minPrice > service.MinPrice || minPrice == 0)
+                            {
+                                minPrice = (decimal)service.MinPrice;
+                            }
+
+                            if (maxPrice < (servicePrice.Price * servicePrice.MaxValue) || maxPrice == 0)
+                            {
+                                maxPrice = (decimal)(servicePrice.Price * servicePrice.MaxValue);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (minPrice > service.Price || minPrice == 0)
+                        {
+                            minPrice = (decimal)service.Price;
+                        }
+
+                        if (maxPrice < service.Price || maxPrice == 0)
+                        {
+                            maxPrice = (decimal)service.Price;
+                        }
+                    }
+
+                    var centerService = new ManagerCenterServiceResponseModel
+                    {
+                        ServiceCategoryID = service.CategoryId,
+                        ServiceCategoryName = service.Category.CategoryName,
+                        Services = servicesOfCenter.Where(ser => ser.CategoryId == service.CategoryId).ToList()
+                    };
+                    if (centerServices.FirstOrDefault(cs =>
+                            cs.ServiceCategoryID == centerService.ServiceCategoryID) ==
+                        null) centerServices.Add(centerService);
+                }
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = centerServices
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
 
     }
 }
