@@ -1442,5 +1442,99 @@ namespace Washouse.Web.Controllers
             _centerService.ActivateCenter(center.Id);
             return Ok();
         }
+
+        //[Route("Details/{id}")]
+        // GET: api/centers/2
+        [HttpGet("{id}/operating-times")]
+        public async Task<IActionResult> GetOperatingTime(int id)
+        {
+            try
+            {
+                var center = await _centerService.GetCenterOperatingTimes(id);
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role == null || role.Trim().ToLower().Equals("customer"))
+                {
+                    if (!(center.Status.Trim().ToLower().Equals("active")
+                          || center.Status.Trim().ToLower().Equals("updating")))
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Center not available",
+                            Data = null
+                        });
+                    }
+                }
+
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+
+                var response = new List<CenterOperatingHoursResponseModel>();
+                
+                List<int> dayOffs = new List<int>();
+                for (int i = 0; i < 7; i++)
+                {
+                    dayOffs.Add(i);
+                }
+
+                foreach (var item in center.OperatingHours)
+                {
+                    dayOffs.Remove(item.DaysOfWeek.Id);
+                    var centerOperatingHour = new CenterOperatingHoursResponseModel
+                    {
+                        Day = item.DaysOfWeek.Id,
+                        OpenTime = item.OpenTime,
+                        CloseTime = item.CloseTime
+                    };
+                    response.Add(centerOperatingHour);
+                }
+
+                foreach (var item in dayOffs)
+                {
+                    var dayOff = new CenterOperatingHoursResponseModel
+                    {
+                        Day = item,
+                        OpenTime = null,
+                        CloseTime = null
+                    };
+                    response.Add(dayOff);
+                }
+
+                string[] offs = null;
+                if (center.MonthOff != null)
+                {
+                    offs = center.MonthOff.Split('-');
+                }
+
+                response= response.OrderBy(a => a.Day).ToList();
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = new
+                    {
+                        MonthOff = offs,
+                        OperatingTimes = response
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }

@@ -79,7 +79,12 @@ namespace Washouse.Service.Implement
         {
             return await _centerRepository.GetDetailByIdLightWeight(id);
         }
-
+        
+        public async Task<Center> GetCenterOperatingTimes(int id)
+        {
+            return await _centerRepository.GetCenterOperatingTimes(id);
+        }
+        
         public async Task<Center> GetByIdToCreateOrder(int id)
         {
             return await _centerRepository.GetByIdToCreateOrder(id);

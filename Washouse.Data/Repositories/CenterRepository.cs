@@ -165,6 +165,17 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
+        public async Task<Center> GetCenterOperatingTimes(int id)
+        {
+            var data = await _dbContext.Centers
+                .Where(center => center.Id == id)
+                .Include(center => center.OperatingHours)
+                .ThenInclude(oh => oh.DaysOfWeek)
+                .FirstOrDefaultAsync();
+            //.Include(center => center.Promotions)
+            return data;
+        }
+
         public async Task<Center> GetByIdAdminDetail(int id)
         {
             var data = await this._dbContext.Centers
