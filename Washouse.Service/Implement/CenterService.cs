@@ -16,14 +16,16 @@ namespace Washouse.Service.Implement
     {
         ICenterRepository _centerRepository;
         ICenterRequestRepository _centerRequestRepository;
+        IDeliveryPriceChartRepository _deliveryPriceChartRepository;
         IUnitOfWork _unitOfWork;
 
         public CenterService(ICenterRepository centerRepository, IUnitOfWork unitOfWork,
-            ICenterRequestRepository centerRequestRepository)
+            ICenterRequestRepository centerRequestRepository, IDeliveryPriceChartRepository deliveryPriceChartRepository)
         {
             this._centerRepository = centerRepository;
             this._unitOfWork = unitOfWork;
             _centerRequestRepository = centerRequestRepository;
+            _deliveryPriceChartRepository = deliveryPriceChartRepository;
         }
 
         public async Task<IEnumerable<Center>> GetAll()
@@ -95,9 +97,16 @@ namespace Washouse.Service.Implement
             return await _centerRepository.GetByIdAdminDetail(id);
         }
 
-        public async Task Add(Center center)
+        public async Task Add(Center center, List<DeliveryPriceChart> deliveryPriceCharts)
         {
             await _centerRepository.Add(center);
+            _unitOfWork.Commit();
+
+            foreach (var item in deliveryPriceCharts)
+            {
+                item.CenterId = center.Id;
+                await _deliveryPriceChartRepository.Add(item);
+            }
         }
 
         public void SaveChanges()

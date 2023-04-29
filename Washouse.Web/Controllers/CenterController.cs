@@ -812,7 +812,7 @@ namespace Washouse.Web.Controllers
                     //Add Location
                     location.AddressString = createCenterRequestModel.Location.AddressString;
                     location.WardId = createCenterRequestModel.Location.WardId;
-                    var ward = new Ward();
+                    /*var ward = new Ward();
                     try
                     {
                         ward = await _wardService.GetWardById(location.WardId);
@@ -845,7 +845,7 @@ namespace Washouse.Web.Controllers
                             }
                         }
                     }
-
+*/
                     if (createCenterRequestModel.Location.Latitude != null &&
                         createCenterRequestModel.Location.Latitude != 0)
                     {
@@ -916,14 +916,36 @@ namespace Washouse.Web.Controllers
                     center.Rating = null;
                     center.NumOfRating = 0;
                     //center.HasDelivery = (bool)createCenterRequestModel.Center.HasDelivery;
-                    center.HasDelivery = false;
+                    CenterDeliveryRequestModel centerDelivery =
+                        JsonConvert.DeserializeObject<CenterDeliveryRequestModel>(createCenterRequestModel
+                            .CenterDelivery.ToJson());
+
+                    center.HasDelivery = centerDelivery.HasDelivery;
                     center.HasOnlinePayment = false;
                     center.CreatedDate = DateTime.Now;
                     center.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
                     center.UpdatedDate = null;
                     center.UpdatedBy = null;
+                    var deliveryPriceCharts = new List<DeliveryPriceChart>();
+                    foreach (var item in centerDelivery.DeliveryPrice)
+                    {
+                        CenterDeliveryPriceChartRequestModel centerDeliveryPriceItem =
+                        JsonConvert.DeserializeObject<CenterDeliveryPriceChartRequestModel>(item.ToJson());
+                        deliveryPriceCharts.Add(new DeliveryPriceChart()
+                        {
+                            CenterId = center.Id,
+                            MaxDistance = item.MaxDistance,
+                            MaxWeight = item.MaxWeight,
+                            Price = item.Price,
+                            Status = true,
+                            CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                            CreatedDate = DateTime.Now,
+                            UpdatedDate = null,
+                            UpdatedBy = null
+                    });
+                    }
 
-                    await _centerService.Add(center);
+                    await _centerService.Add(center, deliveryPriceCharts);
                     manager.CenterId = center.Id;
                     await _staffService.Update(manager);
 
@@ -968,6 +990,13 @@ namespace Washouse.Web.Controllers
                         resource.UpdatedBy = null;
 
                     }*/
+
+
+                    //Add Delivery Price
+                    /*CenterDeliveryRequestModel centerDelivery =
+                        JsonConvert.DeserializeObject<CenterDeliveryRequestModel>(createCenterRequestModel
+                            .CenterDelivery.ToJson());*/
+                    
 
                     return Ok(new ResponseModel
                     {
