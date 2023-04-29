@@ -1,18 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NuGet.Common;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -20,11 +15,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Twilio.Http;
 using Washouse.Common.Helpers;
 using Washouse.Common.Mails;
 using Washouse.Data;
@@ -32,11 +24,8 @@ using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Model.ViewModel;
-using Washouse.Service;
-using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
-using static Google.Apis.Requests.BatchRequest;
 using HttpClient = System.Net.Http.HttpClient;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -915,7 +904,7 @@ namespace Washouse.Web.Controllers
                     Email = Input.Email,
                     Password = Input.Password,
                     FullName = Input.Phone,
-                    Status = false,
+                    Status = true,
                     //RoleType = "Manager",
                     //ProfilePic = await Utilities.UploadFile(Input.profilePic, @"images\accounts\managers", Input.profilePic.FileName),
                     CreatedDate = DateTime.Now,
@@ -935,7 +924,7 @@ namespace Washouse.Web.Controllers
                 var manager = new Staff()
                 {
                     AccountId = accounts.Id,
-                    Status = false,
+                    Status = true,
                     IsManager = false,
                     CenterId = null,
                     //IdFrontImg = await Utilities.UploadFile(Input.IdFrontImg, @"images\accounts\managers", Input.profilePic.FileName),
