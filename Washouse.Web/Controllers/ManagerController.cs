@@ -3196,7 +3196,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-
+            feedbacks = feedbacks.OrderByDescending(x => x.CreatedDate).ToList();
             if (filter.ServiceId != null)
             {
                 feedbacks = feedbacks.Where(fb => Equals(fb.ServiceId, filter.ServiceId));
