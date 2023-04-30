@@ -368,7 +368,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 var staffInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                var center = await _centerService.GetById((int)staffInfo.CenterId);
+                var center = await _centerService.GetByIdLightWeight((int)staffInfo.CenterId);
 
                 var service = await _serviceService.GetById(serviceId);
                 if (service == null || !Equals(center.Id, service.CenterId))
@@ -417,7 +417,8 @@ namespace Washouse.Web.Controllers
                                 MaxValue = sp.MaxValue
                             });
                 }
-                _serviceService.Update(service);
+
+                await _serviceService.Update(service);
 
                 return Ok();
             }
