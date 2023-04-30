@@ -1538,6 +1538,9 @@ namespace Washouse.Web.Controllers
                             Discount = order.Payments.Count > 0 ? order.Payments.First().Discount : 0,
                             TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
                             Status = order.Status,
+                            IsFeedback = order.IsFeedback,
+                            IsPayment = (order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("paid") ||
+                                            order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("received")),
                             CenterId = center.Id,
                             CenterName = center.CenterName,
                             Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
@@ -1766,6 +1769,82 @@ namespace Washouse.Web.Controllers
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
                         Data = response
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager,Staff")]
+        [HttpPut("my-center/orders/{id}/paid")]
+        public async Task<IActionResult> OrderPaid(string id)
+        {
+            try
+            {
+                var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
+                var center = await _centerService.GetByIdLightWeight((int)managerInfo.CenterId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    var order = await _orderService.GetOrderWithPayment(id);
+                    if (order == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found order",
+                            Data = null
+                        });
+                    }
+                    if (center.Id != order.OrderDetails.First().Service.CenterId)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Not have permission",
+                            Data = null
+                        });
+                    }
+                    var payment = order.Payments.FirstOrDefault();
+                    if (payment.PaymentMethod != 0) 
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Payment method is not cash",
+                            Data = null
+                        });
+                    }
+                    payment.Status = "Paid";
+                    payment.Date = DateTime.Now;
+                    payment.UpdatedDate = DateTime.Now;
+                    payment.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _paymentService.Update(payment);
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            OrderId = order.Id
+                        }
                     });
                 }
             }

@@ -161,6 +161,18 @@ namespace Washouse.Service.Implement
             }
         }
 
+        public async Task<Order> GetOrderWithPayment(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderWithPayment(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<StaffStatisticModel> GetStaffStatistics(int centerId)
         {
             try

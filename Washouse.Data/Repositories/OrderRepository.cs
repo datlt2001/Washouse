@@ -172,5 +172,15 @@ namespace Washouse.Data.Repositories
                 dailystatistics = result.ToList(),
             };
         }
+
+        public async Task<Order> GetOrderWithPayment(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Include(order => order.Payments)
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                    .FirstOrDefaultAsync(order => order.Id == id);
+            return data;
+        }
     }
 }
