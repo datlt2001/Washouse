@@ -947,6 +947,7 @@ namespace Washouse.Web.Controllers
 
                     await _centerService.Add(center, deliveryPriceCharts);
                     manager.CenterId = center.Id;
+                    manager.IsManager = true;
                     await _staffService.Update(manager);
 
 

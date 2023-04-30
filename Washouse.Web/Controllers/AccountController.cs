@@ -278,7 +278,7 @@ namespace Washouse.Web.Controllers
             }
             else
             {
-                if (staff != null)
+                if (staff != null && staff.CenterId != null)
                 {
                     if (staff.IsManager != null && staff.IsManager == true)
                     {
@@ -290,7 +290,7 @@ namespace Washouse.Web.Controllers
                         Role = "Staff";
                     }
                 }
-                else if (staff == null)
+                else if (staff == null || staff.CenterId == null)
                 {
                     Role = "User";
                 }
