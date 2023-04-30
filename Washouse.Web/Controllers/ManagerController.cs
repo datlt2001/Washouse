@@ -2227,7 +2227,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager, Staff")]
         //POST: api/orders
         [HttpPost("my-center/orders")]
-        public async Task<IActionResult> CreateOrder([FromBody] StaffCreateOrderRequestModel createOrderRequestModel)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestModel createOrderRequestModel)
         {
             try
             {
@@ -2235,19 +2235,7 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
-                    var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
-                    var CenterId = (int)managerInfo.CenterId;
-                    var center = await _centerService.GetById(CenterId);
-                    if (center == null)
-                    {
-                        return BadRequest(new ResponseModel
-                        {
-                            StatusCode = StatusCodes.Status400BadRequest,
-                            Message = "You are not in any center",
-                            Data = null
-                        });
-                    }
-
+                    var center = await _centerService.GetByIdToCreateOrder(createOrderRequestModel.CenterId);
                     DateTime UserPreferredDropoffTime;
                     if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) &&
                         DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
@@ -2268,6 +2256,8 @@ namespace Washouse.Web.Controllers
                                 Message = "PreferredDropoffTime: " + ex.Message,
                                 Data = null
                             });
+                            //Console.WriteLine("Failed to parse date: " + ex.Message);
+                            // handle the parse failure
                         }
                     }
                     else
@@ -2302,11 +2292,10 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    var promotion = new Promotion();
+                    /*var promotion = new Promotion();
                     if (createOrderRequestModel.PromoCode != null)
                     {
-                        var promo = await _promotionService.CheckValidPromoCode(CenterId,
-                            createOrderRequestModel.PromoCode);
+                        var promo = await _promotionService.CheckValidPromoCode(createOrderRequestModel.CenterId, createOrderRequestModel.PromoCode);
 
                         if (promo == null)
                         {
@@ -2323,8 +2312,7 @@ namespace Washouse.Web.Controllers
                     else
                     {
                         promotion = null;
-                    }
-
+                    }*/
                     //location
                     decimal? Latitude = null;
                     decimal? Longitude = null;
@@ -2426,10 +2414,8 @@ namespace Washouse.Web.Controllers
                             : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
                                 "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     //order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-                    order.Status = "Pending";
-                    order.CreatedBy = customer.Email != null
-                        ? customer.Email
-                        : createOrderRequestModel.Order.CustomerEmail;
+                    order.Status = "Confirmed";
+                    order.CreatedBy = User.FindFirst(ClaimTypes.Role)?.Value;
                     order.CreatedDate = DateTime.Now;
 
                     //create List OrderDetails
@@ -2453,12 +2439,12 @@ namespace Washouse.Web.Controllers
                         }
                         else
                         {
-                            if (serviceItem.CenterId != CenterId)
+                            if (serviceItem.CenterId != createOrderRequestModel.CenterId)
                             {
                                 return BadRequest(new ResponseModel
                                 {
                                     StatusCode = StatusCodes.Status400BadRequest,
-                                    Message = "Service is not of this center or not valid",
+                                    Message = "Service is not of this center of is not valid",
                                     Data = null
                                 });
                             }
@@ -2514,7 +2500,7 @@ namespace Washouse.Web.Controllers
                             Measurement = item.Measurement,
                             Price = item.Price,
                             CustomerNote = item.CustomerNote,
-                            StaffNote = item.StaffNote,
+                            StaffNote = User.FindFirst(ClaimTypes.Role)?.Value == "Staff" ? item.StaffNote : null,
                         });
 
                         totalPayment = totalPayment + item.Price;
@@ -2598,7 +2584,7 @@ namespace Washouse.Web.Controllers
                             EstimatedTime = estimatedTime,
                             DeliveryType = item.DeliveryType,
                             DeliveryDate = deliveryDate,
-                            Status = "Waiting",
+                            Status = "Pending",
                             CreatedBy = customer.Email != null
                                 ? customer.Email
                                 : createOrderRequestModel.Order.CustomerEmail,
@@ -2618,38 +2604,45 @@ namespace Washouse.Web.Controllers
                     payment.PlatformFee = Utilities.platformFee;
                     payment.Date = null;
                     payment.Status = "Pending";
-                    payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
+                    //payment.PromoCode = createOrderRequestModel.PromoCode != null ? promotion.Id : null;
+                    payment.PromoCode = null;
                     payment.PaymentMethod = createOrderRequestModel.PaymentMethod;
-                    payment.Discount = promotion != null ? promotion.Discount : 0;
-                    payment.Total = payment.PromoCode != null
-                        ? (totalPayment * (1 - promotion.Discount) + paymentDelivery)
-                        : (totalPayment + paymentDelivery);
+                    //payment.Discount = promotion != null ? promotion.Discount : 0;
+                    payment.Discount = 0;
+                    //payment.Total = payment.PromoCode != null ? (totalPayment * (1 - promotion.Discount) + paymentDelivery) : (totalPayment + paymentDelivery);
+                    payment.Total = (totalPayment + paymentDelivery);
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
-                    //OrderTracking
-                    var orderTracking = new OrderTracking();
-                    orderTracking.OrderId = order.Id;
-                    orderTracking.Status = "Pending";
-                    orderTracking.CreatedDate = DateTime.Now;
-                    orderTracking.CreatedBy = "AutoInsert";
-
-
+                    //List OrderTracking
+                    var orderTrackings = new List<OrderTracking>();
+                    orderTrackings.Add(new OrderTracking
+                    {
+                        OrderId = order.Id,
+                        Status = "Pending",
+                        CreatedDate = DateTime.Now,
+                        CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                    });
+                    orderTrackings.Add(new OrderTracking
+                    {
+                        OrderId = order.Id,
+                        Status = "Confirmed",
+                        CreatedDate = DateTime.Now,
+                        CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                    });
                     //
-                    var orderAdded =
-                        await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
+                    var orderAdded = await _orderService.Create(order, orderDetails, deliveries, payment, orderTrackings);
 
                     //Update Promotion UseTimes
-                    if (promotion != null)
+                    /*if (promotion != null)
                     {
                         promotion.UseTimes = promotion.UseTimes - 1;
                         await _promotionService.Update(promotion);
                     }
-
+*/
                     //
 
                     //notification
-                    //string id = customer;
                     Notification notification = new Notification();
                     NotificationAccount notificationAccount = new NotificationAccount();
                     notification.OrderId = orderAdded.Id;
@@ -2662,15 +2655,16 @@ namespace Washouse.Web.Controllers
                     {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
                         //var accId = cusinfo.Result.AccountId ?? 0;
-                        notificationAccount.AccountId = (int)customer.AccountId;
+                        notificationAccount.AccountId = (int)(customer.AccountId);
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
                         //await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
                         //await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                         //await _messageHub(notificationAccount.AccountId, "NotificationAdded");
+                        await messageHub.Clients.All.SendAsync("CreateOrder", notification);
                     }
 
-                    var staff = _staffService.GetAllByCenterId(CenterId);
+                    var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
                     if (staff != null)
                     {
                         foreach (var staffItem in staff)
@@ -2680,6 +2674,7 @@ namespace Washouse.Web.Controllers
                             await _notificationAccountService.Add(notificationAccount);
                             //await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
                             //await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
+                            await messageHub.Clients.All.SendAsync("CreateOrder", notification);
                         }
                     }
 

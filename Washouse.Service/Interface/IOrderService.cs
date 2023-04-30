@@ -10,7 +10,7 @@ namespace Washouse.Service.Interface
 {
     public interface IOrderService
     {
-        Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, OrderTracking orderTracking);
+        Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, List<OrderTracking> orderTrackings);
         //void UpdateStatus(string orderId);
         Task Update(Order order);
         Task Cancel(Order order);

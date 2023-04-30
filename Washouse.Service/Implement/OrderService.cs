@@ -34,7 +34,7 @@ namespace Washouse.Service.Implement
             this._orderDetailTrackingRepository = orderDetailTrackingRepository;
         }
 
-        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, OrderTracking orderTracking)
+        public async Task<Order> Create(Order order, List<OrderDetail> orderDetails, List<Delivery> deliveries, Payment payment, List<OrderTracking> orderTrackings)
         {
             try
             {
@@ -54,8 +54,11 @@ namespace Washouse.Service.Implement
                 payment.OrderId = order.Id;
                 await _paymentRepository.Add(payment);
 
-                orderTracking.OrderId = order.Id;
-                await _orderTrackingRepository.Add(orderTracking);
+                foreach (var orderTracking in orderTrackings)
+                {
+                    orderTracking.OrderId = order.Id;
+                    await _orderTrackingRepository.Add(orderTracking);
+                }
 
                 return order;
             }

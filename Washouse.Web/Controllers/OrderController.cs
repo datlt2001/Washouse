@@ -500,17 +500,18 @@ namespace Washouse.Web.Controllers
                     payment.CreatedDate = DateTime.Now;
                     payment.CreatedBy = "AutoInsert";
 
-                    //OrderTracking
-                    var orderTracking = new OrderTracking();
-                    orderTracking.OrderId = order.Id;
-                    orderTracking.Status = "Pending";
-                    orderTracking.CreatedDate = DateTime.Now;
-                    orderTracking.CreatedBy = "AutoInsert";
-
-
+                    //List OrderTracking
+                    var orderTrackings = new List<OrderTracking>();
+                    orderTrackings.Add(new OrderTracking
+                    {
+                        OrderId = order.Id,
+                        Status = "Pending",
+                        CreatedDate = DateTime.Now,
+                        CreatedBy = "AutoInsert",
+                    });
                     //
                     var orderAdded =
-                        await _orderService.Create(order, orderDetails, deliveries, payment, orderTracking);
+                        await _orderService.Create(order, orderDetails, deliveries, payment, orderTrackings);
 
                     //Update Promotion UseTimes
                     if (promotion != null)
