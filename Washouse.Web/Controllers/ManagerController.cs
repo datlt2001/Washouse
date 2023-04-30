@@ -3228,7 +3228,7 @@ namespace Washouse.Web.Controllers
                     serviceName = item.Service.ServiceName;
                 }
                 else serviceName = null;
-
+                var account = _accountService.GetAccountByEmail(item.CreatedBy);
                 feedbackResponses.Add(new FeedbackResponseModel
                 {
                     Id = item.Id,
@@ -3245,7 +3245,12 @@ namespace Washouse.Web.Controllers
                     ReplyBy = item.ReplyBy,
                     ReplyDate = item.ReplyDate.HasValue
                         ? item.ReplyDate.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                        : null,
+                    AccountAvatar = account.ProfilePic != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(account.ProfilePic)
                         : null
+                    ,
+                    AccountName = account.FullName
                 });
             }
 
