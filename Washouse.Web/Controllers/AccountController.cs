@@ -1186,7 +1186,7 @@ namespace Washouse.Web.Controllers
                 }
 
                 string fullAddress = Input.AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
-                                     ", Thành phố Hồ Chí Minh";
+                                     ", TP. Hồ Chí Minh";
                 string url =
                     $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                 using (System.Net.Http.HttpClient client = new System.Net.Http.HttpClient())

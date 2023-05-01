@@ -828,7 +828,7 @@ namespace Washouse.Web.Controllers
                     }
 
                     string fullAddress = createCenterRequestModel.Location.AddressString + ", " + ward.WardName + ", " +
-                                         ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                         ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     string url =
                         $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                     using (HttpClient client = new HttpClient())
@@ -1201,7 +1201,7 @@ namespace Washouse.Web.Controllers
                         }
 
                         string fullAddress = center.Location.AddressString + ", " + ward.WardName + ", " +
-                                             ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                             ward.District.DistrictName + ", TP. Hồ Chí Minh";
                         string url =
                             $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                         using (HttpClient client = new HttpClient())

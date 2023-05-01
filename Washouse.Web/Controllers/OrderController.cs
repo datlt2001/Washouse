@@ -176,8 +176,8 @@ namespace Washouse.Web.Controllers
                     var ward = await _wardService.GetWardById(createOrderRequestModel.Order.CustomerWardId);
                     string AddressString = createOrderRequestModel.Order.CustomerAddressString;
                     string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
-                                         ", Thành phố Hồ Chí Minh";
-                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                         ", TP. Hồ Chí Minh";
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     var result = await SearchRelativeAddress(fullAddress);
                     if (result != null)
                     {
@@ -408,9 +408,9 @@ namespace Washouse.Web.Controllers
                         var deliveryWard = await _wardService.GetWardById(item.WardId);
                         string deliveryAddressString = item.AddressString;
                         string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " +
-                                                     deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                                     deliveryWard.District.DistrictName + ", TP. Hồ Chí Minh";
                         string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName +
-                                                     ", Thành phố Hồ Chí Minh";
+                                                     ", TP. Hồ Chí Minh";
                         var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
                         if (resultDelivery != null)
                         {
@@ -567,9 +567,9 @@ namespace Washouse.Web.Controllers
 
                     string path = "./Templates_email/CreateOrder.txt";
                     string content = System.IO.File.ReadAllText(path);
-                    content = content.Replace("{recipient}", customer.Fullname);
-
+                    content = content.Replace("{recipient}", customer.Fullname);              
                     content = content.Replace("{orderId}", orderAdded.Id);
+                    content = content.Replace("{phone}", orderAdded.CustomerMobile);
                     await _sendMailService.SendEmailAsync(sendEmail, "Tạo đơn hàng", content);
 
                     return Ok(new ResponseModel
@@ -663,9 +663,9 @@ namespace Washouse.Web.Controllers
                         var ward = await _wardService.GetWardById(requestWardId);
                         string AddressString = requestAddress;
                         string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
-                                             ", Thành phố Hồ Chí Minh";
+                                             ", TP. Hồ Chí Minh";
                         string wardAddress = ward.WardName + ", " + ward.District.DistrictName +
-                                             ", Thành phố Hồ Chí Minh";
+                                             ", TP. Hồ Chí Minh";
                         var result = await SearchRelativeAddress(fullAddress);
                         if (result != null)
                         {
@@ -1249,7 +1249,7 @@ namespace Washouse.Web.Controllers
                 response.CustomerName = order.CustomerName;
                 response.LocationId = order.LocationId;
                 response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName + ", " +
-                                           order.Location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                           order.Location.Ward.District.DistrictName + ", TP. Hồ Chí Minh";
                 response.CustomerEmail = order.CustomerEmail;
                 response.CustomerMobile = order.CustomerMobile;
                 response.CustomerMessage = order.CustomerMessage;
@@ -1354,7 +1354,7 @@ namespace Washouse.Web.Controllers
                         ShipperPhone = delivery.ShipperPhone,
                         LocationId = delivery.LocationId,
                         AddressString = location.AddressString + ", " + location.Ward.WardName + ", " +
-                                        location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh",
+                                        location.Ward.District.DistrictName + ", TP. Hồ Chí Minh",
                         DeliveryType = delivery.DeliveryType,
                         EstimatedTime = delivery.EstimatedTime,
                         Status = delivery.Status,

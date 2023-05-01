@@ -8,6 +8,12 @@
     Mã đơn hàng của bạn là : {orderId}
     <br>
     <br>
+    Bạn có thể truy cập vào đường link bên dưới để xem chi tiết đơn hàng
+    <br>
+    <br>
+    Link đây: https://washouse-ebd95.firebaseapp.com/orders/details?id={orderId}&p={phone}
+    <br>
+    <br>
     Mời bạn quay lại hệ thống của chúng tôi để tiếp tục.
     <br>
     <br>

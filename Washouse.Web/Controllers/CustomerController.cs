@@ -64,7 +64,7 @@ namespace Washouse.Web.Controllers
                 var location = await _locationService.GetById(locationid);
                 var ward = await _wardService.GetWardById(location.WardId);
                 var district = await _districtService.GetDistrictById(ward.DistrictId);
-                response.AddressString = location.AddressString +", "+ ward.WardName + ", " + district.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
+                response.AddressString = location.AddressString +", "+ ward.WardName + ", " + district.DistrictName + ", " + "TP. Hồ Chí Minh";
                 response.Address = new CustomerLocatonResponseModel
                 {
                     Latitude = location.Latitude,
@@ -261,7 +261,7 @@ namespace Washouse.Web.Controllers
                 var location = await _locationService.GetById(locationid);
                 var ward = await _wardService.GetWardById(location.WardId);
                 var district = await _districtService.GetDistrictById(ward.DistrictId);
-                response.AddressString = location.AddressString + ", " + ward.WardName + ", " + district.DistrictName + ", " + "Thành Phố Hồ Chí Minh";
+                response.AddressString = location.AddressString + ", " + ward.WardName + ", " + district.DistrictName + ", " + "TP. Hồ Chí Minh";
                 response.Address = new CustomerLocatonResponseModel
                 {
                     Latitude = location.Latitude,

@@ -158,7 +158,7 @@ namespace Washouse.Web.Controllers
                     }
 
                     string fullAddress = centerEditRequest.Location.AddressString + ", " + ward.WardName + ", " +
-                                         ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                         ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     string url =
                         $"https://nominatim.openstreetmap.org/search?email=thanhdat3001@gmail.com&q=={fullAddress}&format=json&limit=1";
                     using (System.Net.Http.HttpClient client = new System.Net.Http.HttpClient())
@@ -1295,7 +1295,7 @@ namespace Washouse.Web.Controllers
                                 var location = await _locationService.GetById(item.Address.Value);
                                 addressStringResponse = location.AddressString + ", " + location.Ward.WardName + ", " +
                                                         location.Ward.District.DistrictName + ", " +
-                                                        "Thành Phố Hồ Chí Minh";
+                                                        "TP. Hồ Chí Minh";
                             }
 
                             string dob = null;
@@ -1658,7 +1658,7 @@ namespace Washouse.Web.Controllers
                     response.LocationId = order.LocationId;
                     response.CustomerAddress = order.Location.AddressString + ", " + order.Location.Ward.WardName +
                                                ", " + order.Location.Ward.District.DistrictName +
-                                               ", Thành phố Hồ Chí Minh";
+                                               ", TP. Hồ Chí Minh";
                     response.CustomerEmail = order.CustomerEmail;
                     response.CustomerMobile = order.CustomerMobile;
                     response.CustomerMessage = order.CustomerMessage;
@@ -1760,7 +1760,7 @@ namespace Washouse.Web.Controllers
                             ShipperPhone = delivery.ShipperPhone,
                             LocationId = delivery.LocationId,
                             AddressString = location.AddressString + ", " + location.Ward.WardName + ", " +
-                                            location.Ward.District.DistrictName + ", Thành phố Hồ Chí Minh",
+                                            location.Ward.District.DistrictName + ", TP. Hồ Chí Minh",
                             DeliveryType = delivery.DeliveryType,
                             EstimatedTime = delivery.EstimatedTime,
                             Status = delivery.Status,
@@ -2326,8 +2326,8 @@ namespace Washouse.Web.Controllers
                     var ward = await _wardService.GetWardById(createOrderRequestModel.Order.CustomerWardId);
                     string AddressString = createOrderRequestModel.Order.CustomerAddressString;
                     string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
-                                         ", Thành phố Hồ Chí Minh";
-                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                         ", TP. Hồ Chí Minh";
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     var result = await SearchRelativeAddress(fullAddress);
                     if (result != null)
                     {
@@ -2528,9 +2528,9 @@ namespace Washouse.Web.Controllers
                         var deliveryWard = await _wardService.GetWardById(item.WardId);
                         string deliveryAddressString = item.AddressString;
                         string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " +
-                                                     deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                                     deliveryWard.District.DistrictName + ", TP. Hồ Chí Minh";
                         string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName +
-                                                     ", Thành phố Hồ Chí Minh";
+                                                     ", TP. Hồ Chí Minh";
                         var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
                         if (resultDelivery != null)
                         {

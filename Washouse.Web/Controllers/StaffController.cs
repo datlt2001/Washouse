@@ -910,8 +910,8 @@ namespace Washouse.Web.Controllers
                     var ward = await _wardService.GetWardById(createOrderRequestModel.Order.CustomerWardId);
                     string AddressString = createOrderRequestModel.Order.CustomerAddressString;
                     string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName +
-                                         ", Thành phố Hồ Chí Minh";
-                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                         ", TP. Hồ Chí Minh";
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     var result = await SearchRelativeAddress(fullAddress);
                     if (result != null)
                     {
@@ -1112,9 +1112,9 @@ namespace Washouse.Web.Controllers
                         var deliveryWard = await _wardService.GetWardById(item.WardId);
                         string deliveryAddressString = item.AddressString;
                         string fullDeliveryAddress = deliveryAddressString + ", " + deliveryWard.WardName + ", " +
-                                                     deliveryWard.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                                                     deliveryWard.District.DistrictName + ", TP. Hồ Chí Minh";
                         string wardDeliveryAddress = deliveryWard.WardName + ", " + deliveryWard.District.DistrictName +
-                                                     ", Thành phố Hồ Chí Minh";
+                                                     ", TP. Hồ Chí Minh";
                         var resultDelivery = await SearchRelativeAddress(fullDeliveryAddress);
                         if (resultDelivery != null)
                         {
@@ -1278,6 +1278,7 @@ namespace Washouse.Web.Controllers
                     content = content.Replace("{recipient}", customer.Fullname);
 
                     content = content.Replace("{orderId}", orderAdded.Id);
+                    content = content.Replace("{phone}", orderAdded.CustomerMobile);
                     await _sendMailService.SendEmailAsync(sendEmail, "Tạo đơn hàng", content);
 
                     return Ok(new ResponseModel

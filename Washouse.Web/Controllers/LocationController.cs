@@ -253,8 +253,8 @@ namespace Washouse.Web.Controllers
                     decimal? Latitude = null;
                     decimal? Longitude = null;
                     var ward = await _wardService.GetWardById(WardId);
-                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
-                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", Thành phố Hồ Chí Minh";
+                    string fullAddress = AddressString + ", " + ward.WardName + ", " + ward.District.DistrictName + ", TP. Hồ Chí Minh";
+                    string wardAddress = ward.WardName + ", " + ward.District.DistrictName + ", TP. Hồ Chí Minh";
                     var result = await SearchRelativeAddress(fullAddress);
                     if (result != null)
                     {
