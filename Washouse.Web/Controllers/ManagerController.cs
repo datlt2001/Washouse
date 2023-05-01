@@ -1546,8 +1546,8 @@ namespace Washouse.Web.Controllers
                             TotalOrderPayment = order.Payments.Count > 0 ? order.Payments.First().Total : 0,
                             Status = order.Status,
                             IsFeedback = order.IsFeedback,
-                            IsPayment = (order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("paid") ||
-                                            order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("received")),
+                            IsPayment = ((order.Payments != null && order.Payments.Count() > 0) && (order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("paid") ||
+                                            order.Payments.FirstOrDefault().Status.Trim().ToLower().Equals("received"))),
                             CenterId = center.Id,
                             CenterName = center.CenterName,
                             Deliveries = order.Deliveries.ToList().ConvertAll(delivery => new OrderedDeliveryModel
