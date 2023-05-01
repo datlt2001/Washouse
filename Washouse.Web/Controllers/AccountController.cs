@@ -828,7 +828,7 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
-                var accounts = new Account()
+                var account = new Account()
                 {
                     Phone = Input.Phone,
                     Email = Input.Email,
@@ -850,18 +850,32 @@ namespace Washouse.Web.Controllers
                     });
                 }
 
-                await _accountService.Add(accounts);
-                var customer = new Customer()
+                await _accountService.Add(account);
+                var existCus = await _customerService.GetByPhone(Input.Phone);
+                if(existCus != null)
                 {
-                    AccountId = accounts.Id,
-                    Fullname = accounts.FullName,
-                    Phone = accounts.Phone,
-                    Email = accounts.Email,
-                    Status = false,
-                    CreatedBy = accounts.CreatedBy,
-                    CreatedDate = DateTime.Now,
-                };
-                await _customerService.Add(customer);
+                    existCus.AccountId = account.Id;
+                    existCus.Email = Input.Email;
+                    await _customerService.Update(existCus);
+                    account.FullName = existCus.Fullname;
+                    account.LocationId = existCus.Address;
+                    await _accountService.Update(account);
+                }
+                else
+                {
+                    var customer = new Customer()
+                    {
+                        AccountId = account.Id,
+                        Fullname = account.FullName,
+                        Phone = account.Phone,
+                        Email = account.Email,
+                        Status = false,
+                        CreatedBy = account.CreatedBy,
+                        CreatedDate = DateTime.Now,
+                    };
+                    await _customerService.Add(customer);
+                }
+                
                 //string path = "./Templates_email/VerifyAccount.txt";
                 //string content = System.IO.File.ReadAllText(path);
                 //content = content.Replace("{recipient}", customer.Fullname);
@@ -872,7 +886,7 @@ namespace Washouse.Web.Controllers
                 {
                     StatusCode = StatusCodes.Status200OK,
                     Message = "Success",
-                    Data = accounts
+                    Data = account
                 });
             }
             else

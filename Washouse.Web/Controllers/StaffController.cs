@@ -1269,11 +1269,9 @@ namespace Washouse.Web.Controllers
                         }
                     }
 
-                    var sendEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-                    if (sendEmail == null)
-                    {
-                        sendEmail = createOrderRequestModel.Order.CustomerEmail;
-                    }
+                    
+                    var sendEmail = createOrderRequestModel.Order.CustomerEmail;
+                    
 
                     string path = "./Templates_email/CreateOrder.txt";
                     string content = System.IO.File.ReadAllText(path);
