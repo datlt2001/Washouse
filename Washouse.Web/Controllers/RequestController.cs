@@ -440,7 +440,7 @@ namespace Washouse.Web.Controllers
                 var center = await _centerService.GetById(id);
                 if (center != null)
                 {
-                    var response = new CenterResponseModel();
+                    /*var response = new CenterResponseModel();
                     var centerServices = new List<CenterServiceResponseModel>();
                     var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                     var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
@@ -557,14 +557,17 @@ namespace Washouse.Web.Controllers
                         Latitude = center.Location.Latitude,
                         Longitude = center.Location.Longitude
                     };
-                    response.CenterOperatingHours = centerOperatingHours;
+                    response.CenterOperatingHours = centerOperatingHours;*/
                     center.Status = "Active";
                     await _centerService.Update(center);
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
-                        Data = response
+                        Data = new
+                        {
+                            centerId = center.Id
+                        }
                     });
                 }
                 else
@@ -598,7 +601,7 @@ namespace Washouse.Web.Controllers
                 var center = await _centerService.GetById(id);
                 if (center != null)
                 {
-                    var response = new CenterResponseModel();
+                    /*var response = new CenterResponseModel();
                     var centerServices = new List<CenterServiceResponseModel>();
                     var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
                     var servicesOfCenter = new List<ServicesOfCenterResponseModel>();
@@ -715,14 +718,17 @@ namespace Washouse.Web.Controllers
                         Latitude = center.Location.Latitude,
                         Longitude = center.Location.Longitude
                     };
-                    response.CenterOperatingHours = centerOperatingHours;
+                    response.CenterOperatingHours = centerOperatingHours;*/
                     center.Status = "Rejected";
                     await _centerService.Update(center);
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
                         Message = "success",
-                        Data = response
+                        Data = new
+                        {
+                            centerId = center.Id
+                        }
                     });
                 }
                 else

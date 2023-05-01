@@ -101,6 +101,7 @@ namespace Washouse.Web.Controllers
         {
             try
             {
+                var a = int.Parse(User.FindFirst("Id")?.Value);
                 var managerInfo = await _staffService.GetByAccountId(int.Parse(User.FindFirst("Id")?.Value));
                 if (managerInfo.CenterId == null)
                 {
@@ -141,7 +142,7 @@ namespace Washouse.Web.Controllers
                 {
                     location.AddressString = centerEditRequest.Location.AddressString;
                     location.WardId = centerEditRequest.Location.WardId;
-                    var ward = new Ward();
+                    /*var ward = new Ward();
                     try
                     {
                         ward = await _wardService.GetWardById(location.WardId);
@@ -173,7 +174,7 @@ namespace Washouse.Web.Controllers
                                 location.Longitude = result[0].lon;
                             }
                         }
-                    }
+                    }*/
 
                     if (centerEditRequest.Location.Latitude != null && centerEditRequest.Location.Latitude != 0)
                     {
@@ -234,6 +235,7 @@ namespace Washouse.Web.Controllers
                     centerRequestModel.Alias = string.IsNullOrWhiteSpace(centerEditRequest.Alias)
                         ? centerRequesting.Alias
                         : centerEditRequest.Alias.Trim();
+                    centerRequestModel.WalletId = centerRequesting.WalletId;
                     centerRequestModel.LocationId = (checkLocationExistCenter.Id == 0)
                         ? centerRequesting.LocationId
                         : checkLocationExistCenter.Id;
@@ -251,9 +253,14 @@ namespace Washouse.Web.Controllers
                     centerRequestModel.Image = string.IsNullOrWhiteSpace(centerEditRequest.SavedFileName)
                         ? centerRequesting.Image
                         : centerEditRequest.SavedFileName.Trim();
+                    centerRequestModel.TaxCode = centerRequesting.TaxCode;
+                    centerRequestModel.TaxRegistrationImage = centerRequesting.TaxRegistrationImage;
                     centerRequestModel.HotFlag = centerRequesting.HotFlag;
                     centerRequestModel.Rating = centerRequesting.Rating;
                     centerRequestModel.NumOfRating = centerRequesting.NumOfRating;
+                    centerRequestModel.HasDelivery = centerRequesting.HasDelivery;
+                    centerRequestModel.HasOnlinePayment = centerRequesting.HasOnlinePayment;
+                    centerRequestModel.LastDeactivate = centerRequesting.LastDeactivate;
                     centerRequestModel.CreatedDate = centerRequesting.CreatedDate;
                     centerRequestModel.CreatedBy = centerRequesting.CreatedBy;
                     centerRequestModel.UpdatedDate = DateTime.Now;
