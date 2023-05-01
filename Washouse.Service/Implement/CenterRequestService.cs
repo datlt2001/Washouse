@@ -28,9 +28,9 @@ namespace Washouse.Service.Implement
             await _centerRequestRepository.Add(serviceRequest);
         }
 
-        public Task<IEnumerable<CenterRequest>> GetAll()
+        public async Task<IEnumerable<CenterRequest>> GetAll()
         {
-            throw new NotImplementedException();
+            return await _centerRequestRepository.GetAll();
         }
 
         public IEnumerable<CenterRequest> GetAllPaging(int page, int pageSize, out int totalRow)
@@ -38,9 +38,9 @@ namespace Washouse.Service.Implement
             throw new NotImplementedException();
         }
 
-        public Task<CenterRequest> GetById(int id)
+        public async Task<CenterRequest> GetById(int id)
         {
-            throw new NotImplementedException();
+            return await _centerRequestRepository.GetById(id);
         }
 
         public void SaveChanges()
@@ -48,9 +48,9 @@ namespace Washouse.Service.Implement
             throw new NotImplementedException();
         }
 
-        public Task Update(CenterRequest serviceRequest)
+        public async Task Update(CenterRequest serviceRequest)
         {
-            throw new NotImplementedException();
+            await _centerRequestRepository.Update(serviceRequest);
         }
     }
 }
