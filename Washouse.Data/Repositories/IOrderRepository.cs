@@ -16,5 +16,6 @@ namespace Washouse.Data.Repositories
         Task<Order> GetOrderWithPayment(string orderId);
         Task<StaffStatisticModel> GetStaffStatistics(int centerId);
         Task<IEnumerable<Order>> GetOrdersOfCustomer(int customerId, string customerMobile);
+        Task<Order> GetAllOfDay(string date);
     }
 }

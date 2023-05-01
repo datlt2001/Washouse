@@ -59,5 +59,13 @@ namespace Washouse.Data.Repositories
                 .ToListAsync();
             return data;
         }
+
+        public async Task<Service> GetByIdToCreateOrder(int id)
+        {
+            var data = await this._dbContext.Services               
+                .Include(service => service.ServicePrices)               
+                .FirstOrDefaultAsync(service => service.Id == id);
+            return data;
+        }
     }
 }

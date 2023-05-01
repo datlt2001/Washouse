@@ -134,10 +134,10 @@ namespace Washouse.Service.Implement
             return await _orderRepository.GetOrdersOfCustomer(customerId, customerMobile);
         }
 
-        public async Task<IEnumerable<Order>> GetAllOfDay(string date)
+        public async Task<Order> GetAllOfDay(string date)
         {
-            var orders = await _orderRepository.GetAll();
-            return orders.Where(order => order.Id.StartsWith(date));
+            var order = await _orderRepository.GetAllOfDay(date);
+            return order;
         }
 
         public async Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId)

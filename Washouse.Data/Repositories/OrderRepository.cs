@@ -181,6 +181,15 @@ namespace Washouse.Data.Repositories
                                     .ThenInclude(od => od.Service)
                     .FirstOrDefaultAsync(order => order.Id == id);
             return data;
+        } 
+        public async Task<Order> GetAllOfDay(string date)
+        {
+            var data = await this._dbContext.Orders
+                .Where(order => order.Id.StartsWith(date))
+                .OrderBy(order => order.Id)
+                .LastOrDefaultAsync();
+
+            return data;
         }
     }
 }

@@ -82,5 +82,19 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<Customer> GetByPhone(string phone)
+        {
+            try
+            {
+                var customer =  this.DbContext.Customers                    
+                    .SingleOrDefault(c => c.Phone == phone);                       
+                return customer;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 }

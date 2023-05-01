@@ -14,5 +14,7 @@ namespace Washouse.Data.Repositories
 
         public IEnumerable<Service> GetServicesByCategory(int cateID);
         public Task<IEnumerable<Service>> GetAllByCenterId(int centerId);
+
+        Task<Service> GetByIdToCreateOrder(int id);
     }
 }

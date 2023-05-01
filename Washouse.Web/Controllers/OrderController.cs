@@ -90,7 +90,7 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
-                    var center = await _centerService.GetById(createOrderRequestModel.CenterId);
+                    var center = await _centerService.GetByIdToCreateOrder(createOrderRequestModel.CenterId);
                     DateTime UserPreferredDropoffTime;
                     if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) &&
                         DateTime.TryParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
@@ -263,10 +263,10 @@ namespace Washouse.Web.Controllers
                     var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
 
                     int lastId = 0;
-                    if (orders.ToList().Count > 0)
+                    if (orders != null)
                     {
-                        var lastOrder = orders.LastOrDefault();
-                        lastId = int.Parse(lastOrder.Id.Substring(10));
+                        
+                        lastId = int.Parse(orders.Id.Substring(10));
                     }
 
                     //add Order
@@ -313,7 +313,7 @@ namespace Washouse.Web.Controllers
                     decimal totalPayment = 0;
                     foreach (var item in orderDetailRequestModels)
                     {
-                        var serviceItem = await _serviceService.GetById(item.ServiceId);
+                        var serviceItem = await _serviceService.GetByIdToCreateOrder(item.ServiceId);
                         if (serviceItem == null && (!serviceItem.Status.ToLower().Equals("Updating") ||
                                                     !!serviceItem.Status.ToLower().Equals("Active")))
                         {

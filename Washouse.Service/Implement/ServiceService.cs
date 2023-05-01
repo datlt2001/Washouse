@@ -107,5 +107,10 @@ namespace Washouse.Service.Implement
         {
             return _serviceRepository.GetServicesByCategory(cateID);
         }
+        public async Task<Model.Models.Service> GetByIdToCreateOrder(int id)
+        {
+            return await _serviceRepository.GetByIdToCreateOrder(id);
+        }
+
     }
 }

@@ -48,8 +48,8 @@ namespace Washouse.Service.Implement
 
         public async Task<Customer> GetByPhone(string phone)
         {
-            var customers = await _customerRepository.GetAll();
-            return customers.FirstOrDefault(x => x.Phone == phone);
+            var customer = await _customerRepository.GetByPhone(phone);
+            return customer;
         }
 
         public async Task Update(Customer customer)

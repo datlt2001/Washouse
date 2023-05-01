@@ -30,5 +30,6 @@ namespace Washouse.Service.Interface
         Task DeactivateService(int id);
 
         public IEnumerable<Model.Models.Service> GetServicesByCategory(int cateID);
+        Task<Model.Models.Service> GetByIdToCreateOrder(int id);
     }
 }

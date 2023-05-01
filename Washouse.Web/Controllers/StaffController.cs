@@ -969,10 +969,10 @@ namespace Washouse.Web.Controllers
                     var orders = await _orderService.GetAllOfDay(DateTime.Now.ToString("yyyyMMdd"));
 
                     int lastId = 0;
-                    if (orders.ToList().Count > 0)
+                    if (orders != null)
                     {
-                        var lastOrder = orders.LastOrDefault();
-                        lastId = int.Parse(lastOrder.Id.Substring(10));
+                        //var lastOrder = orders.LastOrDefault();
+                        lastId = int.Parse(orders.Id.Substring(10));
                     }
 
                     //add Order
