@@ -99,21 +99,21 @@ namespace Washouse.Data.Repositories
         {
             var data = await this._dbContext.Centers
                 .Where(center => center.Id == id)
-                .Include(center => center.Location)
-                .ThenInclude(location => location.Ward)
-                .ThenInclude(ward => ward.District)
-                .Include(center => center.OperatingHours)
-                .ThenInclude(oh => oh.DaysOfWeek)
-                .Include(center => center.Services)
-                .ThenInclude(service => service.Category)
-                .Include(center => center.Services)
-                .ThenInclude(service => service.ServicePrices)
-                .Include(center => center.DeliveryPriceCharts)
-                .Include(center => center.AdditionServices)
-                .Include(center => center.CenterGalleries)
-                .Include(center => center.Feedbacks)
+                .Include(center => center.Location)//
+                .ThenInclude(location => location.Ward)//
+                .ThenInclude(ward => ward.District)//
+                .Include(center => center.OperatingHours)//
+                .ThenInclude(oh => oh.DaysOfWeek)//
+                //.Include(center => center.Services)
+                //.ThenInclude(service => service.Category)
+                //.Include(center => center.Services)
+                //.ThenInclude(service => service.ServicePrices)
+                .Include(center => center.DeliveryPriceCharts)//
+                .Include(center => center.AdditionServices)//
+                .Include(center => center.CenterGalleries)//
+                //.Include(center => center.Feedbacks)
                 //.ThenInclude(service => service.OrderDetail)
-                .Include(center => center.Resourses)
+                .Include(center => center.Resourses)//
                 //.Include(center => center.Promotions)
                 .FirstOrDefaultAsync();
             return data;
