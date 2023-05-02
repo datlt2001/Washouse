@@ -13,6 +13,7 @@ namespace Washouse.Data.Repositories
         Task DeactivateCenter(int id);
 
         Task<Center> GetByIdLightWeight(int id);
+        Task<Center> GetByIdToCalculateDeliveryPrice(int id);
         Task<Center> GetDetailByIdLightWeight(int id);
         Task<Center> GetCenterOperatingTimes(int id);
         Task<Center> GetMyCenter(int id);

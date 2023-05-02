@@ -694,7 +694,7 @@ namespace Washouse.Web.Controllers
 
                         decimal distance = 0;
                         int centerId = requestModel.CenterId;
-                        var center = await _centerService.GetById(centerId);
+                        var center = await _centerService.GetByIdToCalculateDeliveryPrice(centerId);
                         if (center.Location.Latitude == null || center.Location.Longitude == null || Latitude == null ||
                             Longitude == null)
                         {
