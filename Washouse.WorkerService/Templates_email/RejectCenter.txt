@@ -1,0 +1,15 @@
+﻿<div>
+    Dear {recipient},
+    <br>
+    <br>
+    Your center is rejected. Please visit our website to view your center.
+    <br>
+    <br>
+    This is your link to view your center : <a href="{link}">{link}</a>
+    <br>
+    <br>
+    Regards,
+    <br>
+	The Washouse.
+    <br>
+</div>

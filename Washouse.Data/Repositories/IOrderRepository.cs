@@ -11,6 +11,7 @@ namespace Washouse.Data.Repositories
     public interface IOrderRepository : IRepository<Order>
     {
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
+        Task<IEnumerable<Order>> GetPendingOrders3HoursAgo();
         Task<Order> GetOrderById(string orderId);
     }
 }

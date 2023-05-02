@@ -1,0 +1,15 @@
+﻿<div>
+    Dear {recipient},
+    <br>
+    <br>
+    Xin chúc mựng bạn đã được chỉ định thành nhân viên của cửa hàng {name}. Vui lòng nhấn vào link bên dưới để tiếp tục xác nhận.
+    <br>
+    <br>
+    Link của bạn đây : <a href="{link}">Xác nhận</a>
+    <br>
+    <br>
+    Regards,
+    <br>
+	The Washouse.
+    <br>
+</div>

@@ -85,6 +85,11 @@ namespace Washouse.Service.Implement
             return await _orderRepository.GetAll();
         }
 
+        public async Task<IEnumerable<Order>> GetPendingOrders3HoursAgo()
+        {
+            return await _orderRepository.GetPendingOrders3HoursAgo();
+        }
+
         public async Task<IEnumerable<Order>> GetAllOfDay(string date)
         {
             var orders = await _orderRepository.GetAll();

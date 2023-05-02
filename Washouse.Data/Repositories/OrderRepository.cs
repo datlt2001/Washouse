@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,5 +76,19 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(order => order.Id == id);
             return data;
         }
+
+        public async Task<IEnumerable<Order>> GetPendingOrders3HoursAgo()
+        {
+            var data = await this._dbContext.Orders
+                    .Include(order => order.OrderDetails)
+                                    .ThenInclude(od => od.Service)
+                                        .ThenInclude(service => service.Center)
+                                            .ThenInclude(center => center.staff)
+                                                .ThenInclude(staff => staff.Account)
+                    .Where(order => order.Status.Trim().ToLower().Equals("pending") && order.CreatedDate.Value < DateTime.Now.AddHours(-3))
+                    .ToListAsync();
+            return data;
+        }
+
     }
 }
