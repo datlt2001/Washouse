@@ -927,22 +927,25 @@ namespace Washouse.Web.Controllers
                     center.UpdatedDate = null;
                     center.UpdatedBy = null;
                     var deliveryPriceCharts = new List<DeliveryPriceChart>();
-                    foreach (var item in centerDelivery.DeliveryPrice)
+                    if (centerDelivery.DeliveryPrice != null)
                     {
-                        CenterDeliveryPriceChartRequestModel centerDeliveryPriceItem =
-                        JsonConvert.DeserializeObject<CenterDeliveryPriceChartRequestModel>(item.ToJson());
-                        deliveryPriceCharts.Add(new DeliveryPriceChart()
+                        foreach (var item in centerDelivery.DeliveryPrice)
                         {
-                            CenterId = center.Id,
-                            MaxDistance = item.MaxDistance,
-                            MaxWeight = item.MaxWeight,
-                            Price = item.Price,
-                            Status = true,
-                            CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
-                            CreatedDate = DateTime.Now,
-                            UpdatedDate = null,
-                            UpdatedBy = null
-                    });
+                            CenterDeliveryPriceChartRequestModel centerDeliveryPriceItem =
+                            JsonConvert.DeserializeObject<CenterDeliveryPriceChartRequestModel>(item.ToJson());
+                            deliveryPriceCharts.Add(new DeliveryPriceChart()
+                            {
+                                CenterId = center.Id,
+                                MaxDistance = item.MaxDistance,
+                                MaxWeight = item.MaxWeight,
+                                Price = item.Price,
+                                Status = true,
+                                CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                                CreatedDate = DateTime.Now,
+                                UpdatedDate = null,
+                                UpdatedBy = null
+                            });
+                        }
                     }
 
                     await _centerService.Add(center, deliveryPriceCharts);
