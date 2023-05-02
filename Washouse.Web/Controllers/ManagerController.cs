@@ -484,7 +484,7 @@ namespace Washouse.Web.Controllers
                     response.TaxRegistrationImage = center.TaxRegistrationImage;
                     response.MonthOff = MonthOff;
                     response.HasDelivery = center.HasDelivery;
-                    response.HasDelivery = center.HasOnlinePayment;
+                    response.HasOnlinePayment = center.HasOnlinePayment;
                     response.LocationId = center.LocationId;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
                     response.CenterLocation = new CenterLocationResponseModel

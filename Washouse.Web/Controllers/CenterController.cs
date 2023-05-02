@@ -1354,7 +1354,7 @@ namespace Washouse.Web.Controllers
                 }
 
 
-                var item = await _serviceService.GetById(serviceId);
+                var item = await _serviceService.GetByIdToCreateOrder(serviceId);
 
                 if (item == null)
                 {
