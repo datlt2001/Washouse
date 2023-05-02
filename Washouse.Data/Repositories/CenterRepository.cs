@@ -192,5 +192,14 @@ namespace Washouse.Data.Repositories
                     .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+
+        public async Task<Center> GetByIdToCalculateDeliveryPrice(int id)
+        {
+            var data = await this._dbContext.Centers
+                .Include(center => center.Location)
+                .Include(center => center.DeliveryPriceCharts)
+                .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
     }
 }

@@ -97,6 +97,11 @@ namespace Washouse.Service.Implement
             return await _centerRepository.GetByIdAdminDetail(id);
         }
 
+        public async Task<Center> GetByIdToCalculateDeliveryPrice(int id)
+        {
+            return await _centerRepository.GetByIdToCalculateDeliveryPrice(id);
+        }
+
         public async Task Add(Center center, List<DeliveryPriceChart> deliveryPriceCharts)
         {
             await _centerRepository.Add(center);
