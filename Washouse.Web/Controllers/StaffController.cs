@@ -756,7 +756,7 @@ namespace Washouse.Web.Controllers
             string content = System.IO.File.ReadAllText(path);
             content = content.Replace("{recipient}", email);
             content = content.Replace("{name}", centername);
-            string link = "http://localhost:3000/provider/staff/verify?code=" + veirfycode;
+            string link = "https://washouse-ebd95.firebaseapp.com/provider/staff/verify?code=" + veirfycode;
             content = content.Replace("{link}", link);
             await _sendMailService.SendEmailAsync(email, "Xác nhận nhân viên", content);
 
@@ -768,7 +768,7 @@ namespace Washouse.Web.Controllers
             });
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Staff,User")]
         [HttpPut("verify")]
         public async Task<IActionResult> VerifyStaff(string code)
         {
