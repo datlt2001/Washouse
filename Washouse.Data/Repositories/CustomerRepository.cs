@@ -68,13 +68,24 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
-                var customer =  this.DbContext.Customers
+                var customer = await this.DbContext.Customers
                      .Include(cus => cus.Account)
                                     .ThenInclude(acc => acc.Wallet)
-                    .SingleOrDefault(c => c.AccountId == accountId);
-                                        
+                    .SingleOrDefaultAsync(c => c.AccountId == accountId);
+                    return customer;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
+        public async Task<Customer> GetCustomerByAccIDLightWeight(int accountId)
+        {
+            try
+            {
+                var customer = await this.DbContext.Customers
+                    .SingleOrDefaultAsync(c => c.AccountId == accountId);
                 return customer;
             }
             catch (Exception ex)
@@ -82,12 +93,13 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
         public async Task<Customer> GetByPhone(string phone)
         {
             try
             {
-                var customer =  this.DbContext.Customers                    
-                    .SingleOrDefault(c => c.Phone == phone);                       
+                var customer = await this.DbContext.Customers                    
+                    .SingleOrDefaultAsync(c => c.Phone == phone);                       
                 return customer;
             }
             catch (Exception ex)

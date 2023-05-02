@@ -98,7 +98,7 @@ namespace Washouse.Data.Repositories
             }
         }
 
-        public new async Task<Account> GetAccountByEmailAsync(string email)
+        public async Task<Account> GetAccountByEmailAsync(string email)
         {
             var data = await this._dbContext.Accounts
                 .Where(account => Equals(account.Email.ToLower(), email.ToLower()))
@@ -115,6 +115,13 @@ namespace Washouse.Data.Repositories
                 .ThenInclude(wallet => wallet.WalletTransactionFromWallets)
                 .Include(account => account.Wallet)
                 .ThenInclude(wallet => wallet.WalletTransactionToWallets)
+                .FirstOrDefaultAsync(center => center.Id == id);
+            return data;
+        }
+
+        public async Task<Account> GetByIdLightWeight(int id)
+        {
+            var data = await this._dbContext.Accounts
                 .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }

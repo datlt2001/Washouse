@@ -241,8 +241,8 @@ namespace Washouse.Web.Controllers
 
             var secretKeyBytes = Encoding.UTF8.GetBytes(_appSettings.SecretKey);
             string Role = null;
-            var staff = await _staffService.GetByAccountId(user.Id);
-            var customer = await _customerService.GetCustomerByAccID(user.Id);
+            var staff = await _staffService.GetStaffByAccountId(user.Id);
+            var customer = await _customerService.GetCustomerByAccIDLightWeight(user.Id);
             int centerManaged = 0;
             //var customer = _customerService.GetCustomerByAccID(user.Id);
             if (user.IsAdmin)
@@ -637,7 +637,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeactivateAccount(int id)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return NotFound(new ResponseModel
@@ -664,7 +664,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ActivateAccount(int id)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return NotFound(new ResponseModel
@@ -691,7 +691,7 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel changePasswordModel)
         {
             var id = User.FindFirst("Id")?.Value;
-            var account = await _accountService.GetById(int.Parse(id));
+            var account = await _accountService.GetByIdLightWeight(int.Parse(id));
             if (account == null)
             {
                 return NotFound();
@@ -724,7 +724,7 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> ChangePasswordByEmail(string email,
             [FromBody] ChangePasswordViewModel changePasswordModel)
         {
-            Account account = _accountService.GetAccountByEmail(email);
+            Account account = await _accountService.GetAccountByEmailAsync(email);
             if (account == null)
             {
                 return NotFound();
@@ -760,7 +760,7 @@ namespace Washouse.Web.Controllers
         [HttpPut("{id}/password/reset")]
         public async Task<IActionResult> ResetPassword(int id)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return NotFound();
@@ -785,7 +785,7 @@ namespace Washouse.Web.Controllers
         [HttpPut("{id}/password/forgot")]
         public async Task<IActionResult> ForgotPassword(int id)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return NotFound();
@@ -963,7 +963,7 @@ namespace Washouse.Web.Controllers
         [HttpPut("{id}/verify")]
         public async Task<IActionResult> VerifyAccount(int id)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return NotFound();
@@ -980,7 +980,7 @@ namespace Washouse.Web.Controllers
             try
             {
                 string id = User.FindFirst("Id")?.Value;
-                var user = await _accountService.GetById(int.Parse(id));
+                var user = await _accountService.GetByIdLightWeight(int.Parse(id));
                 var token = new TokenModel();
                 if (User.FindFirst(ClaimTypes.Role)?.Value == "Customer")
                 {
@@ -1040,7 +1040,7 @@ namespace Washouse.Web.Controllers
             else
             {
                 string id = User.FindFirst("Id")?.Value;
-                Customer existingCustomer = await _customerService.GetCustomerByAccID(int.Parse(id));
+                Customer existingCustomer = await _customerService.GetCustomerByAccIDLightWeight(int.Parse(id));
                 if (existingCustomer == null)
                 {
                     return NotFound(new ResponseModel
@@ -1092,7 +1092,7 @@ namespace Washouse.Web.Controllers
                 }
 
                 int id = int.Parse(User.FindFirst("Id")?.Value);
-                Customer existingCustomer = await _customerService.GetCustomerByAccID(id);
+                Customer existingCustomer = await _customerService.GetCustomerByAccIDLightWeight(id);
                 Account user = await _accountService.GetById(id);
 
                 if (existingCustomer == null)
@@ -1162,7 +1162,7 @@ namespace Washouse.Web.Controllers
             else
             {
                 int accId = int.Parse(User.FindFirst("Id")?.Value);
-                Customer existingCustomer = await _customerService.GetCustomerByAccID(accId);
+                Customer existingCustomer = await _customerService.GetCustomerByAccIDLightWeight(accId);
                 //var accountId = existingCustomer.AccountId;
                 //int userId = accountId ?? 0;
                 Account user = await _accountService.GetById(accId);
@@ -1367,7 +1367,7 @@ namespace Washouse.Web.Controllers
         public async Task<IActionResult> GetMyFeedback([FromQuery] FilterFeedbackModel filter)
         {
             int id = int.Parse(User.FindFirst("Id")?.Value);
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByIdLightWeight(id);
             if (account == null)
             {
                 return BadRequest(new ResponseModel

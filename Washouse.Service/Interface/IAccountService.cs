@@ -16,6 +16,7 @@ namespace Washouse.Service.Interface
         Task<IEnumerable<Account>> GetAll();
 
         public Task<Account> GetById(int id);
+        public Task<Account> GetByIdLightWeight(int id);
 
         public Task ActivateAccount(int id);
 

@@ -35,6 +35,11 @@ namespace Washouse.Service.Implement
         {
             return await _AccountRepository.GetById(id);
         }
+        
+        public async Task<Account> GetByIdLightWeight(int id)
+        {
+            return await _AccountRepository.GetByIdLightWeight(id);
+        }
 
         public async Task Update(Account account)
         {

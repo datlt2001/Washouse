@@ -717,7 +717,7 @@ namespace Washouse.Web.Controllers
         {
             int id = int.Parse(User.FindFirst("Id")?.Value);
             var user = _accountService.GetAccountByEmailAndPhone(email, phone);
-            var staff = _staffService.GetStaffByAccountId(user.Id);
+            var staff = await _staffService.GetStaffByAccountId(user.Id);
             if (staff != null && staff.CenterId != null)
             {
                 return BadRequest(new ResponseModel
@@ -728,7 +728,7 @@ namespace Washouse.Web.Controllers
                 });
             }
 
-            var manager = _staffService.GetStaffByAccountId(id);
+            var manager = await _staffService.GetStaffByAccountId(id);
             if (user == null)
             {
                 return BadRequest(new ResponseModel

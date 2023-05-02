@@ -25,5 +25,6 @@ namespace Washouse.Service.Interface
         Task<IEnumerable<Customer>> CustomersOfCenter(int centerId);
 
         public Task<Customer> GetCustomerByAccID(int accountId);
+        public Task<Customer> GetCustomerByAccIDLightWeight(int accountId);
     }
 }

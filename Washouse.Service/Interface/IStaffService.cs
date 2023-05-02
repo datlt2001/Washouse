@@ -24,7 +24,7 @@ namespace Washouse.Service.Interface
 
         Task<Staff> GetByAccountId(int accountId);
         public IEnumerable<Staff> GetAllByCenterId(int centerid);
-        Staff GetStaffByAccountId(int id);
+        Task<Staff> GetStaffByAccountId(int id);
 
         Staff GetStaffByCenterId(int centerid);
     }

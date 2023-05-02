@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,10 +55,10 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
-        public Staff GetStaffByAccountId(int id)
+        public async Task<Staff> GetStaffByAccountId(int id)
         {
-            var data = this._dbContext.Staffs
-                        .SingleOrDefault(s => s.AccountId == id);
+            var data = await this._dbContext.Staffs
+                        .SingleOrDefaultAsync(s => s.AccountId == id);
                         
             return data;
         }

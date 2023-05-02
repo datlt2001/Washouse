@@ -53,8 +53,8 @@ namespace Washouse.Service.Implement
 
         public async Task<Staff> GetByAccountId(int accountId)
         {
-            var staffs = await _staffReposity.GetAll();
-            return staffs.FirstOrDefault(staff => staff.AccountId == accountId);
+            var staff = await _staffReposity.GetStaffByAccountId(accountId);
+            return staff;
         }
 
 
@@ -63,9 +63,9 @@ namespace Washouse.Service.Implement
             return _staffReposity.GetAllByCenterId(centerid);
         }
 
-        public Staff GetStaffByAccountId(int id)
+        public async Task<Staff> GetStaffByAccountId(int id)
         {
-            return _staffReposity.GetStaffByAccountId(id);
+            return await _staffReposity.GetStaffByAccountId(id);
         }
 
         public Staff GetStaffByCenterId(int centerid)

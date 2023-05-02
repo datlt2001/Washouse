@@ -66,5 +66,10 @@ namespace Washouse.Service.Implement
         {
             return await _customerRepository.GetCustomerByAccID(accountId);
         }
+
+        public async Task<Customer> GetCustomerByAccIDLightWeight(int accountId)
+        {
+            return await _customerRepository.GetCustomerByAccIDLightWeight(accountId);
+        }
     }
 }

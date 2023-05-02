@@ -22,5 +22,6 @@ namespace Washouse.Data.Repositories
         public Task<Account> GetAccountByEmailAsync(string email);
 
         Account GetAccountByEmailAndPhone(string email, string phone);
+        Task<Account> GetByIdLightWeight(int id);
     }
 }
