@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
 using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using Twilio.Http;
 using Washouse.Common.Utils;
@@ -69,7 +70,7 @@ namespace Washouse.Web.Controllers
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
-                Message = "Updated",
+                Message = "Success",
                 Data = paymentUrl
             });
         }
@@ -173,12 +174,13 @@ namespace Washouse.Web.Controllers
 
 
                 // Return a response to VNPay
-                return Ok(new ResponseModel
-                {
-                    StatusCode = StatusCodes.Status200OK,
-                    Message = "Transaction completed successfully.",
-                    Data = transaction
-                });
+                //return Ok(new ResponseModel
+                //{
+                //    StatusCode = StatusCodes.Status200OK,
+                //    Message = "Transaction completed successfully.",
+                //    Data = "https://washouse-ebd95.firebaseapp.com/user/wallet"
+                //});
+                return Redirect("https://washouse-ebd95.firebaseapp.com/user/wallet");
             }
         }
 
