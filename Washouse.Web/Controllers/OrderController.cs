@@ -90,6 +90,15 @@ namespace Washouse.Web.Controllers
                 var customer = new Customer();
                 if (ModelState.IsValid)
                 {
+                    if (!(User.FindFirst(ClaimTypes.Role)?.Value == null || User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer"))
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "User is logging in as provider",
+                            Data = null
+                        });
+                    }
                     var center = await _centerService.GetByIdToCreateOrder(createOrderRequestModel.CenterId);
                     DateTime UserPreferredDropoffTime;
                     if (!string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDropoffTime) &&
