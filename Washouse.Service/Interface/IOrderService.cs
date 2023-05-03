@@ -21,7 +21,11 @@ namespace Washouse.Service.Interface
         Task<Order> GetAllOfDay(string date);
         Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId);
         Task<Order> GetOrderById(string orderId);
+        Task<Order> GetOrderByIdToUpdateOrderDetail(string orderId);
+        Task<Order> GetOrderByIdCenterManaged(string orderId);
         Task<Order> GetOrderWithPayment(string orderId);
+        Task<Order> GetOrderWithDeliveries(string orderId);
+        Task<Order> GetOrderWithDeliveriesAndPayment(string orderId);
         Task<StaffStatisticModel> GetStaffStatistics(int centerId);
     }
 }

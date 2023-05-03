@@ -50,12 +50,15 @@ namespace Washouse.Data.Repositories
         {
             try
             {
-
-                var customersWithOrders = this.DbContext.Customers
+                var customersWithOrders = await this.DbContext.Customers
                     .Where(c => c.Orders
                         .Any(o => o.OrderDetails
                             .Any(od => od.Service.Center.Id == centerId)))
-                    .ToList();
+                    .Include(cus => cus.AddressNavigation)
+                        .ThenInclude(loc => loc.Ward)
+                            .ThenInclude(ward => ward.District)
+                    .Include(cus => cus.Account)
+                    .ToListAsync();
                 return customersWithOrders;
             }
             catch (Exception ex)

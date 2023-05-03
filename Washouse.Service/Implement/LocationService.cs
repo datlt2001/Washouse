@@ -50,6 +50,11 @@ namespace Washouse.Service.Implement
             return await _locationRepository.GetById(id);
         }
 
+        public async Task<Model.Models.Location> GetByIdIncludeWardDistrict(int id)
+        {
+            return await _locationRepository.GetByIdIncludeWardDistrict(id);
+        }
+
         public async Task<Model.Models.Location> GetLocationOfACenter(int centerId)
         {
             return await _locationRepository.GetLocationOfACenter(centerId);

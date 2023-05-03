@@ -53,9 +53,9 @@ namespace Washouse.Data.Repositories
         public async Task<IEnumerable<Service>> GetAllByCenterId(int centerId)
         {
             var data = await this._dbContext.Services
+                .Where(s => s.CenterId == centerId)
                 .Include(service => service.ServicePrices)
                 .Include(service => service.Category)
-                .Where(s => s.CenterId == centerId)
                 .ToListAsync();
             return data;
         }

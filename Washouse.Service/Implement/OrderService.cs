@@ -163,12 +163,60 @@ namespace Washouse.Service.Implement
                 throw;
             }
         }
+        
+        public async Task<Order> GetOrderByIdCenterManaged(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderByIdCenterManaged(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        
+        public async Task<Order> GetOrderByIdToUpdateOrderDetail(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderByIdToUpdateOrderDetail(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
         public async Task<Order> GetOrderWithPayment(string id)
         {
             try
             {
                 return await _orderRepository.GetOrderWithPayment(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        
+        public async Task<Order> GetOrderWithDeliveries(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderWithDeliveries(id);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        
+        public async Task<Order> GetOrderWithDeliveriesAndPayment(string id)
+        {
+            try
+            {
+                return await _orderRepository.GetOrderWithDeliveriesAndPayment(id);
             }
             catch (Exception ex)
             {

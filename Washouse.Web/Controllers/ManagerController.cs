@@ -1246,8 +1246,7 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers
         [HttpGet("my-center/customers")]
-        public async Task<IActionResult> GetCustomerOfCenterManaged(
-            [FromQuery] FilterCustomersOfCenterRequestModel filter)
+        public async Task<IActionResult> GetCustomerOfCenterManaged([FromQuery] FilterCustomersOfCenterRequestModel filter)
         {
             try
             {
@@ -1292,7 +1291,8 @@ namespace Washouse.Web.Controllers
                             string addressStringResponse = null;
                             if (item.Address != null)
                             {
-                                var location = await _locationService.GetById(item.Address.Value);
+                                //var location = await _locationService.GetByIdIncludeWardDistrict(item.Address.Value);
+                                var location = item.AddressNavigation;
                                 addressStringResponse = location.AddressString + ", " + location.Ward.WardName + ", " +
                                                         location.Ward.District.DistrictName + ", " +
                                                         "TP. Hồ Chí Minh";
@@ -1302,7 +1302,8 @@ namespace Washouse.Web.Controllers
                             int? gender = null;
                             if (item.AccountId != null)
                             {
-                                var account = await _accountService.GetById(item.AccountId.Value);
+                                //var account = await _accountService.GetByIdLightWeight(item.AccountId.Value);
+                                var account = item.Account;
                                 dob = account.Dob.HasValue ? (account.Dob.Value).ToString("dd-MM-yyyy HH:mm:ss") : null;
                                 gender = account.Gender;
                             }
@@ -1632,7 +1633,7 @@ namespace Washouse.Web.Controllers
                 }
                 else
                 {
-                    var order = await _orderService.GetOrderById(id);
+                    var order = await _orderService.GetOrderByIdCenterManaged(id);
                     if (order == null)
                     {
                         return NotFound(new ResponseModel
@@ -1753,7 +1754,7 @@ namespace Washouse.Web.Controllers
                     response.OrderTrackings = OrderTrackings;
                     foreach (var delivery in order.Deliveries)
                     {
-                        var location = await _locationService.GetById(delivery.LocationId);
+                        var location = await _locationService.GetByIdIncludeWardDistrict(delivery.LocationId);
                         OrderDeliveries.Add(new OrderDeliveryModel
                         {
                             ShipperName = delivery.ShipperName,
@@ -1829,6 +1830,15 @@ namespace Washouse.Web.Controllers
                         });
                     }
                     var payment = order.Payments.FirstOrDefault();
+                    if (payment.Status.Trim().ToLower().Equals("paid") || payment.Status.Trim().ToLower().Equals("received"))
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Order has already paid",
+                            Data = null
+                        });
+                    }
                     if (payment.PaymentMethod != 0) 
                     {
                         return BadRequest(new ResponseModel
@@ -1899,7 +1909,7 @@ namespace Washouse.Web.Controllers
                 }
                 else
                 {
-                    var order = await _orderService.GetOrderById(orderId);
+                    var order = await _orderService.GetOrderByIdToUpdateOrderDetail(orderId);
                     if (order == null)
                     {
                         return NotFound(new ResponseModel
@@ -2806,7 +2816,7 @@ namespace Washouse.Web.Controllers
                 }
                 else
                 {
-                    var order = await _orderService.GetOrderById(orderId);
+                    var order = await _orderService.GetOrderWithDeliveries(orderId);
                     if (order == null)
                     {
                         return NotFound(new ResponseModel
@@ -2845,7 +2855,15 @@ namespace Washouse.Web.Controllers
                             Data = null
                         });
                     }
-
+                    if (deliveryItem == null)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "Not found delivery information",
+                            Data = null
+                        });
+                    }
                     deliveryItem.ShipperName = updateModel.ShipperName;
                     deliveryItem.ShipperPhone = updateModel.ShipperPhone;
                     deliveryItem.UpdatedDate = DateTime.Now;

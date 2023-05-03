@@ -11,5 +11,6 @@ namespace Washouse.Data.Repositories
     public interface ILocationRepository : IRepository<Location>
     {
         Task<Location> GetLocationOfACenter(int centerId);
+        Task<Location> GetByIdIncludeWardDistrict(int id);
     }
 }

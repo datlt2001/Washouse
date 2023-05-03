@@ -41,6 +41,8 @@ namespace Washouse.Data.Repositories
         public async Task<IEnumerable<Order>> GetOrdersOfCenter(int centerId)
         {
             var ordersAtCenter = await this._dbContext.Orders
+                .Where(o => o.OrderDetails
+                    .Any(od => od.Service.Center.Id == centerId))
                 .Include(order => order.Deliveries)
                 .ThenInclude(delivery => delivery.Location)
                 .ThenInclude(location => location.Ward)
@@ -49,8 +51,6 @@ namespace Washouse.Data.Repositories
                 .Include(order => order.OrderDetails)
                 .ThenInclude(od => od.Service)
                 .ThenInclude(service => service.Category)
-                .Where(o => o.OrderDetails
-                    .Any(od => od.Service.Center.Id == centerId))
                 .ToListAsync();
             return ordersAtCenter;
         }
@@ -58,6 +58,7 @@ namespace Washouse.Data.Repositories
         public async Task<Order> GetOrderById(string id)
         {
             var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
                     .Include(order => order.OrderDetails)
                                     .ThenInclude(od => od.Service)
                                         .ThenInclude(service => service.Category)
@@ -79,7 +80,39 @@ namespace Washouse.Data.Repositories
                     .Include(order => order.Location)
                         .ThenInclude(location => location.Ward)
                             .ThenInclude(ward => ward.District)
-                    .FirstOrDefaultAsync(order => order.Id == id);
+                    .FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<Order> GetOrderByIdCenterManaged(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
+                    .Include(order => order.OrderDetails)//
+                                    .ThenInclude(od => od.Service)//
+                                        .ThenInclude(service => service.Category)//
+                    .Include(order => order.Payments)//
+                    .Include(order => order.Deliveries)//
+                    .Include(order => order.OrderTrackings)//
+                    .Include(order => order.OrderDetails)//
+                                    .ThenInclude(od => od.OrderDetailTrackings)//
+                    .Include(order => order.Location)//
+                        .ThenInclude(location => location.Ward)//
+                            .ThenInclude(ward => ward.District)//
+                    .FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<Order> GetOrderByIdToUpdateOrderDetail(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
+                    .Include(order => order.OrderDetails)//
+                                    .ThenInclude(od => od.Service)//
+                                        .ThenInclude(service => service.ServicePrices)//
+                    .Include(order => order.Payments)//
+                    .Include(order => order.Customer)//
+                    .FirstOrDefaultAsync();
             return data;
         }
 
@@ -176,12 +209,34 @@ namespace Washouse.Data.Repositories
         public async Task<Order> GetOrderWithPayment(string id)
         {
             var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
                     .Include(order => order.Payments)
                     .Include(order => order.OrderDetails)
                                     .ThenInclude(od => od.Service)
-                    .FirstOrDefaultAsync(order => order.Id == id);
+                    .FirstOrDefaultAsync();
             return data;
         } 
+
+        public async Task<Order> GetOrderWithDeliveries(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
+                    .Include(order => order.Deliveries)
+                    .FirstOrDefaultAsync();
+            return data;
+        } 
+        
+        public async Task<Order> GetOrderWithDeliveriesAndPayment(string id)
+        {
+            var data = await this._dbContext.Orders
+                    .Where(order => order.Id == id)
+                    .Include(order => order.Deliveries)
+                    .Include(order => order.Payments)
+                        .ThenInclude(payment => payment.WalletTransactions)
+                    .FirstOrDefaultAsync();
+            return data;
+        } 
+
         public async Task<Order> GetAllOfDay(string date)
         {
             var data = await this._dbContext.Orders

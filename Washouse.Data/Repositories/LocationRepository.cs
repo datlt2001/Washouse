@@ -23,10 +23,21 @@ namespace Washouse.Data.Repositories
         public new async Task<Location> GetById(int id)
         {
             var data = await this._dbContext.Locations
+                .Where(location => location.Id == id)
                     .Include(location => location.Centers)
                     .Include(location => location.Ward)
                         .ThenInclude(ward => ward.District)
-                    .FirstOrDefaultAsync(location => location.Id == id);
+                    .FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<Location> GetByIdIncludeWardDistrict(int id)
+        {
+            var data = await this._dbContext.Locations
+                    .Where(location => location.Id == id)
+                    .Include(location => location.Ward)
+                        .ThenInclude(ward => ward.District)
+                    .FirstOrDefaultAsync();
             return data;
         }
     }

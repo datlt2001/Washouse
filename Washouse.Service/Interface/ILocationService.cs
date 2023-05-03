@@ -13,5 +13,6 @@ namespace Washouse.Service.Interface
         Task<Location> Add(Location location);
         Task Update(Location location);
         Task<Location> GetById(int id);
+        Task<Location> GetByIdIncludeWardDistrict(int id);
     }
 }
