@@ -215,5 +215,19 @@ namespace Washouse.Data.Repositories
                 .FirstOrDefaultAsync(center => center.Id == id);
             return data;
         }
+
+        public new async Task<Center> GetByIdWithWallet(int id)
+        {
+            var data = await this._dbContext.Centers
+                .Where(center => center.Id == id)
+                .Include(center => center.Wallet)
+                .ThenInclude(wallet => wallet.Transactions)
+                .Include(center => center.Wallet)
+                .ThenInclude(wallet => wallet.WalletTransactionFromWallets)
+                .Include(center => center.Wallet)
+                .ThenInclude(wallet => wallet.WalletTransactionToWallets)
+                .FirstOrDefaultAsync();
+            return data;
+        }
     }
 }

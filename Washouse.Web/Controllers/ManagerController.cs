@@ -3438,5 +3438,106 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("my-center/wallet")]
+        public async Task<IActionResult> GetMyWallet()
+        {
+            int centerId = int.Parse(User.FindFirst("CenterManaged")?.Value);
+            var center = await _centerService.GetByIdWithWallet(centerId);
+            if (center == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Center not found",
+                    Data = null
+                });
+            }
+            else
+            {
+                if (center.Wallet == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Center do not have wallet",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    var transactions = new List<TransactionResponseModel>();
+                    foreach (var item in center.Wallet.Transactions)
+                    {
+                        string _plusOrMinus = "minus";
+                        if (item.Type.ToLower().Equals("deposit"))
+                        {
+                            _plusOrMinus = "plus";
+                        }
+
+                        transactions.Add(new TransactionResponseModel
+                        {
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = _plusOrMinus,
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss")
+                        });
+                    }
+
+                    var walletTransactions = new List<WalletTransactionResponseModel>();
+                    foreach (var item in center.Wallet.WalletTransactionFromWallets)
+                    {
+                        walletTransactions.Add(new WalletTransactionResponseModel
+                        {
+                            PaymentId = item.PaymentId,
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = "Minus",
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue
+                                ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
+                        });
+                    }
+
+                    foreach (var item in center.Wallet.WalletTransactionToWallets)
+                    {
+                        walletTransactions.Add(new WalletTransactionResponseModel
+                        {
+                            PaymentId = item.PaymentId,
+                            Type = item.Type,
+                            Status = item.Status,
+                            PlusOrMinus = "Plus",
+                            Amount = item.Amount,
+                            TimeStamp = item.TimeStamp.ToString("dd-MM-yyyy HH:mm:ss"),
+                            UpdateTimeStamp = item.UpdateTimeStamp.HasValue
+                                ? item.UpdateTimeStamp.Value.ToString("dd-MM-yyyy HH:mm:ss")
+                                : null
+                        });
+                    }
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = 0,
+                        Message = "success",
+                        Data = new WalletResponseModel
+                        {
+                            WalletId = center.Wallet.Id,
+                            Balance = center.Wallet.Balance,
+                            Status = center.Wallet.Status,
+                            Transactions = transactions.OrderByDescending(tran =>
+                                DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture)).ToList(),
+                            WalletTransactions = walletTransactions.OrderByDescending(tran =>
+                                DateTime.ParseExact(tran.TimeStamp, "dd-MM-yyyy HH:mm:ss",
+                                    CultureInfo.InvariantCulture)).ToList()
+                        }
+                    });
+                }
+            }
+        }
+
     }
 }

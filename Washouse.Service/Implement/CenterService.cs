@@ -66,6 +66,11 @@ namespace Washouse.Service.Implement
         {
             return await _centerRepository.GetById(id);
         }
+        
+        public async Task<Center> GetByIdWithWallet(int id)
+        {
+            return await _centerRepository.GetByIdWithWallet(id);
+        }
 
         public async Task<Center> GetMyCenter(int id)
         {

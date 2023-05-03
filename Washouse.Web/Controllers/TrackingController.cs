@@ -303,6 +303,7 @@ namespace Washouse.Web.Controllers
 
                         var walletTo = await _walletService.GetById(walletTransaction.ToWalletId);
                         walletTo.Balance = walletTo.Balance + walletTransaction.Amount - order.Payments.FirstOrDefault().PlatformFee;
+                        await _walletService.Update(walletTo);
                     }
                 }
                 var paymentUpdate = order.Payments.FirstOrDefault();

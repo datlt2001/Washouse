@@ -82,6 +82,97 @@ namespace Washouse.Web.Controllers
         {
             try
             {
+                var item = await _serviceService.GetByIdToCreateOrder(id);
+
+                if (item == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found services",
+                        Data = null
+                    });
+                }
+
+                var servicePriceViewModels = new List<ServicePriceViewModel>();
+                foreach (var servicePrice in item.ServicePrices)
+                {
+                    var sp = new ServicePriceViewModel
+                    {
+                        MaxValue = servicePrice.MaxValue,
+                        Price = servicePrice.Price
+                    };
+                    servicePriceViewModels.Add(sp);
+                }
+
+                var feedbackList = await _feedbackService.GetAllByServiceIdLW(item.Id);
+                int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                foreach (var feedback in feedbackList)
+                {
+                    if (feedback.Rating == 1)
+                    {
+                        st1++;
+                    }
+
+                    if (feedback.Rating == 2)
+                    {
+                        st2++;
+                    }
+
+                    if (feedback.Rating == 3)
+                    {
+                        st3++;
+                    }
+
+                    if (feedback.Rating == 4)
+                    {
+                        st4++;
+                    }
+
+                    if (feedback.Rating == 5)
+                    {
+                        st5++;
+                    }
+                }
+
+                var itemResponse = new ServicesOfCenterResponseModel
+                {
+                    ServiceId = item.Id,
+                    CategoryId = item.CategoryId,
+                    ServiceName = item.ServiceName,
+                    Description = item.Description,
+                    Image =
+                        item.Image != null ? await _cloudStorageService.GetSignedUrlAsync(item.Image) : null,
+                    PriceType = item.PriceType,
+                    Price = item.Price,
+                    MinPrice = item.MinPrice,
+                    Unit = item.Unit,
+                    Rate = item.Rate,
+                    Prices = servicePriceViewModels,
+                    TimeEstimate = item.TimeEstimate,
+                    Rating = item.Rating,
+                    NumOfRating = item.NumOfRating,
+                    Ratings = new int[] { st1, st2, st3, st4, st5 }
+                };
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = itemResponse
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+/*
+            try
+            {
                 var item = await _serviceService.GetById(id);
                 if (item != null)
                 {
@@ -168,7 +259,7 @@ namespace Washouse.Web.Controllers
                     Data = null
                 });
             }
-        }
+        */}
 
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> DeactivateService(int id)
