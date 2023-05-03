@@ -911,7 +911,7 @@ namespace Washouse.Web.Controllers
                     center.Status = "Pending";
                     center.Image = createCenterRequestModel.Center.SavedFileName;
                     center.TaxCode = createCenterRequestModel.Center.TaxCode;
-                    center.TaxRegistrationImage = createCenterRequestModel.Center.TaxRegistrationImage;
+                    //center.TaxRegistrationImage = createCenterRequestModel.Center.TaxRegistrationImage;
                     center.HotFlag = false;
                     center.Rating = null;
                     center.NumOfRating = 0;

@@ -21,7 +21,7 @@ namespace Washouse.Model.RequestModels
         public string? MonthOff { get; set; }
         public string? SavedFileName { get; set; }
         public string TaxCode { get; set; }
-        public string TaxRegistrationImage { get; set; }
+        //public string TaxRegistrationImage { get; set; }
         //public bool? HasDelivery { get; set; }
     }
 }

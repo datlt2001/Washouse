@@ -241,7 +241,7 @@ namespace Washouse.Data
                     .IsFixedLength(true);
 
                 entity.Property(e => e.TaxRegistrationImage)
-                    .IsRequired()
+                    //.IsRequired()
                     .HasMaxLength(256)
                     .IsUnicode(false);
 
@@ -330,7 +330,7 @@ namespace Washouse.Data
                     .IsFixedLength(true);
 
                 entity.Property(e => e.TaxRegistrationImage)
-                    .IsRequired()
+                    //.IsRequired()
                     .HasMaxLength(256)
                     .IsUnicode(false);
 
