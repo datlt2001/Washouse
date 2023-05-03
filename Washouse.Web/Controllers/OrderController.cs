@@ -235,12 +235,14 @@ namespace Washouse.Web.Controllers
                              User.FindFirst("Phone")?.Value.Trim() ==
                              createOrderRequestModel.Order.CustomerMobile.Trim())
                     {
-                        customer.Id = int.Parse(User.FindFirst("Id")?.Value);
+                        var cus = await _customerService.GetCustomerByAccIDLightWeight(int.Parse(User.FindFirst("Id")?.Value));
+                        customer.Id = cus.Id;
                     }
                     else if (User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer" &&
                              customerByPhone != null)
                     {
-                        customer.Id = int.Parse(User.FindFirst("Id")?.Value);
+                        var cus = await _customerService.GetCustomerByAccIDLightWeight(int.Parse(User.FindFirst("Id")?.Value));
+                        customer.Id = cus.Id;
                     }
                     else if (User.FindFirst(ClaimTypes.Role)?.Value.Trim().ToLower() == "customer" &&
                              User.FindFirst("Phone")?.Value.Trim() !=
