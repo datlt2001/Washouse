@@ -119,10 +119,11 @@ namespace Washouse.Data.Repositories
             return data;
         }
 
+
         public async Task<Account> GetByIdLightWeight(int id)
         {
             var data = await this._dbContext.Accounts
-                .FirstOrDefaultAsync(center => center.Id == id);
+                .FirstOrDefaultAsync(acc => acc.Id == id);
             return data;
         }
 
