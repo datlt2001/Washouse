@@ -154,7 +154,7 @@ namespace Washouse.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    if (model.Rating < 1 || model.Content == null)
+                    if (model.Rating < 1)
                     {
                         return BadRequest(new ResponseModel
                         {
@@ -179,7 +179,7 @@ namespace Washouse.Web.Controllers
 
                     var feedback = new Feedback()
                     {
-                        Content = model.Content,
+                        Content = "",
                         Rating = model.Rating,
                         //OrderDetailId = orderDetailId,
                         CenterId = model.CenterId,
