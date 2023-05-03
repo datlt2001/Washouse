@@ -51,6 +51,7 @@ namespace Washouse.Web.Controllers
             {
                 int centerid = int.Parse(User.FindFirst("CenterManaged")?.Value);
                 var center = await _centerService.GetByIdLightWeight(centerid);
+                center.HasOnlinePayment = true;
                 center.WalletId = wallet.Id;
                 await _centerService.Update(center);
             }
