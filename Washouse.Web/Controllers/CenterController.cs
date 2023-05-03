@@ -97,7 +97,7 @@ namespace Washouse.Web.Controllers
         {
             try
             {
-                var centerList = await _centerService.GetAll();
+                var centerList = await _centerService.GetAllCenters();
                 var role = User.FindFirst(ClaimTypes.Role)?.Value;
                 if (role == null || role.Trim().ToLower().Equals("customer"))
                 {
@@ -877,7 +877,7 @@ namespace Washouse.Web.Controllers
 
                     var locationAdded = await _locationService.Add(location);
 
-                    var checkLocationExistCenter = await _locationService.GetById(locationAdded.Id);
+                    var checkLocationExistCenter = await _locationService.GetByIdCheckExistCenter(locationAdded.Id);
                     if (checkLocationExistCenter.Centers.ToList() != null)
                     {
                         var centerExist = checkLocationExistCenter.Centers.ToList();
@@ -1452,13 +1452,13 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeactivateCenter(int centerId)
         {
-            var center = await _centerService.GetById(centerId);
+            var center = await _centerService.GetByIdLightWeight(centerId);
             if (center == null)
             {
                 return NotFound();
             }
 
-            _centerService.DeactivateCenter(center.Id);
+            await _centerService.DeactivateCenter(center.Id);
             return Ok();
         }
 
@@ -1466,13 +1466,13 @@ namespace Washouse.Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ActivateCenter(int centerId)
         {
-            var center = await _centerService.GetById(centerId);
+            var center = await _centerService.GetByIdLightWeight(centerId);
             if (center == null)
             {
                 return NotFound();
             }
 
-            _centerService.ActivateCenter(center.Id);
+            await _centerService.ActivateCenter(center.Id);
             return Ok();
         }
 

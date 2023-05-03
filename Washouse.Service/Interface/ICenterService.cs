@@ -7,6 +7,7 @@ namespace Washouse.Service.Interface
     public interface ICenterService
     {
         Task<IEnumerable<Center>> GetAll();
+        Task<IEnumerable<Center>> GetAllCenters();
         Task Add(Center center, List<DeliveryPriceChart> deliveryPriceCharts);
 
         Task Update(Center center);

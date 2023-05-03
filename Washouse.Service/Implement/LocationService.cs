@@ -25,7 +25,12 @@ namespace Washouse.Service.Implement
 
         public async Task<Model.Models.Location> Add(Model.Models.Location location)
         {
-            var locations = await _locationRepository.GetAll();
+            if (location.Longitude != null && location.Latitude != null) 
+            {
+                var locationSearch = await _locationRepository.GetBySearch(location);
+                if (locationSearch != null) { return  locationSearch; }
+            }
+           /* var locations = await _locationRepository.GetAll();
             foreach (var item in locations.ToList())
             {
                 if (item.Latitude != null && item.Longitude != null && location.Latitude != null && location.Longitude != null) 
@@ -39,7 +44,7 @@ namespace Washouse.Service.Implement
                         return item;
                     }
                 }
-            }
+            }*/
             await _locationRepository.Add(location);
             return location;
 
@@ -48,6 +53,11 @@ namespace Washouse.Service.Implement
         public async Task<Model.Models.Location> GetById(int id)
         {
             return await _locationRepository.GetById(id);
+        }
+        
+        public async Task<Model.Models.Location> GetByIdCheckExistCenter(int id)
+        {
+            return await _locationRepository.GetByIdCheckExistCenter(id);
         }
 
         public async Task<Model.Models.Location> GetByIdIncludeWardDistrict(int id)

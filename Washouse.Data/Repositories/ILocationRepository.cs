@@ -12,5 +12,7 @@ namespace Washouse.Data.Repositories
     {
         Task<Location> GetLocationOfACenter(int centerId);
         Task<Location> GetByIdIncludeWardDistrict(int id);
+        Task<Location> GetBySearch(Location location);
+        Task<Location> GetByIdCheckExistCenter(int id);
     }
 }

@@ -62,9 +62,10 @@ namespace Washouse.Data.Repositories
 
         public async Task<Service> GetByIdToCreateOrder(int id)
         {
-            var data = await this._dbContext.Services               
+            var data = await this._dbContext.Services
+                .Where(service => service.Id == id)
                 .Include(service => service.ServicePrices)               
-                .FirstOrDefaultAsync(service => service.Id == id);
+                .FirstOrDefaultAsync();
             return data;
         }
     }
