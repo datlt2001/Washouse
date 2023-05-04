@@ -67,6 +67,11 @@ namespace Washouse.Service.Implement
             return await _centerRepository.GetById(id);
         }
         
+        public async Task<string> CloseCenter(int id)
+        {
+            return await _centerRepository.CloseCenter(id);
+        }
+        
         public async Task<Center> GetByIdWithWallet(int id)
         {
             return await _centerRepository.GetByIdWithWallet(id);

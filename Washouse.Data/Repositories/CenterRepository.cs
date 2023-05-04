@@ -229,5 +229,34 @@ namespace Washouse.Data.Repositories
                 .FirstOrDefaultAsync();
             return data;
         }
+        public async Task<string> CloseCenter(int id)
+        {
+            var data = await this._dbContext.Centers
+                .Where(center => center.Id == id)
+                .Select(center => new
+                {
+                    Orders = center.Services
+                        .SelectMany(service => service.OrderDetails)
+                        .Select(orderDetail => orderDetail.Order)
+                        .Select(order => new { order.Id, order.Status })
+                })
+                .FirstOrDefaultAsync();
+
+            if (data.Orders.Any(order => order.Status.Trim().ToLower() == "processing" || order.Status.Trim().ToLower() == "ready"
+                                        || order.Status.Trim().ToLower() == "received" || order.Status.Trim().ToLower() == "pending" 
+                                        || order.Status.Trim().ToLower() == "confirmed"))
+            {
+                return "one or more orders is already being processed";
+            } else
+            {
+                var centerClose = await this._dbContext.Centers
+                .Where(center => center.Id == id)
+                .FirstOrDefaultAsync();
+                centerClose.Status = "Closed";
+                await this._dbContext.SaveChangesAsync();
+                return "success";
+            }
+            
+        }
     }
 }

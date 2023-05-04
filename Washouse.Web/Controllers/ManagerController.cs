@@ -3441,7 +3441,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [HttpGet("my-center/wallet")]
         public async Task<IActionResult> GetMyWallet()
         {
@@ -3540,6 +3540,57 @@ namespace Washouse.Web.Controllers
                     });
                 }
             }
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpGet("my-center/closed")]
+        public async Task<IActionResult> CloseMyCenter()
+        {
+            int centerId = int.Parse(User.FindFirst("CenterManaged")?.Value);
+            /*var center = await _centerService.GetByIdLightWeight(centerId);
+            if (center == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Center not found",
+                    Data = null
+                });
+            }*/
+            //else
+            //{
+            var closeResult = await _centerService.CloseCenter(centerId);
+            if (closeResult == null)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "An error",
+                    Data = null
+                });
+            }
+            else if (closeResult.Equals("success"))
+            {
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 0,
+                    Message = "success",
+                    Data = new 
+                    {
+                        CenterId = centerId
+                    }
+                });
+            } else
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = closeResult,
+                    Data = null
+                });
+            }
+
+            //}
         }
 
     }

@@ -31,6 +31,7 @@ namespace Washouse.Service.Interface
         Task DeactivateCenter(int id);
         Task ActivateCenter(int id);
 
+        Task<string> CloseCenter(int id);
         Task<Center> GetByIdLightWeight(int id);
         Task<Center> GetByIdIncludeAddress(int id);
         Task<Center> GetDetailByIdLightWeight(int id);
