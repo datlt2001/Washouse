@@ -487,6 +487,9 @@ namespace Washouse.Web.Controllers
                     response.HasOnlinePayment = center.HasOnlinePayment;
                     response.LocationId = center.LocationId;
                     response.CenterDeliveryPrices = centerDeliveryPrices;
+                    response.LastDeactivate = center.LastDeactivate.HasValue
+                            ? (center.LastDeactivate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                            : null;
                     response.CenterLocation = new CenterLocationResponseModel
                     {
                         Latitude = center.Location.Latitude,

@@ -35,6 +35,7 @@ namespace Washouse.Model.ResponseModels.ManagerResponseModel
         public bool MonthOff { get; set; }
         public bool HasDelivery { get; set; }
         public bool HasOnlinePayment { get; set; }
+        public string LastDeactivate { get; set; }
         public int LocationId { get; set; }
 
         public virtual ICollection<CenterDeliveryPriceChartResponseModel> CenterDeliveryPrices { get; set; }
