@@ -32,9 +32,9 @@ namespace Washouse.Web.Controllers
         {
             Random random = new Random();
             string otp = random.Next(1000, 9999).ToString();
+            string sdt = "0975926021";
 
-
-            string formattedPhoneNumber = "+84" + phoneNumber.Substring(1);
+            string formattedPhoneNumber = "+84" + sdt.Substring(1);
             var result = _smsService.Send(formattedPhoneNumber, otp);
 
             if (!string.IsNullOrEmpty(result.ErrorMessage))
