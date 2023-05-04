@@ -8,8 +8,8 @@
     This is your link to view center list : <a href="{link}">{link}</a>
     <br>
     <br>
-    Regards,
+    Trân trọng,
     <br>
-	The Washouse.
+	Washouse Express Laundry Platform.
     <br>
 </div>

@@ -1,15 +1,15 @@
 ﻿<div>
-    Dear {recipient},
+    Xin chào bạn {recipient},
     <br>
     <br>
-    Xin chúc mựng bạn đã được chỉ định thành nhân viên của cửa hàng {name}. Vui lòng nhấn vào link bên dưới để tiếp tục xác nhận.
+    Xin chúc mừng bạn đã được chỉ định trở thành nhân viên của cửa hàng {name}. Vui lòng nhấn vào link bên dưới để tiếp tục xác nhận.
     <br>
     <br>
     Link của bạn đây : <a href="{link}">Xác nhận</a>
     <br>
     <br>
-    Regards,
+    Trân trọng,
     <br>
-	The Washouse.
+	Washouse Express Laundry Platform.
     <br>
 </div>
