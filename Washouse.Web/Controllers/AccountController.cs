@@ -822,7 +822,7 @@ namespace Washouse.Web.Controllers
                 {
                     return BadRequest(new ResponseModel
                     {
-                        StatusCode = StatusCodes.Status200OK,
+                        StatusCode = StatusCodes.Status400BadRequest,
                         Message = "Email or Phone have existed please change",
                         Data = null
                     });

@@ -69,5 +69,13 @@ namespace Washouse.Service.Implement
         {
             await _ServiceCategoryRepository.DeactivateCategory(id);
         }
+        public async Task PinCategory(int id)
+        {
+            await _ServiceCategoryRepository.PinCategory(id);
+        }
+        public async Task UnPinCategory(int id)
+        {
+            await _ServiceCategoryRepository.UnPinCategory(id);
+        }
     }
 }

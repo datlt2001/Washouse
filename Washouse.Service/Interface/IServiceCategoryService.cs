@@ -27,5 +27,9 @@ namespace Washouse.Service.Interface
         public Task ActivateCategory(int id);
 
         //void Save();
+        Task PinCategory(int id);
+
+        Task UnPinCategory(int id);
+
     }
 }
