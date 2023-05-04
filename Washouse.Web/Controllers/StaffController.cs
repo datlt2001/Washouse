@@ -741,8 +741,8 @@ namespace Washouse.Web.Controllers
 
             string veirfycode = Utilities.GenerateRandomString(15);
             DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
-                .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
-                .SetSlidingExpiration(TimeSpan.FromMinutes(3));
+                .SetAbsoluteExpiration(DateTime.Now.AddDays(2))
+                .SetSlidingExpiration(TimeSpan.FromDays(2));
 
             string key = phone;
             _cache.SetString(key, veirfycode, options);

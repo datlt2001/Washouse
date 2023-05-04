@@ -9,6 +9,7 @@ using System.Text.Json;
 using Washouse.Common.Mails;
 using Washouse.Model.Models;
 using System.Threading.Tasks;
+using Washouse.Model.RequestModels;
 
 namespace Washouse.Web.Controllers
 {
@@ -38,20 +39,16 @@ namespace Washouse.Web.Controllers
             var result = _smsService.Send(formattedPhoneNumber, otp);
 
             if (!string.IsNullOrEmpty(result.ErrorMessage))
-                return BadRequest(result.ErrorMessage);
-            //RedisCache.Set("OTP", otp, TimeSpan.FromMinutes(5));
+                return BadRequest(result.ErrorMessage);           
             DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
             .SetAbsoluteExpiration(DateTime.Now.AddMinutes(5))
-            .SetSlidingExpiration(TimeSpan.FromMinutes(3));
-            string jsonString = JsonSerializer.Serialize(otp);
-            byte[] objectDataAsStream = Encoding.UTF8.GetBytes(jsonString);
-            _cache.Set("OTP", objectDataAsStream, options);
-
+            .SetSlidingExpiration(TimeSpan.FromMinutes(5));         
+            _cache.SetString(phoneNumber, otp, options);
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Send Successfully",
-                Data = null
+                Data = otp
             });
         }
 
@@ -69,28 +66,38 @@ namespace Washouse.Web.Controllers
             .SetAbsoluteExpiration(DateTime.Now.AddMinutes(5))
             .SetSlidingExpiration(TimeSpan.FromMinutes(3));
             string jsonString = JsonSerializer.Serialize(otp);
-            byte[] objectDataAsStream = Encoding.UTF8.GetBytes(jsonString);
-            _cache.Set("OTPMail", objectDataAsStream, options);
+            byte[] objectDataAsStream = Encoding.UTF8.GetBytes(jsonString);          
+            _cache.SetString(email, otp, options);
             return Ok(new ResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Send Successfully",
-                Data = null
+                Data = otp
             });
         }
 
-        [HttpPost("sms/{otp}")]
-        public IActionResult CheckOTP(string otp)
+        [HttpPost("sms/check")]
+        public IActionResult CheckOTP([FromBody] OTPVerificationRequest request)
         {
-            var res = _cache.Get("OTP");
-            string result = JsonSerializer.Deserialize<string>(Encoding.UTF8.GetString(res));
-            if (otp.Equals(result))
+            var result = _cache.GetString(request.phonenumber);
+            //string result = JsonSerializer.Deserialize<string>(Encoding.UTF8.GetString(res));
+            if(result == null) 
             {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "fail",
+                    Data = null
+                });
+            }
+            if (request.otp.Equals(result))
+            {
+                _cache.Remove(request.phonenumber);
                 return Ok(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
-                    Message = "Verify success",
-                    Data = result
+                    Message = "success",
+                    Data = null
                 });
             }
             else
@@ -98,8 +105,8 @@ namespace Washouse.Web.Controllers
                 return BadRequest(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
-                    Message = "Wrong OTP",
-                    Data = result
+                    Message = "fail",
+                    Data = null
                 });
             }
 
@@ -107,18 +114,29 @@ namespace Washouse.Web.Controllers
 
         }
 
-        [HttpPost("mail/{otp}")]
-        public IActionResult CheckOTPMail(string otp)
+        [HttpPost("mail/check")]
+        public IActionResult CheckOTPMail([FromBody] MailVerificationRequest request)
         {
-            var res = _cache.Get("OTPMail");
-            string result = JsonSerializer.Deserialize<string>(Encoding.UTF8.GetString(res));
-            if (otp.Equals(result))
+            var result = _cache.GetString(request.email);
+            //string result = JsonSerializer.Deserialize<string>(Encoding.UTF8.GetString(res));
+            if (result == null)
             {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "fail",
+                    Data = null
+                });
+            }
+            if (request.otp.Equals(result))
+            {
+                _cache.Remove(request.email);
                 return Ok(new ResponseModel
                 {
+
                     StatusCode = StatusCodes.Status200OK,
-                    Message = "Verify success",
-                    Data = result
+                    Message = "success",
+                    Data = null
                 });
             }
             else
@@ -126,8 +144,8 @@ namespace Washouse.Web.Controllers
                 return BadRequest(new ResponseModel
                 {
                     StatusCode = StatusCodes.Status200OK,
-                    Message = "Wrong OTP",
-                    Data = result
+                    Message = "fail",
+                    Data = null
                 });
             }
         }
