@@ -56,13 +56,13 @@ namespace Washouse.Web.Controllers
         }
         #endregion
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpGet("centers/updating")]
         public async Task<IActionResult> GetUpdatingCenterRequest([FromQuery] FilterRequestingCenterRequestModel filterCentersRequestModel)
         {
             try
             {
-                var updatingCenterList = await _centerRequestService.GetAll();
+                var updatingCenterList = await _centerRequestService.GetCenterRequests();
                 if (filterCentersRequestModel.Status != null)
                 {
                     updatingCenterList = updatingCenterList.Where(updatingCenter => updatingCenter.RequestStatus == filterCentersRequestModel.Status).ToList();
@@ -75,6 +75,7 @@ namespace Washouse.Web.Controllers
                         Data = ""
                     });
                 }
+                
                 var response = new List<AdminUpdatingCenterRequestResponseModel>();
                 foreach (var center in updatingCenterList)
                 {

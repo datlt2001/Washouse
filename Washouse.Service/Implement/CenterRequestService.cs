@@ -52,5 +52,10 @@ namespace Washouse.Service.Implement
         {
             await _centerRequestRepository.Update(serviceRequest);
         }
+
+        public async Task<IEnumerable<CenterRequest>> GetCenterRequests()
+        {
+            return await _centerRequestRepository.GetCenterRequests();
+        }
     }
 }

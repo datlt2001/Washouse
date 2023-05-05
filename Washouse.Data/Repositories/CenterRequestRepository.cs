@@ -13,5 +13,12 @@ namespace Washouse.Data.Repositories
         public CenterRequestRepository(IDbFactory dbFactory) : base(dbFactory)
         {
         }
+        public async Task<IEnumerable<CenterRequest>> GetCenterRequests()
+        {
+            var newestCenterRequests =  this.DbContext.CenterRequests
+                .GroupBy(cr => cr.CenterRequesting)
+                .Select(g => g.OrderByDescending(cr => cr.UpdatedDate).FirstOrDefault());
+            return newestCenterRequests;
+        }
     }
 }

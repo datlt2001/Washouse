@@ -10,5 +10,6 @@ namespace Washouse.Data.Repositories
 {
     public interface ICenterRequestRepository : IRepository<CenterRequest>
     {
+        Task<IEnumerable<CenterRequest>> GetCenterRequests();
     }
 }

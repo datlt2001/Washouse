@@ -15,5 +15,6 @@ namespace Washouse.Service.Interface
         IEnumerable<CenterRequest> GetAllPaging(int page, int pageSize, out int totalRow);
         Task<CenterRequest> GetById(int id);
         void SaveChanges();
+        Task<IEnumerable<CenterRequest>> GetCenterRequests();
     }
 }
