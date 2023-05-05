@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Washouse.Model.ResponseModels.AdminResponseModel;
 using System.Security.Principal;
 using static System.Net.Mime.MediaTypeNames;
+using Washouse.Common.Mails;
 
 namespace Washouse.Web.Controllers
 {
@@ -35,11 +36,12 @@ namespace Washouse.Web.Controllers
         private readonly ILocationService _locationService;
         private readonly IStaffService _staffService;
         private readonly IAccountService _accountService;
+        private ISendMailService _sendMailService;
 
         public RequestController( 
             IServiceService serviceService, ICenterRequestService centerRequestService, ICenterService centerService
             , ICloudStorageService cloudStorageService, IFeedbackService feedbackService,
-             ILocationService locationService, IStaffService staffService, IAccountService accountService)
+             ILocationService locationService, IStaffService staffService, IAccountService accountService, ISendMailService sendMailService)
         {
             
             this._serviceService = serviceService;
@@ -50,6 +52,7 @@ namespace Washouse.Web.Controllers
             this._locationService = locationService;
             this._staffService = staffService;
             this._accountService = accountService;
+            this._sendMailService = sendMailService;
         }
         #endregion
 
@@ -431,6 +434,14 @@ namespace Washouse.Web.Controllers
                     response.CenterOperatingHours = centerOperatingHours;*/
                     center.Status = "Active";
                     await _centerService.Update(center);
+
+                    string path = "./Templates_email/AcceptCenter.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", center.CreatedBy);
+                    content = content.Replace("{center}", center.CenterName);
+                    
+                    await _sendMailService.SendEmailAsync(center.CreatedBy, "Duyệt trung tâm", content);
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
@@ -592,6 +603,14 @@ namespace Washouse.Web.Controllers
                     response.CenterOperatingHours = centerOperatingHours;*/
                     center.Status = "Rejected";
                     await _centerService.Update(center);
+
+                    string path = "./Templates_email/RejectCenter.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", center.CreatedBy);
+                    content = content.Replace("{center}", center.CenterName);
+
+                    await _sendMailService.SendEmailAsync(center.CreatedBy, "Duyệt trung tâm", content);
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
@@ -658,6 +677,13 @@ namespace Washouse.Web.Controllers
                     center.RequestStatus = false;
                     await _centerRequestService.Update(center);
 
+                    string path = "./Templates_email/AcceptCenterUpdating.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", center.CreatedBy);
+                    content = content.Replace("{center}", center.CenterName);
+
+                    await _sendMailService.SendEmailAsync(center.CreatedBy, "Duyệt trung tâm", content);
+
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
@@ -705,6 +731,13 @@ namespace Washouse.Web.Controllers
 
                     center.RequestStatus = false;
                     await _centerRequestService.Update(center);
+
+                    string path = "./Templates_email/RejectCenterUpdating.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{recipient}", center.CreatedBy);
+                    content = content.Replace("{center}", center.CenterName);
+
+                    await _sendMailService.SendEmailAsync(center.CreatedBy, "Duyệt trung tâm", content);
 
                     return Ok(new ResponseModel
                     {

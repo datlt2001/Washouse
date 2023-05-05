@@ -20,12 +20,14 @@ namespace Washouse.Web.Controllers
         private readonly ISMSService _smsService;
         private readonly IDistributedCache _cache;
         private ISendMailService _sendMailService;
+        private IAccountService _accountService;
 
-        public VerifyController(ISMSService smsService, IDistributedCache cache, ISendMailService sendMailService)
+        public VerifyController(ISMSService smsService, IDistributedCache cache, ISendMailService sendMailService, IAccountService accountService)
         {
             _smsService = smsService;
             _cache = cache;
             _sendMailService = sendMailService;
+            _accountService = accountService;
         }
 
         [HttpPost("send/otp")]
@@ -43,6 +45,49 @@ namespace Washouse.Web.Controllers
             DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
             .SetAbsoluteExpiration(DateTime.Now.AddMinutes(5))
             .SetSlidingExpiration(TimeSpan.FromMinutes(5));         
+            _cache.SetString(phoneNumber, otp, options);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Send Successfully",
+                Data = otp
+            });
+        }
+
+        [HttpPost("send/otp-login")]
+        public  IActionResult SendOTPLogin(string phoneNumber)
+        {
+            var user = _accountService.GetAccountByPhone(phoneNumber);
+            if (user == null)
+            {
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 10,
+                    Message = "Invalid phone",
+                    Data = null
+                });
+            }
+            if (user.IsAdmin)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Admin can not login with OTP",
+                    Data = null
+                });
+            }
+            Random random = new Random();
+            string otp = random.Next(1000, 9999).ToString();
+            string sdt = "0975926021";
+
+            string formattedPhoneNumber = "+84" + sdt.Substring(1);
+            var result = _smsService.Send(formattedPhoneNumber, otp);
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
+                return BadRequest(result.ErrorMessage);
+            DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()
+            .SetAbsoluteExpiration(DateTime.Now.AddMinutes(5))
+            .SetSlidingExpiration(TimeSpan.FromMinutes(5));
             _cache.SetString(phoneNumber, otp, options);
             return Ok(new ResponseModel
             {

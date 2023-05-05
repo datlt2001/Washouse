@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -47,13 +48,14 @@ namespace Washouse.Web.Controllers
         public ILocationService _locationService;
         public IFeedbackService _feedbackService;
         private readonly IConfiguration _config;
+        private readonly IDistributedCache _cache;
 
 
         public AccountController(WashouseDbContext context, IOptionsMonitor<AppSetting> optionsMonitor,
             IAccountService accountService, ISendMailService sendMailService, ICustomerService customerService,
             IStaffService staffService, ICloudStorageService cloudStorageService, IWalletService walletService,
             IWardService wardService, ILocationService locationService, IFeedbackService feedbackService,
-            IConfiguration config)
+            IConfiguration config, IDistributedCache cache)
         {
             this._context = context;
             _appSettings = optionsMonitor.CurrentValue;
@@ -67,6 +69,7 @@ namespace Washouse.Web.Controllers
             _locationService = locationService;
             _feedbackService = feedbackService;
             _config = config;
+            _cache = cache;
         }
 
         [HttpPost("login")]
@@ -96,6 +99,108 @@ namespace Washouse.Web.Controllers
                 });
             }
 
+            return Ok(new ResponseModel
+            {
+                StatusCode = 0,
+                Message = "Success",
+                Data = token
+            });
+        }
+
+        [HttpPost("login/otp")]
+        public async Task<IActionResult> LoginOTP([FromBody] OTPVerificationRequest request)
+        {
+            
+            var user = _accountService.GetAccountByPhone(request.phonenumber);
+            var result = _cache.GetString(request.phonenumber);
+
+            //if (user == null)
+            //{
+            //    return Ok(new ResponseModel
+            //    {
+            //        StatusCode = 10,
+            //        Message = "Invalid phone",
+            //        Data = null
+            //    });
+            //}
+            if (!request.otp.Equals(result))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "fail",
+                    Data = null
+                });
+            }
+            var token = await GenerateToken(user, false);
+            //if (user.IsAdmin)
+            //{
+            //    return BadRequest(new ResponseModel
+            //    {
+            //        StatusCode = StatusCodes.Status400BadRequest,
+            //        Message = "Admin can not login with OTP",
+            //        Data = null
+            //    });
+            //}
+            _cache.Remove(request.phonenumber);
+            return Ok(new ResponseModel
+            {             
+                StatusCode = 0,
+                Message = "success",
+                Data = token
+            });
+        }
+
+        [HttpPost("login-staff/otp")]
+        public async Task<IActionResult> LoginStaffOTP([FromBody] OTPVerificationRequest request)
+        {
+            
+            var user = _accountService.GetAccountByPhone(request.phonenumber);
+            var result = _cache.GetString(request.phonenumber);
+            //if (user == null)
+            //{
+            //    return Ok(new ResponseModel
+            //    {
+            //        StatusCode = 10,
+            //        Message = "Invalid phone",
+            //        Data = null
+            //    });
+            //}
+            if (!request.otp.Equals(result))
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "fail",
+                    Data = null
+                });
+            }
+            //if (user.IsAdmin)
+            //{
+            //    //var _token = await GenerateToken(user, true);
+            //    return BadRequest(new ResponseModel
+            //    {
+            //        StatusCode = StatusCodes.Status400BadRequest,
+            //        Message = "Admin can not login with OTP",
+            //        Data = null
+            //    });
+            //}
+
+            var staff = await _staffService.GetByAccountId(user.Id);
+            if (staff == null)
+            {
+                var tokenUser = await GenerateToken(user, true);
+                _cache.Remove(request.phonenumber);
+                return Ok(new ResponseModel
+                {
+                    StatusCode = 77,
+                    Message = "Missing user information",
+                    Data = tokenUser
+                });
+            }
+
+            var token = await GenerateToken(user, true);
+            _cache.Remove(request.phonenumber);
             return Ok(new ResponseModel
             {
                 StatusCode = 0,
