@@ -13,5 +13,8 @@ namespace Washouse.Data.Repositories
         public Task ActivateCategory(int id);
 
         public Task DeactivateCategory(int id);
+
+        Task PinCategory(int id);
+        Task UnPinCategory(int id);
     }
 }

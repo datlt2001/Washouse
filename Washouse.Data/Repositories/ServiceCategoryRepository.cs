@@ -49,6 +49,38 @@ namespace Washouse.Data.Repositories
             }
         }
 
+        public async Task PinCategory(int id)
+        {
+            try
+            {
+
+                var category = this.DbContext.Categories.SingleOrDefault(c => c.Id.Equals(id));
+                DbContext.Categories.Attach(category);
+                category.HomeFlag = true;
+                await DbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        
+        public async Task UnPinCategory(int id)
+        {
+            try
+            {
+
+                var category = this.DbContext.Categories.SingleOrDefault(c => c.Id.Equals(id));
+                DbContext.Categories.Attach(category);
+                category.HomeFlag = false;
+                await DbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 
 }

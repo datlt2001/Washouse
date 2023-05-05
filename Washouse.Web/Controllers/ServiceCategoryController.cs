@@ -16,6 +16,7 @@ using Washouse.Service.Interface;
 using Washouse.Web.Models;
 using static Google.Apis.Requests.BatchRequest;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Net.WebRequestMethods;
 
 namespace Washouse.Web.Controllers
 {
@@ -275,7 +276,12 @@ namespace Washouse.Web.Controllers
             }
 
             await _serviceCategoryService.DeactivateCategory(id);
-            return Ok();
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = null
+            });
         }
 
         [HttpPut("{id}/activate")]
@@ -289,7 +295,50 @@ namespace Washouse.Web.Controllers
             }
 
             await _serviceCategoryService.ActivateCategory(id);
-            return Ok();
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = null
+            });
+        }
+
+        [HttpPut("{id}/pin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PinCategory(int id)
+        {
+            var category = await _serviceCategoryService.GetById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            await _serviceCategoryService.PinCategory(id);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = null
+            });
+        }
+
+        [HttpPut("{id}/unpin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnPinCategory(int id)
+        {
+            var category = await _serviceCategoryService.GetById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            await _serviceCategoryService.UnPinCategory(id);
+            return Ok(new ResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "success",
+                Data = null
+            });
         }
     }
 }
