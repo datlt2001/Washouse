@@ -10,5 +10,6 @@ namespace Washouse.Service.Interface
     public interface IOperatingHourService
     {
         Task Add(OperatingHour operatingHour);
+        Task Update(OperatingHour operatingHour);
     }
 }

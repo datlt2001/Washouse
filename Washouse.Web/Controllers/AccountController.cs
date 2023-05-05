@@ -288,6 +288,7 @@ namespace Washouse.Web.Controllers
                     else if (staff.IsManager != null && staff.IsManager == false)
                     {
                         Role = "Staff";
+                        centerManaged = (staff.CenterId != null ? (int)staff.CenterId : 0);
                     }
                 }
                 else if (staff == null || staff.CenterId == null)

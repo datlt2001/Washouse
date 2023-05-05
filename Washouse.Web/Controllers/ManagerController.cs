@@ -1247,6 +1247,87 @@ namespace Washouse.Web.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/my-center/operating-hours
+        [HttpPut("my-center/operating-hours")]
+        public async Task<IActionResult> UpdateOperatingHours([FromBody] List<OperatingHoursRequestModel> Input)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var center = await _centerService.GetByIdToCreateOrder(int.Parse(User.FindFirst("CenterManaged")?.Value));
+                    if (center == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found center",
+                            Data = ""
+                        });
+                    }
+                    var oldOperatingHours = center.OperatingHours.ToList();
+                    //Add Operating time
+                    List<OperatingHoursRequestModel> operatings =
+                        JsonConvert.DeserializeObject<List<OperatingHoursRequestModel>>(Input.ToJson());
+                    foreach (var item in operatings)
+                    {
+                        var operatingTime = new OperatingHour();
+                        operatingTime.CenterId = center.Id;
+                        operatingTime.DaysOfWeekId = item.Day;
+                        var openTime = item.OpenTime.Split(':');
+                        operatingTime.OpenTime = new TimeSpan(int.Parse(openTime[0]), int.Parse(openTime[1]), 0);
+                        var closeTime = item.CloseTime.Split(':');
+                        operatingTime.CloseTime = new TimeSpan(int.Parse(closeTime[0]), int.Parse(closeTime[1]), 0);
+                        var existingOperatingHour = oldOperatingHours.FirstOrDefault(x => x.CenterId == operatingTime.CenterId && x.DaysOfWeekId == operatingTime.DaysOfWeekId);
+                        if (existingOperatingHour != null)
+                        {
+                            existingOperatingHour.UpdatedDate = DateTime.Now;
+                            existingOperatingHour.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            existingOperatingHour.OpenTime = operatingTime.OpenTime;
+                            existingOperatingHour.CloseTime = operatingTime.CloseTime;
+                            await _operatingHourService.Update(existingOperatingHour);
+                        } else
+                        {
+                            operatingTime.CreatedDate = DateTime.Now;
+                            operatingTime.CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                            operatingTime.UpdatedDate = null;
+                            operatingTime.UpdatedBy = null;
+                            await _operatingHourService.Add(operatingTime);
+                        }
+                    }
+
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            CenterId = center.Id
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
 
         [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/my-center/customers

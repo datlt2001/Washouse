@@ -24,5 +24,10 @@ namespace Washouse.Service.Implement
         {
             await _operatingHourRepository.Add(operatingHour);
         }
+
+        public async Task Update(OperatingHour operatingHour)
+        {
+            await _operatingHourRepository.Update(operatingHour);
+        }
     }
 }
