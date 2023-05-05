@@ -66,6 +66,7 @@ namespace Washouse.Data.Infrastructure
         {
             var entity = await GetById(id);
             _dbSet.Remove(entity);
+            await _dbContext.SaveChangesAsync();
         }
         public async Task DeleteComplex(object firstKey, object secondKey)
         {

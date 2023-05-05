@@ -38,5 +38,8 @@ namespace Washouse.Service.Interface
         Task<Center> GetCenterOperatingTimes(int id);
         Task<Center> GetByIdToCreateOrder(int id);
         Task<Center> GetByIdAdminDetail(int id);
+        Task AddDeliveryPrice(DeliveryPriceChart deliveryPrice);
+        Task UpdateDeliveryPrice(DeliveryPriceChart deliveryPrice);
+        Task DeleteDeliveryPrice(int DeliveryPriceId);
     }
 }

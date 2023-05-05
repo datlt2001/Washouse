@@ -148,5 +148,20 @@ namespace Washouse.Service.Implement
         {
             await _centerRepository.DeactivateCenter(id);
         }
+
+        public async Task AddDeliveryPrice(DeliveryPriceChart deliveryPrice)
+        {
+            await _deliveryPriceChartRepository.Add(deliveryPrice);
+        }
+        
+        public async Task UpdateDeliveryPrice(DeliveryPriceChart deliveryPrice)
+        {
+            await _deliveryPriceChartRepository.Update(deliveryPrice);
+        }
+
+        public async Task DeleteDeliveryPrice(int DeliveryPriceId)
+        {
+            await _deliveryPriceChartRepository.Delete(DeliveryPriceId);
+        }
     }
 }

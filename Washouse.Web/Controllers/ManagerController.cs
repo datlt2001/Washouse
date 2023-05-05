@@ -1327,6 +1327,227 @@ namespace Washouse.Web.Controllers
                 });
             }
         }
+/*
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/my-center/delivery-prices
+        [HttpGet("my-center/delivery-prices")]
+        public async Task<IActionResult> GetDeliveryPrice()
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var center = await _centerService.GetByIdToCalculateDeliveryPrice(int.Parse(User.FindFirst("CenterManaged")?.Value));
+                    if (center == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found center",
+                            Data = ""
+                        });
+                    }
+                    var deliveryPrices = center.DeliveryPriceCharts.ToList();
+                    foreach (var item in deliveryPrices)
+                    {
+                        
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            CenterId = center.Id
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+        */
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/my-center/delivery-prices
+        [HttpPut("my-center/delivery-prices")]
+        public async Task<IActionResult> UpdateDeliveryPrice([FromBody] CenterDeliveryPriceUpdateRequestModel Input)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var center = await _centerService.GetByIdToCalculateDeliveryPrice(int.Parse(User.FindFirst("CenterManaged")?.Value));
+                    if (center == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found center",
+                            Data = ""
+                        });
+                    }
+                    if (Input.HasDelivery == false && center.HasDelivery == false)
+                    {
+                        return BadRequest(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status400BadRequest,
+                            Message = "delivery service already stop",
+                            Data = null
+                        });
+                    }
+                    if (Input.HasDelivery == false && center.HasDelivery == true)
+                    {
+                        center.HasDelivery = false;
+                        await _centerService.Update(center);
+                        return Ok(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status200OK,
+                            Message = "stop delivery service success",
+                            Data = new
+                            {
+                                CenterId = center.Id
+                            }
+                        });
+                    } else if (Input.HasDelivery == true && center.HasDelivery == false)
+                    {
+                        center.HasDelivery = true;
+                        await _centerService.Update(center);
+                    }
+                    //Add Operating time
+                    if (Input.DeliveryPriceCharts != null)
+                    {
+                        List<CenterDeliveryPriceChartUpdateRequestModel> deliveryPrices =
+                        JsonConvert.DeserializeObject<List<CenterDeliveryPriceChartUpdateRequestModel>>(Input.DeliveryPriceCharts.ToJson());
+
+                        var oldDeliveryPriceCharts = center.DeliveryPriceCharts.ToList();
+                        foreach (var item in deliveryPrices)
+                        {
+                            if (item.Id == 0)
+                            {
+                                var deliveryPrice = new DeliveryPriceChart()
+                                {
+                                    CenterId = center.Id,
+                                    MaxDistance = item.MaxDistance,
+                                    MaxWeight = item.MaxWeight,
+                                    Price = item.Price,
+                                    Status = true,
+                                    CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
+                                    CreatedDate = DateTime.Now,
+                                    UpdatedDate = null,
+                                    UpdatedBy = null
+                                };
+                                await _centerService.AddDeliveryPrice(deliveryPrice);
+                            }
+                            else if (item.Id != 0)
+                            {
+                                var oldItem = oldDeliveryPriceCharts.FirstOrDefault(old => old.Id == item.Id);
+                                oldItem.MaxDistance = item.MaxDistance;
+                                oldItem.MaxWeight = item.MaxWeight;
+                                oldItem.Price = item.Price;
+                                oldItem.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                                oldItem.UpdatedDate = DateTime.Now;
+                                await _centerService.UpdateDeliveryPrice(oldItem);
+                            }
+                        }
+
+                    }
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            CenterId = center.Id
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        // PUT: api/manager/my-center/delivery-prices
+        [HttpPut("my-center/delivery-prices/delete")]
+        public async Task<IActionResult> DeleteDeliveryPrice(int DeliveryPriceId)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var center = await _centerService.GetByIdToCalculateDeliveryPrice(int.Parse(User.FindFirst("CenterManaged")?.Value));
+                    if (center == null)
+                    {
+                        return NotFound(new ResponseModel
+                        {
+                            StatusCode = StatusCodes.Status404NotFound,
+                            Message = "Not found center",
+                            Data = ""
+                        });
+                    }
+                    await _centerService.DeleteDeliveryPrice(DeliveryPriceId);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = new
+                        {
+                            CenterId = center.Id
+                        }
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Model is not valid",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
 
 
         [Authorize(Roles = "Manager,Staff")]
