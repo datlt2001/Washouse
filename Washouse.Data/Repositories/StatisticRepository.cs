@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
+using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels.AdminResponseModel;
 using Washouse.Model.ResponseModels.ManagerResponseModel;
 
@@ -38,12 +39,68 @@ namespace Washouse.Data.Repositories
                     _toDate = DateTime.Now.Date;
                     _fromDate = DateTime.Now.AddDays(-6).Date;
                 }
-                var customerStatistic = new CustomerStatistic();
-                var customer = this._dbContext.Customers
+                var dailystatistics = new List<AdminDailyStatistic>();
+                var centerStatistics = new CenterStatistic();
+
+                var centers = this._dbContext.Centers
+                    .Where(c => c.Status != null)
+                    .Select(c => new { c.Status})
+                    .ToList();
+
+                centerStatistics.NumberOfPendingCenters = centers.Count(center => center.Status.Trim().ToLower().Equals("pending"));
+                centerStatistics.NumberOfClosedCenters = centers.Count(center => center.Status.Trim().ToLower().Equals("closed"));
+                centerStatistics.NumberOfActiveCenters = centers.Count(center => !center.Status.Trim().ToLower().Equals("closed"));
+                response.centerOverview = centerStatistics;
+
+                var accountCounts = this._dbContext.Accounts
+                    .Where(c => c.CreatedDate != null && c.CreatedDate.Value.Date >= _fromDate.Value.Date && c.CreatedDate.Value.Date <= _toDate.Value.Date)
+                    .GroupBy(c => c.CreatedDate.Value.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() })
+                    .ToList();
+                var postCounts = this._dbContext.Posts
+                    .Where(c =>c.CreatedDate.Date >= _fromDate.Value.Date && c.CreatedDate.Date <= _toDate.Value.Date)
+                    .GroupBy(c => c.CreatedDate.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() })
+                    .ToList();
+                var centerCounts = this._dbContext.Accounts
+                    .Where(c => c.CreatedDate != null && c.CreatedDate.Value.Date >= _fromDate.Value.Date && c.CreatedDate.Value.Date <= _toDate.Value.Date)
+                    .GroupBy(c => c.CreatedDate.Value.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() })
+                    .ToList();
+
+                // Create list of dates between fromDate and toDate
+                var dates = GetDatesUntil(_fromDate.Value.Date, _toDate.Value.Date);
+
+                // Initialize list of daily statistics
+                //var dailyStatistics = new List<object>();
+
+                // Iterate over each date in the list
+                foreach (var date in dates)
+                {
+                    // Get number of new posts for the current date
+                    var postCount = postCounts.FirstOrDefault(c => c.Date == date)?.Count ?? 0;
+
+                    // Get number of new customers for the current date
+                    var customerCount = accountCounts.FirstOrDefault(c => c.Date == date)?.Count ?? 0;
+
+                    // Get number of new centers for the current date
+                    var centerCount = centerCounts.FirstOrDefault(c => c.Date == date)?.Count ?? 0;
+
+                    // Add daily statistics to the list
+                    dailystatistics.Add(new AdminDailyStatistic
+                    {
+                        Day = date.ToString("dd-MM-yyyy"),
+                        NumberOfNewPosts = postCount,
+                        NumberOfNewUsers = customerCount,
+                        NumberOfNewCenters = centerCount
+                    });
+                }
+                response.dailystatistics = dailystatistics;
+                /*var customer = this._dbContext.Customers
                     .Where(c => c.CreatedDate != null)
                     .Select(c => new {c.CreatedDate })
-                    .ToList();
-                customerStatistic.NumberOfNewCustomersToday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.Date);
+                    .ToList();*/
+                /*customerStatistic.NumberOfNewCustomersToday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.Date);
                 customerStatistic.NumberOfNewCustomersYesterday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.AddDays(-1).Date);
                 // Compute the number of new customers daily within the specified date range
                 var customerCounts = this._dbContext.Customers
@@ -104,7 +161,7 @@ namespace Washouse.Data.Repositories
                 centerStatistics.NumberOfNewCenterToday = centers.Count(center => center.CreatedDate.Value.Date == DateTime.Now.Date);
                 centerStatistics.NumberOfNewCenterYesterday = centers.Count(center => center.CreatedDate.Value.Date == DateTime.Now.AddDays(-1).Date);
                 response.CenterStatistic = centerStatistics;
-                
+                */
                 return response;
             }
             catch (Exception ex)
@@ -184,6 +241,18 @@ namespace Washouse.Data.Repositories
                 orderOverview = orderOverview,
                 dailystatistics = result.ToList(),
             };
+        }
+
+        private List<DateTime> GetDatesUntil(DateTime startDate, DateTime endDate)
+        {
+            List<DateTime> dates = new List<DateTime>();
+
+            for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                dates.Add(date);
+            }
+
+            return dates;
         }
 
     }
