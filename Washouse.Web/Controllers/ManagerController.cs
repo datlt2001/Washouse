@@ -2098,6 +2098,7 @@ namespace Washouse.Web.Controllers
                     {
                         response.Feedback = new FeedbackCenterModel
                         {
+                            Id = feedback.Id,
                             Content = feedback.Content,
                             CreatedDate = feedback.CreatedDate,
                             CreatedBy = feedback.CreatedBy,

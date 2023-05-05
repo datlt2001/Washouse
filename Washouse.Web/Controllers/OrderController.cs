@@ -309,6 +309,7 @@ namespace Washouse.Web.Controllers
                             ? null
                             : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDropoffTime,
                                 "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    //if (center.OperatingHours)
                     //order.PreferredDeliverTime = string.IsNullOrEmpty(createOrderRequestModel.Order.PreferredDeliverTime) ? null : DateTime.ParseExact(createOrderRequestModel.Order.PreferredDeliverTime, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                     order.Status = "Pending";
                     order.CreatedBy = customer.Email != null
