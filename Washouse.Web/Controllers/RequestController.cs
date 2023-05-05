@@ -147,6 +147,211 @@ namespace Washouse.Web.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpGet("centers/updating/{id}")]
+        public async Task<IActionResult> GetUpdatingCenterRequestDetail(int id)
+        {
+            try
+            {
+                var centerUpdating = await _centerRequestService.GetById(id);
+                if (centerUpdating == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+
+                if (centerUpdating != null)
+                {
+                    var center = await _centerService.GetMyCenter(centerUpdating.CenterRequesting);
+                    var response = new CenterManagerResponseModel();
+                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
+                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
+                    var centerAdditionServices = new List<AdditionServiceCenterModel>();
+                    var centerGalleries = new List<CenterGalleryModel>();
+                    var centerFeedbacks = new List<FeedbackCenterModel>();
+                    var centerResourses = new List<ResourseCenterModel>();
+                    
+                    List<int> dayOffs = new List<int>();
+                    for (int i = 0; i < 7; i++)
+                    {
+                        dayOffs.Add(i);
+                    }
+
+                    foreach (var item in center.OperatingHours)
+                    {
+                        dayOffs.Remove(item.DaysOfWeek.Id);
+                        var centerOperatingHour = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item.DaysOfWeek.Id,
+                            OpenTime = item.OpenTime,
+                            CloseTime = item.CloseTime
+                        };
+                        centerOperatingHours.Add(centerOperatingHour);
+                    }
+
+                    foreach (var item in dayOffs)
+                    {
+                        var dayOff = new CenterOperatingHoursResponseModel
+                        {
+                            Day = item,
+                            OpenTime = null,
+                            CloseTime = null
+                        };
+                        centerOperatingHours.Add(dayOff);
+                    }
+
+                    bool MonthOff = false;
+                    if (centerUpdating.MonthOff != null)
+                    {
+                        string[] offs = center.MonthOff.Split('-');
+                        for (int i = 0; i < offs.Length; i++)
+                        {
+                            if (DateTime.Now.Day == (int.Parse(offs[i])))
+                            {
+                                MonthOff = true;
+                            }
+                        }
+                    }
+
+                    foreach (var item in center.DeliveryPriceCharts)
+                    {
+                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
+                        {
+                            Id = item.Id,
+                            MaxDistance = item.MaxDistance,
+                            MaxWeight = item.MaxWeight,
+                            Price = item.Price
+                        };
+                        centerDeliveryPrices.Add(centerDeliveryPrice);
+                    }
+
+
+                    response.Id = center.Id;
+                    response.Thumbnail = centerUpdating.Image != null
+                        ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
+                        : null;
+                    response.Title = centerUpdating.CenterName;
+                    response.Alias = centerUpdating.Alias;
+                    response.Description = centerUpdating.Description;
+                    response.Rating = center.Rating;
+                    response.NumOfRating = center.NumOfRating;
+                    response.Phone = centerUpdating.Phone;
+                    var locationU = await _locationService.GetByIdIncludeWardDistrict(centerUpdating.LocationId);
+                    response.CenterAddress = locationU.AddressString + ", " + locationU.Ward.WardName +
+                                             ", " + locationU.Ward.District.DistrictName;
+                    //response.Distance = distance;
+                    response.IsAvailable = center.IsAvailable;
+                    response.Status = center.Status;
+                    response.TaxCode = centerUpdating.TaxCode.Trim();
+                    response.TaxRegistrationImage = center.TaxRegistrationImage;
+                    response.MonthOff = MonthOff;
+                    response.HasDelivery = center.HasDelivery;
+                    response.HasOnlinePayment = center.HasOnlinePayment;
+                    response.LocationId = centerUpdating.LocationId;
+                    response.CenterDeliveryPrices = centerDeliveryPrices;
+                    response.LastDeactivate = center.LastDeactivate.HasValue
+                            ? (center.LastDeactivate.Value).ToString("dd-MM-yyyy HH:mm:ss")
+                            : null;
+                    response.CenterLocation = new CenterLocationResponseModel
+                    {
+                        Latitude = center.Location.Latitude,
+                        Longitude = center.Location.Longitude
+                    };
+                    response.CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList();
+                    foreach (var item in center.AdditionServices)
+                    {
+                        var additionService = new AdditionServiceCenterModel
+                        {
+                            AdditionName = item.AdditionName,
+                            Alias = item.Alias,
+                            Description = item.Description,
+                            Image = item.Image,
+                            Status = item.Status
+                        };
+                        centerAdditionServices.Add(additionService);
+                    }
+
+                    response.AdditionServices = centerAdditionServices;
+                    foreach (var item in center.CenterGalleries)
+                    {
+                        var centerGallery = new CenterGalleryModel
+                        {
+                            Image = item.Image,
+                            CreatedDate = item.CreatedDate
+                        };
+                        centerGalleries.Add(centerGallery);
+                    }
+
+                    response.CenterGalleries = centerGalleries;
+                    //feedback
+                    /*foreach (var item in center.Feedbacks)
+                    {
+                        var centerFeedback = new FeedbackCenterModel
+                        {
+                            Content = item.Content,
+                            Rating = item.Rating,
+                            //OrderId = item.OrderId,
+                            CreatedBy = item.CreatedBy,
+                            CreatedDate = item.CreatedDate,
+                            ReplyMessage = item.ReplyMessage,
+                            ReplyBy = item.ReplyBy,
+                            ReplyDate = item.ReplyDate
+                        };
+                        centerFeedbacks.Add(centerFeedback);
+                    }
+
+                    response.CenterFeedbacks = centerFeedbacks;*/
+                    //resource
+                    foreach (var item in center.Resourses)
+                    {
+                        var centerResourse = new ResourseCenterModel
+                        {
+                            ResourceName = item.ResourceName,
+                            Alias = item.Alias,
+                            Quantity = item.Quantity,
+                            AvailableQuantity = item.AvailableQuantity,
+                            WashCapacity = item.WashCapacity,
+                            DryCapacity = item.DryCapacity,
+                            Status = item.Status,
+                            CreatedDate = item.CreatedDate,
+                            UpdatedDate = item.UpdatedDate
+                        };
+                        centerResourses.Add(centerResourse);
+                    }
+
+                    response.CenterResourses = centerResourses;
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = response
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found",
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpGet("centers/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
