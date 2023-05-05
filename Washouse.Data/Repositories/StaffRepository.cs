@@ -66,6 +66,7 @@ namespace Washouse.Data.Repositories
         public Staff GetStaffByCenterId(int centerid)
         {
             var data = this._dbContext.Staffs
+                        .Include(staff => staff.Account)
                         .SingleOrDefault(s => s.CenterId == centerid && s.IsManager == true);
 
             return data;

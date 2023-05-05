@@ -169,164 +169,70 @@ namespace Washouse.Web.Controllers
 
                 if (centerUpdating != null)
                 {
-                    var center = await _centerService.GetMyCenter(centerUpdating.CenterRequesting);
-                    var response = new CenterManagerResponseModel();
-                    var centerOperatingHours = new List<CenterOperatingHoursResponseModel>();
-                    var centerDeliveryPrices = new List<CenterDeliveryPriceChartResponseModel>();
-                    var centerAdditionServices = new List<AdditionServiceCenterModel>();
-                    var centerGalleries = new List<CenterGalleryModel>();
-                    var centerFeedbacks = new List<FeedbackCenterModel>();
-                    var centerResourses = new List<ResourseCenterModel>();
-                    
-                    List<int> dayOffs = new List<int>();
-                    for (int i = 0; i < 7; i++)
-                    {
-                        dayOffs.Add(i);
-                    }
-
-                    foreach (var item in center.OperatingHours)
-                    {
-                        dayOffs.Remove(item.DaysOfWeek.Id);
-                        var centerOperatingHour = new CenterOperatingHoursResponseModel
-                        {
-                            Day = item.DaysOfWeek.Id,
-                            OpenTime = item.OpenTime,
-                            CloseTime = item.CloseTime
-                        };
-                        centerOperatingHours.Add(centerOperatingHour);
-                    }
-
-                    foreach (var item in dayOffs)
-                    {
-                        var dayOff = new CenterOperatingHoursResponseModel
-                        {
-                            Day = item,
-                            OpenTime = null,
-                            CloseTime = null
-                        };
-                        centerOperatingHours.Add(dayOff);
-                    }
-
-                    bool MonthOff = false;
-                    if (centerUpdating.MonthOff != null)
-                    {
-                        string[] offs = center.MonthOff.Split('-');
-                        for (int i = 0; i < offs.Length; i++)
-                        {
-                            if (DateTime.Now.Day == (int.Parse(offs[i])))
-                            {
-                                MonthOff = true;
-                            }
-                        }
-                    }
-
-                    foreach (var item in center.DeliveryPriceCharts)
-                    {
-                        var centerDeliveryPrice = new CenterDeliveryPriceChartResponseModel
-                        {
-                            Id = item.Id,
-                            MaxDistance = item.MaxDistance,
-                            MaxWeight = item.MaxWeight,
-                            Price = item.Price
-                        };
-                        centerDeliveryPrices.Add(centerDeliveryPrice);
-                    }
-
-
+                    var center = await _centerService.GetByIdLightWeight(centerUpdating.CenterRequesting);
+                    var response = new UpdatingCenterResponseModel();
                     response.Id = center.Id;
+                    response.Title = centerUpdating.CenterName;
+                    response.Alias = centerUpdating.Alias;
                     response.Thumbnail = centerUpdating.Image != null
                         ? await _cloudStorageService.GetSignedUrlAsync(center.Image)
                         : null;
-                    response.Title = centerUpdating.CenterName;
-                    response.Alias = centerUpdating.Alias;
                     response.Description = centerUpdating.Description;
-                    response.Rating = center.Rating;
-                    response.NumOfRating = center.NumOfRating;
-                    response.Phone = centerUpdating.Phone;
+
                     var locationU = await _locationService.GetByIdIncludeWardDistrict(centerUpdating.LocationId);
                     response.CenterAddress = locationU.AddressString + ", " + locationU.Ward.WardName +
                                              ", " + locationU.Ward.District.DistrictName;
-                    //response.Distance = distance;
-                    response.IsAvailable = center.IsAvailable;
-                    response.Status = center.Status;
-                    response.TaxCode = centerUpdating.TaxCode.Trim();
-                    response.TaxRegistrationImage = center.TaxRegistrationImage;
-                    response.MonthOff = MonthOff;
+
+                    response.CenterPhone = centerUpdating.Phone;
+                    response.LocationId = centerUpdating.LocationId;
                     response.HasDelivery = center.HasDelivery;
                     response.HasOnlinePayment = center.HasOnlinePayment;
-                    response.LocationId = centerUpdating.LocationId;
-                    response.CenterDeliveryPrices = centerDeliveryPrices;
+                    response.IsAvailable = center.IsAvailable;
                     response.LastDeactivate = center.LastDeactivate.HasValue
                             ? (center.LastDeactivate.Value).ToString("dd-MM-yyyy HH:mm:ss")
                             : null;
-                    response.CenterLocation = new CenterLocationResponseModel
+                    response.NumOfRating = center.NumOfRating;
+                    response.Rating = center.Rating;
+                    //response.Distance = distance;
+                    response.Status = center.Status;
+                    response.TaxCode = centerUpdating.TaxCode.Trim();
+                    response.TaxRegistrationImage = center.TaxRegistrationImage;
+                    var manager = _staffService.GetStaffByCenterId(center.Id);
+                    response.ManagerId = manager != null ? manager.Id : null;
+                    response.ManagerName = manager != null ? manager.Account.FullName : null;
+                    response.ManagerEmail = manager != null ? manager.Account.Email : null;
+                    response.ManagerPhone = manager != null ? manager.Account.Phone : null;
+                    var ratings = await _feedbackService.GetAllByCenterIdAsync(center.Id);
+                    int st1 = 0, st2 = 0, st3 = 0, st4 = 0, st5 = 0;
+                    foreach (var feedback in ratings)
                     {
-                        Latitude = center.Location.Latitude,
-                        Longitude = center.Location.Longitude
-                    };
-                    response.CenterOperatingHours = centerOperatingHours.OrderBy(a => a.Day).ToList();
-                    foreach (var item in center.AdditionServices)
-                    {
-                        var additionService = new AdditionServiceCenterModel
+                        if (feedback.Rating == 1)
                         {
-                            AdditionName = item.AdditionName,
-                            Alias = item.Alias,
-                            Description = item.Description,
-                            Image = item.Image,
-                            Status = item.Status
-                        };
-                        centerAdditionServices.Add(additionService);
+                            st1++;
+                        }
+
+                        if (feedback.Rating == 2)
+                        {
+                            st2++;
+                        }
+
+                        if (feedback.Rating == 3)
+                        {
+                            st3++;
+                        }
+
+                        if (feedback.Rating == 4)
+                        {
+                            st4++;
+                        }
+
+                        if (feedback.Rating == 5)
+                        {
+                            st5++;
+                        }
                     }
 
-                    response.AdditionServices = centerAdditionServices;
-                    foreach (var item in center.CenterGalleries)
-                    {
-                        var centerGallery = new CenterGalleryModel
-                        {
-                            Image = item.Image,
-                            CreatedDate = item.CreatedDate
-                        };
-                        centerGalleries.Add(centerGallery);
-                    }
-
-                    response.CenterGalleries = centerGalleries;
-                    //feedback
-                    /*foreach (var item in center.Feedbacks)
-                    {
-                        var centerFeedback = new FeedbackCenterModel
-                        {
-                            Content = item.Content,
-                            Rating = item.Rating,
-                            //OrderId = item.OrderId,
-                            CreatedBy = item.CreatedBy,
-                            CreatedDate = item.CreatedDate,
-                            ReplyMessage = item.ReplyMessage,
-                            ReplyBy = item.ReplyBy,
-                            ReplyDate = item.ReplyDate
-                        };
-                        centerFeedbacks.Add(centerFeedback);
-                    }
-
-                    response.CenterFeedbacks = centerFeedbacks;*/
-                    //resource
-                    foreach (var item in center.Resourses)
-                    {
-                        var centerResourse = new ResourseCenterModel
-                        {
-                            ResourceName = item.ResourceName,
-                            Alias = item.Alias,
-                            Quantity = item.Quantity,
-                            AvailableQuantity = item.AvailableQuantity,
-                            WashCapacity = item.WashCapacity,
-                            DryCapacity = item.DryCapacity,
-                            Status = item.Status,
-                            CreatedDate = item.CreatedDate,
-                            UpdatedDate = item.UpdatedDate
-                        };
-                        centerResourses.Add(centerResourse);
-                    }
-
-                    response.CenterResourses = centerResourses;
+                    response.Ratings = new int[] { st1, st2, st3, st4, st5 };
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,

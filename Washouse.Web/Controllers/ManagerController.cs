@@ -799,7 +799,7 @@ namespace Washouse.Web.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Staff")]
         // GET: api/manager/promotions
         [HttpGet("promotions")]
         public async Task<IActionResult> GetPromotionsOfCenterManaged()
