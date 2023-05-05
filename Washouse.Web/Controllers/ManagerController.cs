@@ -2093,7 +2093,20 @@ namespace Washouse.Web.Controllers
                                 : null,
                         });
                     }
-
+                    var feedback = await _feedbackService.GetByOrderId(order.Id);
+                    if (feedback is not null)
+                    {
+                        response.Feedback = new FeedbackCenterModel
+                        {
+                            Content = feedback.Content,
+                            CreatedDate = feedback.CreatedDate,
+                            CreatedBy = feedback.CreatedBy,
+                            Rating = feedback.Rating,
+                            ReplyBy = feedback.ReplyBy,
+                            ReplyDate = feedback.ReplyDate,
+                            ReplyMessage = feedback.ReplyMessage
+                        };
+                    }
                     response.OrderTrackings = OrderTrackings;
                     foreach (var delivery in order.Deliveries)
                     {
