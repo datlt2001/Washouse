@@ -1,6 +1,7 @@
 ﻿//using GoogleMaps.LocationServices;
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -253,6 +254,14 @@ namespace Washouse.Data.Repositories
                 .Where(center => center.Id == id)
                 .FirstOrDefaultAsync();
                 centerClose.Status = "Closed";
+                var staffs = await this._dbContext.Staffs
+                        .Where(staff => staff.CenterId == id)
+                        .ToListAsync();
+                foreach (var item in staffs)
+                {
+                    item.CenterId = null;
+                    item.IsManager = false;
+                }
                 await this._dbContext.SaveChangesAsync();
                 return "success";
             }
