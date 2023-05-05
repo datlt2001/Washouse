@@ -213,7 +213,7 @@ namespace Washouse.Web.Controllers
                         var centerExist = checkLocationExistCenter.Centers.ToList();
                         foreach (var item in centerExist)
                         {
-                            if (!item.Status.Equals("Closed"))
+                            if ((!item.Status.Equals("Closed")) && (item.Id != centerRequesting.Id))
                             {
                                 return BadRequest(new ResponseModel
                                 {
@@ -224,6 +224,42 @@ namespace Washouse.Web.Controllers
                             }
                         }
                     }
+                }
+
+                if (centerRequesting.Status.Trim().ToLower().Equals("rejected"))
+                {
+                    centerRequesting.CenterName = string.IsNullOrWhiteSpace(centerEditRequest.CenterName)
+                        ? centerRequesting.CenterName
+                        : centerEditRequest.CenterName.Trim();
+                    centerRequesting.Alias = string.IsNullOrWhiteSpace(centerEditRequest.Alias)
+                        ? centerRequesting.Alias
+                        : centerEditRequest.Alias.Trim();
+                    centerRequesting.Phone = string.IsNullOrWhiteSpace(centerEditRequest.Phone)
+                        ? centerRequesting.Phone
+                        : centerEditRequest.Phone.Trim();
+                    centerRequesting.Description = string.IsNullOrWhiteSpace(centerEditRequest.Description)
+                        ? centerRequesting.Description
+                        : centerEditRequest.Description.Trim();
+                    centerRequesting.MonthOff = string.IsNullOrWhiteSpace(centerEditRequest.MonthOff)
+                        ? centerRequesting.MonthOff
+                        : centerEditRequest.MonthOff.Trim();
+                    centerRequesting.Image = string.IsNullOrWhiteSpace(centerEditRequest.SavedFileName)
+                        ? centerRequesting.Image
+                        : centerEditRequest.SavedFileName.Trim();
+                    centerRequesting.TaxCode = centerRequesting.TaxCode;
+                    centerRequesting.LocationId = (checkLocationExistCenter.Id == 0)
+                        ? centerRequesting.LocationId
+                        : checkLocationExistCenter.Id;
+                    centerRequesting.Status = "Pending";
+                    centerRequesting.UpdatedDate = DateTime.Now;
+                    centerRequesting.UpdatedBy = User.FindFirst(ClaimTypes.Email)?.Value;
+                    await _centerService.Update(centerRequesting);
+                    return Ok(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "success",
+                        Data = centerRequesting
+                    });
                 }
 
                 var centerRequestModel = new CenterRequest();
