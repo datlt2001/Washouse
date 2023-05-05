@@ -11,16 +11,13 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Model.Models;
 using Washouse.Model.ResponseModels.AdminResponseModel;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 
 namespace Washouse.Data.Repositories
 {
-    public class StatisticRepository : RepositoryBase<Notification>, IStatisticRepository
+    public class StatisticRepository : IStatisticRepository
     {
-        public StatisticRepository(IDbFactory dbFactory) : base(dbFactory)
-        {
-        }
-
-
+        WashouseDbContext _dbContext = new WashouseDbContext();
         public async Task<AdminStatisticResponseModel> GetAdminStatistic(string fromDate, string toDate)
         {
             try
@@ -115,5 +112,79 @@ namespace Washouse.Data.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+
+        public async Task<StaffStatisticModel> GetManagerStatistic(int centerId, string fromDate, string toDate)
+        {
+            DateTime startDate = DateTime.ParseExact(fromDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+            DateTime endDate = DateTime.ParseExact(toDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+
+            var orders = (from o in _dbContext.Orders
+                          join od in _dbContext.OrderDetails on o.Id equals od.OrderId
+                          join s in _dbContext.Services on od.ServiceId equals s.Id
+                          where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
+                          select o).Distinct();
+            var orders_delivery = (from o in _dbContext.Orders
+                                   join od in _dbContext.OrderDetails on o.Id equals od.OrderId
+                                   join s in _dbContext.Services on od.ServiceId equals s.Id
+                                   join d in _dbContext.Deliveries on o.Id equals d.OrderId
+                                   where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
+                                         && (d.Status.Trim().ToLower() == "pending" || d.Status.Trim().ToLower() == "delivering")
+                                   select o).Distinct();
+            var orderOverview = new OrderOverview
+            {
+                NumOfPendingOrder = orders.Count(o => o.Status.ToLower().Trim() == "pending"),
+                NumOfProcessingOrder = orders.Count(o => o.Status.ToLower().Trim() == "processing" || o.Status.ToLower().Trim() == "received"
+                                                || o.Status.ToLower().Trim() == "confirmed"),
+                NumOfReadyOrder = orders.Count(o => o.Status.ToLower().Trim() == "ready"),
+                NumOfPendingDeliveryOrder = orders_delivery.Count(),
+                NumOfCompletedOrder = orders.Count(o => o.Status.ToLower().Trim() == "completed"),
+                NumOfCancelledOrder = orders.Count(o => o.Status.ToLower().Trim() == "cancelled"),
+            };
+            // Create a list of all dates you want to include
+            var dateList = Enumerable.Range(0, (endDate - startDate).Days + 1)
+                .Select(offset => startDate.AddDays(offset).ToString("dd-MM-yyyy"))
+                .ToList();
+
+
+            // Query daily statistics as before
+            var dailyStatistics = from o in (
+                          from o in _dbContext.Orders
+                          join od in _dbContext.OrderDetails on o.Id equals od.OrderId
+                          join s in _dbContext.Services on od.ServiceId equals s.Id
+                          where s.CenterId == centerId && o.CreatedDate.Value.Date < DateTime.Now.Date.AddDays(1) && o.CreatedDate.Value.Date > DateTime.Now.Date.AddDays(-7)
+                          select o
+                      ).Distinct()
+                                  join p in _dbContext.Payments on o.Id equals p.OrderId into pg
+                                  from payment in pg.DefaultIfEmpty()
+                                  group new { o, payment } by o.CreatedDate.Value.Date into g
+                                  select new DailyStatistic
+                                  {
+                                      Day = g.Key.ToString("dd-MM-yyyy"),
+                                      TotalOrder = g.Count(),
+                                      SuccessfulOrder = g.Count(o => o.o.Status.ToLower().Trim() == "completed"),
+                                      CancelledOrder = g.Count(o => o.o.Status.ToLower().Trim() == "cancelled"),
+                                      Revenue = g.Sum(x => x.payment != null ? x.payment.Total : 0)
+                                  };
+
+            // Left join the two lists on the date field to get all dates with zero successful/cancelled orders
+            var result = from date in dateList
+                         join ds in dailyStatistics on date equals ds.Day into gj
+                         from subDs in gj.DefaultIfEmpty()
+                         select new DailyStatistic
+                         {
+                             Day = date,
+                             TotalOrder = subDs == null ? 0 : subDs.TotalOrder,
+                             SuccessfulOrder = subDs == null ? 0 : subDs.SuccessfulOrder,
+                             CancelledOrder = subDs == null ? 0 : subDs.CancelledOrder,
+                             Revenue = subDs == null ? 0 : subDs.Revenue
+                         };
+            return new StaffStatisticModel
+            {
+                orderOverview = orderOverview,
+                dailystatistics = result.ToList(),
+            };
+        }
+
     }
 }

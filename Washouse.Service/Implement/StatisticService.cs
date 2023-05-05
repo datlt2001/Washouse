@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Washouse.Data.Infrastructure;
 using Washouse.Data.Repositories;
 using Washouse.Model.ResponseModels.AdminResponseModel;
+using Washouse.Model.ResponseModels.ManagerResponseModel;
 using Washouse.Service.Interface;
 
 namespace Washouse.Service.Implement
@@ -24,6 +25,11 @@ namespace Washouse.Service.Implement
         public async Task<AdminStatisticResponseModel> GetAdminStatistic(string fromDate, string toDate)
         {
             return await _statisticRepository.GetAdminStatistic(fromDate, toDate);
+        }
+
+        public async Task<StaffStatisticModel> GetManagerStatistic(int centerId, string fromDate, string toDate)
+        {
+            return await _statisticRepository.GetManagerStatistic(centerId, fromDate, toDate);
         }
     }
 }

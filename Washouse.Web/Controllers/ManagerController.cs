@@ -56,6 +56,7 @@ namespace Washouse.Web.Controllers
         private readonly IWalletTransactionService _walletTransactionService;
         private readonly IWalletService _walletService;
         private readonly IPaymentService _paymentService;
+        private readonly IStatisticService _statisticService;
         private readonly IHubContext<MessageHub> messageHub;
         private readonly ISendMailService _sendMailService;
 
@@ -67,7 +68,7 @@ namespace Washouse.Web.Controllers
             INotificationService notificationService, INotificationAccountService notificationAccountService,
             ICustomerService customerService, IOrderService orderService, IAccountService accountService,
             IWalletService walletService, IWalletTransactionService walletTransactionService,
-            IPaymentService paymentService,
+            IPaymentService paymentService, IStatisticService statisticService,
             IHubContext<MessageHub> _messageHub, ISendMailService sendMailService, IDeliveryService deliveryService)
         {
             this._centerService = centerService;
@@ -91,6 +92,7 @@ namespace Washouse.Web.Controllers
             this._walletService = walletService;
             this._walletTransactionService = walletTransactionService;
             this._paymentService = paymentService;
+            this._statisticService = statisticService;
         }
 
         #endregion
@@ -3591,6 +3593,48 @@ namespace Washouse.Web.Controllers
             }
 
             //}
+        }
+
+        [HttpGet("my-center/manager-statistics")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> GetManagerStatistics(string fromDate, string toDate)
+        {
+            try
+            {
+                int centerId = int.Parse(User.FindFirst("CenterManaged")?.Value);
+                var center = await _centerService.GetByIdLightWeight(centerId);
+                if (center == null)
+                {
+                    return NotFound(new ResponseModel
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Message = "Not found center that you are manager",
+                        Data = null
+                    });
+                }
+                var managerStatistic = await _statisticService.GetManagerStatistic(centerId, fromDate, toDate);
+                /*var adminStatistic = new AdminStatisticResponseModel();
+                var customerStatistic = new CustomerStatistic();
+                var customer = await _customerService.GetAll();
+                customerStatistic.NumberOfNewCustomersToday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.Date);
+                customerStatistic.NumberOfNewCustomersYesterday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.AddDays(-1).Date);
+                adminStatistic.CustomerStatistic = customerStatistic;*/
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = managerStatistic
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
         }
 
     }
