@@ -249,6 +249,8 @@ namespace Washouse.Web
             services.AddTransient<ITransactionService, TransactionService>();
             services.AddTransient<INotificationAccountRepository, NotificationAccountRepository>();
             services.AddTransient<INotificationAccountService, NotificationAccountService>();
+            services.AddTransient<IStatisticService, StatisticService>();
+            services.AddTransient<IStatisticRepository, StatisticRepository>();
             services.AddStackExchangeRedisCache(options => { options.Configuration = Configuration["RedisCacheUrl"]; });
         }
 

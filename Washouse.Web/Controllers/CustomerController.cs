@@ -39,9 +39,9 @@ namespace Washouse.Web.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public IActionResult GetCustomerList()
+        public async Task<IActionResult> GetCustomerList()
         {
-            var customer = _customerService.GetAll();
+            var customer = await _customerService.GetAll();
             if (customer == null) { return NotFound(); }
             return Ok(new ResponseModel
             {

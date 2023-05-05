@@ -13,7 +13,7 @@ namespace Washouse.Service.Interface
 
         public Task Update(Customer customer);
 
-        IEnumerable<Customer> GetAll();
+        Task<IEnumerable<Customer>> GetAll();
 
         public Task<Customer> GetById(int id);
 

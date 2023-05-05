@@ -36,9 +36,9 @@ namespace Washouse.Service.Implement
             await _customerRepository.DeactivateCustomer(id);   
         }
 
-        public IEnumerable<Customer> GetAll()
+        public async Task<IEnumerable<Customer>> GetAll()
         {
-            return _customerRepository.Get();
+            return await _customerRepository.GetAll();
         }
 
         public async Task<Customer> GetById(int id)

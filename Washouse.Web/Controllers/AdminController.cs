@@ -11,6 +11,7 @@ using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
 using Washouse.Model.ResponseModels.AdminResponseModel;
 using Washouse.Model.ViewModel;
+using Washouse.Service.Implement;
 using Washouse.Service.Interface;
 using Washouse.Web.Models;
 
@@ -36,6 +37,8 @@ namespace Washouse.Web.Controllers
         private readonly IPostService _postService;
         private readonly IServiceCategoryService _serviceCategoryService;
         private readonly IOrderDetailService _orderDetailService;
+        private readonly IStatisticService _statisticService;
+        private readonly ICustomerService _customerService;
 
         public AdminController(ICenterService centerService, ICloudStorageService cloudStorageService,
             IAccountService accountService,
@@ -43,7 +46,7 @@ namespace Washouse.Web.Controllers
             IOperatingHourService operatingHourService, IServiceService serviceService,
             IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
             IPostService postService, IServiceCategoryService serviceCategoryService,
-            IOrderDetailService orderDetailService)
+            IOrderDetailService orderDetailService, IStatisticService statisticService, ICustomerService customerService)
         {
             _centerService = centerService;
             _accountService = accountService;
@@ -58,6 +61,8 @@ namespace Washouse.Web.Controllers
             _feedbackService = feedbackService;
             _postService = postService;
             _orderDetailService = orderDetailService;
+            _statisticService = statisticService;
+            _customerService = customerService;
         }
 
         #endregion
@@ -674,6 +679,37 @@ namespace Washouse.Web.Controllers
                         }
                     });
                 }
+            }
+        }
+
+        [HttpGet("statistics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAdminStatistics(string fromDate, string toDate)
+        {
+            try
+            {
+                var adminStatistic = await _statisticService.GetAdminStatistic(fromDate, toDate);
+                /*var adminStatistic = new AdminStatisticResponseModel();
+                var customerStatistic = new CustomerStatistic();
+                var customer = await _customerService.GetAll();
+                customerStatistic.NumberOfNewCustomersToday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.Date);
+                customerStatistic.NumberOfNewCustomersYesterday = customer.Count(cus => cus.CreatedDate.Value.Date == DateTime.Now.AddDays(-1).Date);
+                adminStatistic.CustomerStatistic = customerStatistic;*/
+                return Ok(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "success",
+                    Data = adminStatistic
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = ex.Message,
+                    Data = null
+                });
             }
         }
     }
