@@ -976,7 +976,8 @@ namespace Washouse.Web.Controllers
                         UseTimes = Input.UseTimes,
                         CenterId = int.Parse(User.FindFirst("CenterManaged")?.Value),
                         CreatedBy = User.FindFirst(ClaimTypes.Email)?.Value,
-                        CreatedDate = DateTime.Now
+                        CreatedDate = DateTime.Now,
+                        Status = true
                     };
                     await _promotionService.Add(promotion);
                     return Ok(new ResponseModel
