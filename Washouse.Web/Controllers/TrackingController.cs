@@ -154,6 +154,7 @@ namespace Washouse.Web.Controllers
                 notification.Title = "Thông báo về đơn hàng:  " + order.Id;
                 notification.Content = "Trạng thái của đơn hàng " + order.Id + " đã được cập nhật.";
                 await _notificationService.Add(notification);
+                await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
 
                 if (order.Customer.AccountId != null)
                 {
@@ -162,7 +163,6 @@ namespace Washouse.Web.Controllers
                     notificationAccount.AccountId = (int)order.Customer.AccountId;
                     notificationAccount.NotificationId = notification.Id;
                     await _notificationAccountService.Add(notificationAccount);
-                    await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
                 }
 
                 var staffs = _staffService.GetAllByCenterId((int)staff.CenterId);
@@ -173,7 +173,7 @@ namespace Washouse.Web.Controllers
                         notificationAccount.AccountId = staffItem.AccountId;
                         notificationAccount.NotificationId = notification.Id;
                         await _notificationAccountService.Add(notificationAccount);
-                        await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
+                        //await messageHub.Clients.All.SendAsync("UpdateOrderStatus", notification);
                     }
                 }
                 return Ok(new ResponseModel

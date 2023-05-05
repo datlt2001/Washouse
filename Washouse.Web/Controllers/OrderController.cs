@@ -544,6 +544,7 @@ namespace Washouse.Web.Controllers
                     notification.Content = "Đơn hàng " + orderAdded.Id + " đã được tạo và đang chờ trung tâm xác nhận.";
                     await _notificationService.Add(notification);
                     //await _messageHub.Clients.All.NotifyToUser("NotificationAdded");
+                    await _messageHub.Clients.All.SendAsync("CreateOrder", notification);
                     if (id != null)
                     {
                         //var cusinfo = _customerService.GetById(orderAdded.CustomerId);
@@ -554,7 +555,6 @@ namespace Washouse.Web.Controllers
                         //await _messageHub.Clients.User(id).ReceiveNotification(notification.Content);
                         //await _messageHub.Clients.User(id).SendNotification(notificationAccount.AccountId, "NotificationAdded");
                         //await _messageHub(notificationAccount.AccountId, "NotificationAdded");
-                        await _messageHub.Clients.All.SendAsync("CreateOrder", notification);
                     }
 
                     var staff = _staffService.GetAllByCenterId(createOrderRequestModel.CenterId);
@@ -567,7 +567,7 @@ namespace Washouse.Web.Controllers
                             await _notificationAccountService.Add(notificationAccount);
                             //await _messageHub.Clients.User(staffItem.AccountId.ToString()).ReceiveNotification(notification.Content);
                             //await _messageHub.Clients.User(staffItem.AccountId.ToString()).SendNotification(notificationAccount.AccountId, "NotificationAdded");
-                            await _messageHub.Clients.All.SendAsync("CreateOrder", notification);
+                            //await _messageHub.Clients.All.SendAsync("CreateOrder", notification);
                         }
                     }
 
