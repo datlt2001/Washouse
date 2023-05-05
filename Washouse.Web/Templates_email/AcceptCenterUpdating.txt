@@ -2,7 +2,7 @@
     Xin chào bạn {recipient},
     <br>
     <br>
-    Xin chúc mừng, trung tâm của bạn đã được duyệt. Giờ đây trung tâm {center} của bạn đã có thể hoạt động.
+    Xin chúc mừng, trung tâm của bạn đã được duyệt. Giờ đây trung tâm {center} của bạn đã có thông tin mới nhất.
     <br>  
     <br>
     Trân trọng,

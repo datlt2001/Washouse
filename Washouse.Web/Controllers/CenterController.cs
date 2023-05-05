@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Washouse.Common.Helpers;
+using Washouse.Common.Mails;
 using Washouse.Model.Models;
 using Washouse.Model.RequestModels;
 using Washouse.Model.ResponseModels;
@@ -44,12 +45,14 @@ namespace Washouse.Web.Controllers
         private readonly ICenterRequestService _centerRequestService;
         private readonly IFeedbackService _feedbackService;
         private readonly IPromotionService _promotionService;
+        private ISendMailService _sendMailService;
+        private readonly IAccountService _accountService;
 
         public CenterController(ICenterService centerService, ICloudStorageService cloudStorageService,
             ILocationService locationService, IWardService wardService,
             IOperatingHourService operatingHourService, IServiceService serviceService,
             IStaffService staffService, ICenterRequestService centerRequestService, IFeedbackService feedbackService,
-            IPromotionService promotionService)
+            IPromotionService promotionService, ISendMailService sendMailService, IAccountService accountService)
         {
             this._centerService = centerService;
             this._locationService = locationService;
@@ -61,6 +64,8 @@ namespace Washouse.Web.Controllers
             this._centerRequestService = centerRequestService;
             this._feedbackService = feedbackService;
             this._promotionService = promotionService;
+            this._sendMailService = sendMailService;
+            _accountService = accountService;
         }
 
         #endregion
@@ -1000,7 +1005,15 @@ namespace Washouse.Web.Controllers
                     /*CenterDeliveryRequestModel centerDelivery =
                         JsonConvert.DeserializeObject<CenterDeliveryRequestModel>(createCenterRequestModel
                             .CenterDelivery.ToJson());*/
+
+                    string path = "./Templates_email/RequestCenter.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{center}", center.CenterName);
+                    var acc = await _accountService.GetByIdLightWeight(currentUserId);
+                    content = content.Replace("{manager}", acc.FullName);
                     
+                    await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Tạo trung tâm mới", content);
+
 
                     return Ok(new ResponseModel
                     {
@@ -1311,6 +1324,14 @@ namespace Washouse.Web.Controllers
                     centerRequesting.Status = "Updating";
                     // Update
                     await _centerService.Update(centerRequesting);
+
+                    string path = "./Templates_email/RequestCenterUpdating.txt";
+                    string content = System.IO.File.ReadAllText(path);
+                    content = content.Replace("{center}", center.CenterName);
+                    var acc = _accountService.GetAccountByEmail(User.FindFirst(ClaimTypes.Email)?.Value);
+                    content = content.Replace("{manager}", acc.FullName);
+
+                    await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Cập nhật trung tâm", content);
 
                     return Ok(new ResponseModel
                     {

@@ -2,7 +2,7 @@
     Xin chào Washouse Express Laundry Platform,
     <br>
     <br>
-    Trung tâm {center} đã được {manager} tạo và đang đợi bạn phê duyệt.
+    Trung tâm {center} đã được {manager} cập nhật và đang đợi bạn phê duyệt.
     <br>    
     <br>
     Trân trọng.

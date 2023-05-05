@@ -187,7 +187,7 @@ namespace Washouse.Web.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateCategory([FromForm] CategoryRequestModel category, int id)
+        public async Task<IActionResult> UpdateCategory([FromBody] CategoryRequestModel category, int id)
         {
             try
             {
