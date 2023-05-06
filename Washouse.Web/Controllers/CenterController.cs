@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
 using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol;
@@ -965,6 +966,7 @@ namespace Washouse.Web.Controllers
                             .CenterOperatingHours.ToJson());
                     foreach (var item in operatings)
                     {
+                        if (item.OpenTime != null || item.CloseTime != null) {
                         var operatingTime = new OperatingHour();
                         operatingTime.CenterId = center.Id;
                         operatingTime.DaysOfWeekId = item.Day;
@@ -978,6 +980,7 @@ namespace Washouse.Web.Controllers
                         operatingTime.UpdatedBy = null;
 
                         await _operatingHourService.Add(operatingTime);
+                        }
                     }
 
                     //Add Resources
@@ -1006,13 +1009,13 @@ namespace Washouse.Web.Controllers
                         JsonConvert.DeserializeObject<CenterDeliveryRequestModel>(createCenterRequestModel
                             .CenterDelivery.ToJson());*/
 
-                    string path = "./Templates_email/RequestCenter.txt";
-                    string content = System.IO.File.ReadAllText(path);
-                    content = content.Replace("{center}", center.CenterName);
-                    var acc = await _accountService.GetByIdLightWeight(currentUserId);
-                    content = content.Replace("{manager}", acc.FullName);
+                    //string path = "./Templates_email/RequestCenter.txt";
+                    //string content = System.IO.File.ReadAllText(path);
+                    //content = content.Replace("{center}", center.CenterName);
+                    //var acc = await _accountService.GetByIdLightWeight(currentUserId);
+                    //content = content.Replace("{manager}", acc.FullName);
                     
-                    await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Tạo trung tâm mới", content);
+                    //await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Tạo trung tâm mới", content);
 
 
                     return Ok(new ResponseModel
@@ -1325,13 +1328,13 @@ namespace Washouse.Web.Controllers
                     // Update
                     await _centerService.Update(centerRequesting);
 
-                    string path = "./Templates_email/RequestCenterUpdating.txt";
-                    string content = System.IO.File.ReadAllText(path);
-                    content = content.Replace("{center}", center.CenterName);
-                    var acc = _accountService.GetAccountByEmail(User.FindFirst(ClaimTypes.Email)?.Value);
-                    content = content.Replace("{manager}", acc.FullName);
+                    //string path = "./Templates_email/RequestCenterUpdating.txt";
+                    //string content = System.IO.File.ReadAllText(path);
+                    //content = content.Replace("{center}", center.CenterName);
+                    //var acc = _accountService.GetAccountByEmail(User.FindFirst(ClaimTypes.Email)?.Value);
+                    //content = content.Replace("{manager}", acc.FullName);
 
-                    await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Cập nhật trung tâm", content);
+                    //await _sendMailService.SendEmailAsync("thanhdat3001@gmail.com", "Cập nhật trung tâm", content);
 
                     return Ok(new ResponseModel
                     {
