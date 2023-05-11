@@ -2130,6 +2130,16 @@ namespace Washouse.Web.Controllers
                     }
 
                     response.OrderDeliveries = OrderDeliveries;
+                    var locationCenter = await _locationService.GetByIdIncludeWardDistrict(center.LocationId);
+                    var CenterResponse = new CenterOfOrderModel()
+                    {
+                        CenterId = center.Id,
+                        CenterName = center.CenterName,
+                        CenterAddress = locationCenter.AddressString + ", " + locationCenter.Ward.WardName +
+                                            ", " + locationCenter.Ward.District.DistrictName,
+                        CenterPhone = center.Phone,
+                    };
+                    response.Center = CenterResponse;
                     return Ok(new ResponseModel
                     {
                         StatusCode = StatusCodes.Status200OK,
