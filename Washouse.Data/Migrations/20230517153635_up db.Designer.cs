@@ -12,8 +12,8 @@ using Washouse.Data;
 namespace Washouse.Data.Migrations
 {
     [DbContext(typeof(WashouseDbContext))]
-    [Migration("20230423074224_update customer phone")]
-    partial class updatecustomerphone
+    [Migration("20230517153635_up db")]
+    partial class updb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -316,7 +316,6 @@ namespace Washouse.Data.Migrations
                         .IsFixedLength();
 
                     b.Property<string>("TaxRegistrationImage")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .IsUnicode(false)
                         .HasColumnType("varchar(256)");
@@ -412,6 +411,9 @@ namespace Washouse.Data.Migrations
                     b.Property<bool>("HasDelivery")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("HasOnlinePayment")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("HotFlag")
                         .HasColumnType("bit");
 
@@ -464,7 +466,6 @@ namespace Washouse.Data.Migrations
                         .IsFixedLength();
 
                     b.Property<string>("TaxRegistrationImage")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .IsUnicode(false)
                         .HasColumnType("varchar(256)");
@@ -1161,11 +1162,15 @@ namespace Washouse.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Content")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Status")
                         .IsRequired()

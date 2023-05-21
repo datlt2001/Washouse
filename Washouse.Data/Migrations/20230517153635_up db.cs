@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Washouse.Data.Migrations
 {
-    public partial class updateDb1304 : Migration
+    public partial class updb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -144,9 +144,9 @@ namespace Washouse.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
+                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: true),
                     Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     WalletId = table.Column<int>(type: "int", nullable: true),
                     FullName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Gender = table.Column<int>(type: "int", nullable: true),
@@ -194,12 +194,13 @@ namespace Washouse.Data.Migrations
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     TaxCode = table.Column<string>(type: "char(30)", unicode: false, fixedLength: true, maxLength: 30, nullable: false),
-                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: false),
+                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
                     HasDelivery = table.Column<bool>(type: "bit", nullable: false),
                     HasOnlinePayment = table.Column<bool>(type: "bit", nullable: false),
+                    LastDeactivate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -230,7 +231,7 @@ namespace Washouse.Data.Migrations
                     AccountId = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<bool>(type: "bit", nullable: false),
                     Fullname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: false),
+                    Phone = table.Column<string>(type: "char(10)", unicode: false, fixedLength: true, maxLength: 10, nullable: true),
                     Address = table.Column<int>(type: "int", nullable: true),
                     Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -262,7 +263,8 @@ namespace Washouse.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Thumbnail = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
-                    Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AuthorId = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     UpdateDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -371,11 +373,13 @@ namespace Washouse.Data.Migrations
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     Image = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     TaxCode = table.Column<string>(type: "char(30)", unicode: false, fixedLength: true, maxLength: 30, nullable: false),
-                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: false),
+                    TaxRegistrationImage = table.Column<string>(type: "varchar(256)", unicode: false, maxLength: 256, nullable: true),
                     HotFlag = table.Column<bool>(type: "bit", nullable: true),
                     Rating = table.Column<decimal>(type: "decimal(2,1)", nullable: true),
                     NumOfRating = table.Column<int>(type: "int", nullable: false),
                     HasDelivery = table.Column<bool>(type: "bit", nullable: false),
+                    HasOnlinePayment = table.Column<bool>(type: "bit", nullable: false),
+                    LastDeactivate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -458,6 +462,7 @@ namespace Washouse.Data.Migrations
                     ExpireDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     CreatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    Status = table.Column<bool>(type: "bit", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
                     UpdatedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     UseTimes = table.Column<int>(type: "int", nullable: true),
@@ -598,6 +603,7 @@ namespace Washouse.Data.Migrations
                     PreferredDropoffTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     PreferredDeliverTime = table.Column<DateTime>(type: "datetime", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsFeedback = table.Column<bool>(type: "bit", nullable: false),
                     CancelReasonByStaff = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CancelReasonByCustomer = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
@@ -935,7 +941,8 @@ namespace Washouse.Data.Migrations
                 name: "IX_Accounts",
                 table: "Accounts",
                 column: "Phone",
-                unique: true);
+                unique: true,
+                filter: "[Phone] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_Email",
